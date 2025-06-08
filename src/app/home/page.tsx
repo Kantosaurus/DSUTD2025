@@ -27,7 +27,7 @@ function getMonthMatrix(year: number, month: number) {
   const lastDay = new Date(year, month + 1, 0);
   const matrix = [];
   let week = [];
-  let dayOfWeek = (firstDay.getDay() + 6) % 7; // Monday start
+  const dayOfWeek = (firstDay.getDay() + 6) % 7; // Monday start
   for (let i = 0; i < dayOfWeek; i++) week.push(null);
   for (let d = 1; d <= lastDay.getDate(); d++) {
     week.push(new Date(year, month, d));
@@ -282,7 +282,7 @@ export default function HomePage() {
       {/* Today's Events Section */}
       <section id="todays-events" className="w-full px-2 md:px-6 py-12 snap-start">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-6">Today's Events</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-6">Today&apos;s Events</h2>
           <TodaysEvents />
         </div>
       </section>

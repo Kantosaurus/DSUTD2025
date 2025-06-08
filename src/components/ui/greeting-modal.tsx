@@ -5,11 +5,10 @@ import { IconCheck } from "@tabler/icons-react";
 
 interface GreetingModalProps {
   isOpen: boolean;
-  onClose: () => void;
   username: string;
 }
 
-export const GreetingModal = ({ isOpen, onClose, username }: GreetingModalProps) => {
+export const GreetingModal = ({ isOpen, username }: GreetingModalProps) => {
   return (
     <AnimatePresence>
       {isOpen && (
