@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { IconX, IconEye, IconEyeOff, IconCheck, IconAlertCircle } from "@tabler/icons-react";
+import { IconX, IconEye, IconEyeOff } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
 interface SignupModalProps {

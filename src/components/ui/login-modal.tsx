@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { IconX, IconEye, IconEyeOff } from "@tabler/icons-react";
-import { cn } from "@/lib/utils";
 import { ForgotPasswordModal } from "./forgot-password-modal";
 
 interface LoginModalProps {
@@ -144,7 +143,7 @@ export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) 
 
                 <div className="text-center">
                   <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                    Don't have an account?{" "}
+                    Don&apos;t have an account?{" "}
                     <button
                       type="button"
                       onClick={() => {

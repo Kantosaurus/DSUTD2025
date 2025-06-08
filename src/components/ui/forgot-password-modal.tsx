@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { IconX, IconCheck } from "@tabler/icons-react";
-import { cn } from "@/lib/utils";
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;
@@ -98,7 +97,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProp
                       <IconCheck className="text-green-600 dark:text-green-400" size={20} />
                     </div>
                     <p className="text-sm text-green-800 dark:text-green-200">
-                      Check your email for further instructions. If you don't see it, please check your spam folder.
+                      Check your email for further instructions. If you don&apos;t see it, please check your spam folder.
                     </p>
                   </div>
                 </div>
