@@ -1,103 +1,145 @@
+"use client";
 import Image from "next/image";
+import {
+  Navbar,
+  NavBody,
+  NavItems,
+  MobileNav,
+  MobileNavHeader,
+  MobileNavMenu,
+  MobileNavToggle,
+  NavbarLogo,
+  NavbarButton,
+} from "@/components/ui/resizable-navbar";
+import { FlipWords } from "@/components/ui/flip-words";
+import { HeroParallax } from "@/components/ui/hero-parallax";
+import { useState } from "react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navItems = [
+    { name: "Home", link: "#" },
+    { name: "About", link: "#about" },
+    { name: "Services", link: "#services" },
+    { name: "Contact", link: "#contact" },
+  ];
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const flipWords = ["SUTD", "Programmes", "Fifth Rows", "Pillars"];
+
+  const products = [
+    {
+      title: "Architecture and Sustainable Design",
+      link: "#asd",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/moonbeam.png",
+    },
+    {
+      title: "Engineering Product Development",
+      link: "#epd",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/cursor.png",
+    },
+    {
+      title: "Engineering Systems and Design",
+      link: "#esd",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/rogue.png",
+    },
+    {
+      title: "Information Systems Technology and Design",
+      link: "#istd",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/editorially.png",
+    },
+    {
+      title: "Computer Science and Design",
+      link: "#csd",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/editrix.png",
+    },
+    {
+      title: "Design Innovation",
+      link: "#di",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/pixelperfect.png",
+    },
+    {
+      title: "Artificial Intelligence",
+      link: "#ai",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/algochurn.png",
+    },
+    {
+      title: "Digital Manufacturing",
+      link: "#dm",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/aceternityui.png",
+    },
+    {
+      title: "Urban Science",
+      link: "#us",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/tailwindmasterkit.png",
+    },
+    {
+      title: "Engineering Systems",
+      link: "#es",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/smartbridge.png",
+    },
+    {
+      title: "Information Systems",
+      link: "#is",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/renderwork.png",
+    },
+    {
+      title: "Computer Science",
+      link: "#cs",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/cremedigital.png",
+    },
+    {
+      title: "Design",
+      link: "#design",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/goldenbellsacademy.png",
+    },
+    {
+      title: "Technology",
+      link: "#tech",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/invoker.png",
+    },
+    {
+      title: "Innovation",
+      link: "#innovation",
+      thumbnail: "https://aceternity.com/images/products/thumbnails/new/efreeinvoice.png",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black">
+      <Navbar>
+        <NavBody>
+          <NavbarLogo />
+          <NavItems items={navItems} />
+          <NavbarButton variant="primary">Get Started</NavbarButton>
+        </NavBody>
+        <MobileNav>
+          <MobileNavHeader>
+            <NavbarLogo />
+            <MobileNavToggle 
+              isOpen={isMobileMenuOpen} 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </MobileNavHeader>
+          <MobileNavMenu 
+            isOpen={isMobileMenuOpen} 
+            onClose={() => setIsMobileMenuOpen(false)}
           >
-            Read our docs
-          </a>
-        </div>
+            {navItems.map((item, idx) => (
+              <a
+                key={idx}
+                href={item.link}
+                className="text-sm font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {item.name}
+              </a>
+            ))}
+          </MobileNavMenu>
+        </MobileNav>
+      </Navbar>
+      <main>
+        <HeroParallax products={products} />
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
