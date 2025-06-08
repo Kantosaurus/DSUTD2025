@@ -190,7 +190,6 @@ export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) 
       />
       <GreetingModal
         isOpen={showGreeting}
-        onClose={() => {}} // Empty function since we're auto-redirecting
         username={username}
       />
     </>
