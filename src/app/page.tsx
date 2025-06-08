@@ -11,7 +11,6 @@ import {
   NavbarLogo,
   NavbarButton,
 } from "@/components/ui/resizable-navbar";
-import { FlipWords } from "@/components/ui/flip-words";
 import { HeroParallax } from "@/components/ui/hero-parallax";
 import { useState } from "react";
 
