@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { IconX, IconEye, IconEyeOff } from "@tabler/icons-react";
 import { ForgotPasswordModal } from "./forgot-password-modal";
+import { GreetingModal } from "./greeting-modal";
+import { useRouter } from "next/navigation";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ interface LoginModalProps {
 }
 
 export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) => {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     identifier: "", // can be email or name
     password: "",
@@ -19,6 +22,8 @@ export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) 
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showGreeting, setShowGreeting] = useState(false);
+  const [username, setUsername] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +32,25 @@ export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) 
     await new Promise(resolve => setTimeout(resolve, 1000));
     console.log(formData);
     setIsSubmitting(false);
+    
+    // Extract username from identifier (in a real app, this would come from the API response)
+    const displayName = formData.identifier.split('@')[0];
+    setUsername(displayName);
+    setShowGreeting(true);
   };
+
+  // Automatically redirect to home after showing greeting for 2 seconds
+  useEffect(() => {
+    if (showGreeting) {
+      const timer = setTimeout(() => {
+        setShowGreeting(false);
+        onClose();
+        router.push('/home');
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [showGreeting, onClose, router]);
 
   return (
     <>
@@ -164,6 +187,11 @@ export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) 
       <ForgotPasswordModal 
         isOpen={isForgotPasswordOpen} 
         onClose={() => setIsForgotPasswordOpen(false)} 
+      />
+      <GreetingModal
+        isOpen={showGreeting}
+        onClose={() => {}} // Empty function since we're auto-redirecting
+        username={username}
       />
     </>
   );

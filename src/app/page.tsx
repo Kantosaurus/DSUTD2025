@@ -20,7 +20,6 @@ export default function Home() {
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const navItems = [
-    { name: "Home", link: "#" },
     { name: "Meet the team", link: "#team" },
   ];
 

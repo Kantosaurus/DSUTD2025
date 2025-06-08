@@ -1,0 +1,32 @@
+[
+  {
+    "date": "2025-06-01",
+    "title": "SUTD Open House",
+    "type": "event"
+  },
+  {
+    "date": "2025-06-05",
+    "title": "Tech Symposium 2025",
+    "type": "event"
+  },
+  {
+    "date": "2025-06-12",
+    "title": "SUTD Basketball Tournament",
+    "type": "event"
+  },
+  {
+    "date": "2025-06-18",
+    "title": "Design Week Exhibition",
+    "type": "event"
+  },
+  {
+    "date": "2025-06-22",
+    "title": "SUTD Hackathon",
+    "type": "event"
+  },
+  {
+    "date": "2025-06-28",
+    "title": "Graduation Ceremony",
+    "type": "event"
+  }
+]
