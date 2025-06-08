@@ -247,14 +247,12 @@ export const NavbarLogo = () => {
 };
 
 export const NavbarButton = ({
-  href,
-  as: Tag = "a",
   children,
   className,
   variant = "primary",
+  as: Tag = "a",
   ...props
 }: {
-  href?: string;
   as?: React.ElementType;
   children: React.ReactNode;
   className?: string;

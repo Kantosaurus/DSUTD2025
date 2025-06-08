@@ -1,5 +1,4 @@
 "use client";
-import Image from "next/image";
 import {
   Navbar,
   NavBody,
@@ -22,8 +21,6 @@ export default function Home() {
     { name: "Services", link: "#services" },
     { name: "Contact", link: "#contact" },
   ];
-
-  const flipWords = ["SUTD", "Programmes", "Fifth Rows", "Pillars"];
 
   const products = [
     {

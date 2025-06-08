@@ -8,7 +8,6 @@ import {
   MotionValue,
 } from "motion/react";
 import { FlipWords } from "@/components/ui/flip-words";
-import { NavbarButton } from "@/components/ui/resizable-navbar";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
