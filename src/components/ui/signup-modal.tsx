@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { IconX, IconEye, IconEyeOff } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -57,14 +58,26 @@ export const SignupModal = ({ isOpen, onClose, onLoginClick }: SignupModalProps)
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log(formData);
-    setIsSubmitting(false);
+
+    try {
+      await signUp(formData.email, formData.password);
+      onClose();
+    } catch (error: any) {
+      if (error.message === 'Email already registered') {
+        setError('This email is already registered. Please use a different email or try logging in.');
+      } else {
+        setError(error.message || "An error occurred during sign up");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -207,6 +220,10 @@ export const SignupModal = ({ isOpen, onClose, onLoginClick }: SignupModalProps)
                   </label>
                 </div>
               </div>
+
+              {error && (
+                <div className="text-red-500 text-sm">{error}</div>
+              )}
 
               <button
                 type="submit"

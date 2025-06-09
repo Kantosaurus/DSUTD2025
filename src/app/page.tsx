@@ -1,4 +1,8 @@
 "use client";
+import { useState } from "react";
+import { motion } from "motion/react";
+import { Highlight } from "@/components/ui/hero-highlight";
+import { PointerHighlight } from "@/components/ui/pointer-highlight";
 import {
   Navbar,
   NavBody,
@@ -11,16 +15,16 @@ import {
   NavbarButton,
 } from "@/components/ui/resizable-navbar";
 import { HeroParallax } from "@/components/ui/hero-parallax";
-import { useState } from "react";
-import { SignupModal } from "@/components/ui/signup-modal";
 import { LoginModal } from "@/components/ui/login-modal";
+import { SignupModal } from "@/components/ui/signup-modal";
 
-export default function Home() {
+export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
+
   const navItems = [
-    { name: "Meet the team", link: "#team" },
+    { name: "Meet the team", link: "/about" },
   ];
 
   const products = [
@@ -107,48 +111,72 @@ export default function Home() {
         <NavBody>
           <NavbarLogo />
           <NavItems items={navItems} />
-          <div className="flex gap-2">
-            <NavbarButton variant="secondary" onClick={() => setIsLoginModalOpen(true)}>Login</NavbarButton>
-            <NavbarButton variant="primary" onClick={() => setIsSignupModalOpen(true)}>Join us!</NavbarButton>
+          <div className="flex items-center gap-4">
+            <NavbarButton onClick={() => setIsLoginModalOpen(true)}>
+              Sign In
+            </NavbarButton>
+            <NavbarButton
+              onClick={() => setIsSignupModalOpen(true)}
+              className="bg-[#800000] text-white hover:bg-[#a83232]"
+            >
+              Sign Up
+            </NavbarButton>
           </div>
         </NavBody>
-        <MobileNav>
-          <MobileNavHeader>
-            <NavbarLogo />
-            <MobileNavToggle 
-              isOpen={isMobileMenuOpen} 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-            />
-          </MobileNavHeader>
-          <MobileNavMenu 
-            isOpen={isMobileMenuOpen} 
-            onClose={() => setIsMobileMenuOpen(false)}
-          >
-            {navItems.map((item, idx) => (
-              <a
-                key={idx}
-                href={item.link}
-                className="text-sm font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {item.name}
-              </a>
-            ))}
-          </MobileNavMenu>
-        </MobileNav>
       </Navbar>
+
+      <MobileNav>
+        <MobileNavHeader>
+          <NavbarLogo />
+          <MobileNavToggle
+            isOpen={isMobileMenuOpen}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          />
+        </MobileNavHeader>
+        <MobileNavMenu 
+          isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
+        >
+          {navItems.map((item) => (
+            <a
+              key={item.name}
+              href={item.link}
+              className="block px-4 py-2 text-neutral-600 hover:text-neutral-900"
+            >
+              {item.name}
+            </a>
+          ))}
+          <div className="px-4 py-2 space-y-2">
+            <button
+              onClick={() => setIsLoginModalOpen(true)}
+              className="w-full px-4 py-2 text-neutral-600 hover:text-neutral-900"
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => setIsSignupModalOpen(true)}
+              className="w-full px-4 py-2 bg-[#800000] text-white rounded-lg hover:bg-[#a83232]"
+            >
+              Sign Up
+            </button>
+          </div>
+        </MobileNavMenu>
+      </MobileNav>
+
       <main>
         <HeroParallax products={products} />
       </main>
-      <SignupModal 
-        isOpen={isSignupModalOpen} 
-        onClose={() => setIsSignupModalOpen(false)} 
-        onLoginClick={() => setIsLoginModalOpen(true)}
-      />
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)} 
+
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
         onSignupClick={() => setIsSignupModalOpen(true)}
+      />
+
+      <SignupModal
+        isOpen={isSignupModalOpen}
+        onClose={() => setIsSignupModalOpen(false)}
+        onLoginClick={() => setIsLoginModalOpen(true)}
       />
     </div>
   );

@@ -6,6 +6,7 @@ import { IconX, IconEye, IconEyeOff } from "@tabler/icons-react";
 import { ForgotPasswordModal } from "./forgot-password-modal";
 import { GreetingModal } from "./greeting-modal";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -24,19 +25,29 @@ export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showGreeting, setShowGreeting] = useState(false);
   const [username, setUsername] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log(formData);
-    setIsSubmitting(false);
-    
-    // Extract username from identifier (in a real app, this would come from the API response)
-    const displayName = formData.identifier.split('@')[0];
-    setUsername(displayName);
-    setShowGreeting(true);
+    setError(null);
+
+    try {
+      const { error } = await signIn(formData.identifier, formData.password);
+      if (error) {
+        setError(error.message);
+      } else {
+        // Extract username from identifier (in a real app, this would come from the API response)
+        const displayName = formData.identifier.split('@')[0];
+        setUsername(displayName);
+        setShowGreeting(true);
+      }
+    } catch (err) {
+      setError("An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Automatically redirect to home after showing greeting for 2 seconds
@@ -125,6 +136,10 @@ export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) 
                     </button>
                   </div>
                 </div>
+
+                {error && (
+                  <div className="text-red-500 text-sm">{error}</div>
+                )}
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">

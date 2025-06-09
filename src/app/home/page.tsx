@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useState, useRef, useLayoutEffect } from "react";
+import { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { AnimatePresence } from "motion/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { Highlight } from "@/components/ui/hero-highlight";
@@ -18,19 +18,7 @@ import {
   NavbarButton,
 } from "@/components/ui/resizable-navbar";
 import { AvatarDropdown } from "@/components/ui/avatar-dropdown";
-
-const EVENTS = [
-  // Example events for June 2025
-  { date: "2025-06-09", title: "SC09 Modelling Uncertainty", type: "class" },
-  { date: "2025-06-09", title: "5 more", type: "more" },
-  { date: "2025-06-10", title: "SC04 Sci and Tech for Health", type: "class" },
-  { date: "2025-06-11", title: "SUTD Ultimate", type: "recurring" },
-  { date: "2025-06-15", title: "Father's Day", type: "special" },
-  { date: "2025-06-24", title: "5th Row Records", type: "event" },
-  { date: "2025-06-30", title: "Singapore Armed Forces Day", type: "special" },
-  { date: "2025-06-30", title: "SUTD Chess Club", type: "event" },
-  // Add more events as needed
-];
+import { Event, getEventsByDate } from "@/lib/supabase";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -56,16 +44,8 @@ function getMonthMatrix(year: number, month: number) {
   return matrix;
 }
 
-function getEventsForDate(dateStr: string) {
-  return EVENTS.filter((e) => e.date === dateStr);
-}
-
-// Format a date as YYYY-MM-DD in local time
-function formatDateLocal(date: Date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+function formatDateLocal(date: Date): string {
+  return date.toISOString().split('T')[0];
 }
 
 function Calendar() {
@@ -80,12 +60,33 @@ function Calendar() {
   const [cardOpen, setCardOpen] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
   const [calendarHeight, setCalendarHeight] = useState<number | undefined>(undefined);
+  const [events, setEvents] = useState<{ [key: string]: Event[] }>({});
 
   useLayoutEffect(() => {
     if (calendarRef.current) {
       setCalendarHeight(calendarRef.current.offsetHeight);
     }
   }, [cardOpen, currentMonth, currentYear]);
+
+  // Fetch events for the current month
+  useEffect(() => {
+    const fetchEvents = async () => {
+      const startDate = new Date(currentYear, currentMonth, 1);
+      const endDate = new Date(currentYear, currentMonth + 1, 0);
+      
+      const eventsMap: { [key: string]: Event[] } = {};
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = formatDateLocal(d);
+        const dayEvents = await getEventsByDate(dateStr);
+        if (dayEvents.length > 0) {
+          eventsMap[dateStr] = dayEvents;
+        }
+      }
+      setEvents(eventsMap);
+    };
+
+    fetchEvents();
+  }, [currentMonth, currentYear]);
 
   // Scroll to today if needed
   const scrollToToday = () => {
@@ -103,7 +104,7 @@ function Calendar() {
   const closeCard = () => setCardOpen(false);
 
   const selectedDateStr = selectedDay ? formatDateLocal(selectedDay) : "";
-  const selectedEvents = selectedDay ? getEventsForDate(selectedDateStr) : [];
+  const selectedEvents = selectedDay ? events[selectedDateStr] || [] : [];
 
   // Get today's date in YYYY-MM-DD format (local time)
   const todayStr = formatDateLocal(today);
@@ -171,7 +172,7 @@ function Calendar() {
           <div className="grid grid-cols-7 gap-2">
             {matrix.flat().map((date, idx) => {
               const dateStr = date ? formatDateLocal(date) : "";
-              const events = date ? getEventsForDate(dateStr) : [];
+              const dayEvents = date ? events[dateStr] || [] : [];
               const isSelected = selectedDay && date && dateStr === selectedDateStr;
               const isToday = date && dateStr === todayStr && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
               return (
@@ -197,9 +198,9 @@ function Calendar() {
                     </span>
                   )}
                   <div className="flex flex-col gap-1 flex-1">
-                    {events.slice(0, 3).map((event, i) => (
+                    {dayEvents.slice(0, 3).map((event, i) => (
                       <div
-                        key={i}
+                        key={event.id}
                         className={
                           "truncate px-2 py-1 rounded-lg shadow-sm text-xs font-medium cursor-pointer transition-all duration-150 " +
                           (event.type === "special"
@@ -215,9 +216,9 @@ function Calendar() {
                         {event.title}
                       </div>
                     ))}
-                    {events.length > 3 && (
+                    {dayEvents.length > 3 && (
                       <div className="text-xs text-neutral-500 mt-1 cursor-pointer hover:underline">
-                        +{events.length - 3} more
+                        +{dayEvents.length - 3} more
                       </div>
                     )}
                   </div>
@@ -248,9 +249,9 @@ function Calendar() {
               {selectedEvents.length === 0 && (
                 <div className="text-neutral-500 text-sm">No events for this day.</div>
               )}
-              {selectedEvents.map((event, i) => (
+              {selectedEvents.map((event) => (
                 <div
-                  key={i}
+                  key={event.id}
                   className={
                     "truncate px-3 py-2 rounded-lg text-sm font-medium " +
                     (event.type === "special"
@@ -460,7 +461,55 @@ export default function HomePage() {
 }
 
 function TodaysEvents() {
-  // TODO: Integrate with real events database/API
-  // For now, show a placeholder or empty state
-  return <div className="text-neutral-500 text-base">No events for today.</div>;
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTodayEvents = async () => {
+      setLoading(true);
+      const today = new Date();
+      const dateStr = formatDateLocal(today);
+      const todayEvents = await getEventsByDate(dateStr);
+      setEvents(todayEvents);
+      setLoading(false);
+    };
+
+    fetchTodayEvents();
+  }, []);
+
+  if (loading) {
+    return <div className="text-neutral-500 text-base">Loading events...</div>;
+  }
+
+  if (events.length === 0) {
+    return <div className="text-neutral-500 text-base">No events for today.</div>;
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {events.map((event) => (
+        <div
+          key={event.id}
+          className={
+            "p-4 rounded-lg shadow-sm " +
+            (event.type === "special"
+              ? "bg-green-100/80 text-green-900"
+              : event.type === "recurring"
+              ? "bg-purple-100/80 text-purple-900"
+              : event.type === "class"
+              ? "bg-blue-100/80 text-blue-900"
+              : "bg-neutral-100/80 text-neutral-800")
+          }
+        >
+          <h3 className="font-semibold mb-2">{event.title}</h3>
+          {event.description && (
+            <p className="text-sm mb-2">{event.description}</p>
+          )}
+          {event.location && (
+            <p className="text-sm text-neutral-600">{event.location}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 } 
