@@ -67,7 +67,7 @@ export const SignupModal = ({ isOpen, onClose, onLoginClick }: SignupModalProps)
     setIsSubmitting(true);
 
     try {
-      await signUp(formData.email, formData.password);
+      await signUp(formData.email, formData.password, formData.name);
       onClose();
     } catch (error: Error | unknown) {
       if (error instanceof Error && error.message === 'Email already registered') {

@@ -17,7 +17,7 @@ interface LoginModalProps {
 export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) => {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    identifier: "", // can be email or name
+    email: "",
     password: "",
   });
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
@@ -26,7 +26,7 @@ export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) 
   const [showGreeting, setShowGreeting] = useState(false);
   const [username, setUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { signIn } = useAuth();
+  const { signIn, profile } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,12 +34,12 @@ export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) 
     setError(null);
 
     try {
-      const { error } = await signIn(formData.identifier, formData.password);
+      const { error } = await signIn(formData.email, formData.password);
       if (error) {
         setError(error.message);
       } else {
-        // Extract username from identifier (in a real app, this would come from the API response)
-        const displayName = formData.identifier.split('@')[0];
+        // Use the profile name if available, otherwise fallback to email username
+        const displayName = profile?.name || formData.email.split('@')[0];
         setUsername(displayName);
         setShowGreeting(true);
       }
@@ -100,13 +100,13 @@ export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                    Email or Name
+                    Email
                   </label>
                   <input
-                    type="text"
-                    value={formData.identifier}
+                    type="email"
+                    value={formData.email}
                     onChange={(e) =>
-                      setFormData({ ...formData, identifier: e.target.value })
+                      setFormData({ ...formData, email: e.target.value })
                     }
                     className="w-full px-4 py-3 rounded-xl bg-white/50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#800000] dark:focus:ring-[#ffb3b3] transition-all duration-200"
                     required
