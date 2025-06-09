@@ -213,45 +213,46 @@ export function EventCards({ cards }: { cards: EventCard[] }) {
 
   // Dynamic grid layout for 1-10 events
   let gridClass = "grid gap-6";
-  let cardClassFn = (_i: number) => "";
+  let cardClassFn: (index: number) => string = () => "";
+
   if (cards.length === 1) {
     gridClass += " grid-cols-1 md:grid-cols-2";
-    cardClassFn = (_i) => "md:col-span-2 md:row-span-2";
+    cardClassFn = () => "md:col-span-2 md:row-span-2";
   } else if (cards.length === 2) {
     gridClass += " grid-cols-1 md:grid-cols-2";
-    cardClassFn = (_i) => "md:col-span-1 md:row-span-2";
+    cardClassFn = () => "md:col-span-1 md:row-span-2";
   } else if (cards.length === 3) {
     gridClass += " grid-cols-1 md:grid-cols-3 grid-rows-2";
-    cardClassFn = (i) =>
-      i === 0
+    cardClassFn = (index: number) =>
+      index === 0
         ? "md:col-span-2 md:row-span-2"
         : "md:col-span-1 md:row-span-1";
   } else if (cards.length === 4) {
     gridClass += " grid-cols-1 md:grid-cols-4 grid-rows-2";
-    cardClassFn = (i) =>
-      i === 0
+    cardClassFn = (index: number) =>
+      index === 0
         ? "md:col-span-2 md:row-span-2"
         : "md:col-span-1 md:row-span-1";
   } else if (cards.length === 5) {
     gridClass += " grid-cols-1 md:grid-cols-4 grid-rows-2";
-    cardClassFn = (i) =>
-      i === 0
+    cardClassFn = (index: number) =>
+      index === 0
         ? "md:col-span-2 md:row-span-2"
-        : i === 4
+        : index === 4
         ? "md:col-span-2 md:row-span-1"
         : "md:col-span-1 md:row-span-1";
   } else if (cards.length === 6) {
     gridClass += " grid-cols-1 md:grid-cols-4 grid-rows-3";
-    cardClassFn = (i) =>
-      i === 0
+    cardClassFn = (index: number) =>
+      index === 0
         ? "md:col-span-2 md:row-span-2"
-        : i === 5
+        : index === 5
         ? "md:col-span-4 md:row-span-1"
         : "md:col-span-1 md:row-span-1";
   } else {
     // 7-10 events: simple grid
     gridClass += " grid-cols-1 md:grid-cols-4";
-    cardClassFn = (_i) => "md:col-span-1 md:row-span-1";
+    cardClassFn = () => "md:col-span-1 md:row-span-1";
   }
 
   return (
