@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { IconX, IconEye, IconEyeOff } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -59,7 +60,8 @@ export const SignupModal = ({ isOpen, onClose, onLoginClick }: SignupModalProps)
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signUp } = useAuth();
+  const { signUp, signIn } = useAuth();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,8 +69,19 @@ export const SignupModal = ({ isOpen, onClose, onLoginClick }: SignupModalProps)
     setIsSubmitting(true);
 
     try {
-      await signUp(formData.email, formData.password, formData.name);
+      // Sign up the user
+      const { user, session } = await signUp(formData.email, formData.password, formData.name);
+      
+      if (!user || !session) {
+        throw new Error("Failed to create account");
+      }
+
+      // Automatically sign in after successful signup
+      const { error: signInError } = await signIn(formData.email, formData.password);
+      if (signInError) throw signInError;
+
       onClose();
+      router.push('/home');
     } catch (error: Error | unknown) {
       if (error instanceof Error && error.message === 'Email already registered') {
         setError('This email is already registered. Please use a different email or try logging in.');

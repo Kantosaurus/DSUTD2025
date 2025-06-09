@@ -13,6 +13,7 @@ export type Event = {
   date: string;
   location?: string;
   type: 'special' | 'recurring' | 'class' | 'event';
+  status: 'pending' | 'approved' | 'rejected';
   created_at: string;
   updated_at: string;
 };

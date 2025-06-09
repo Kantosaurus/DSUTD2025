@@ -9,6 +9,7 @@ interface Profile {
   name: string;
   avatar_url: string | null;
   email: string;
+  role: 'user' | 'club' | 'admin';
   updated_at: string;
 }
 
@@ -80,43 +81,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, name: string) => {
     try {
       // First check if user already exists
-      const { data: existingUser } = await supabase
+      const { data: existingUser, error: checkError } = await supabase
         .from('profiles')
         .select('email')
         .eq('email', email)
         .single();
 
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+        throw checkError;
+      }
+
       if (existingUser) {
         throw new Error('Email already registered');
       }
 
-      const { data, error } = await supabase.auth.signUp({
+      // Create the auth user first with metadata
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            name: name,
+            email: email
+          }
         },
       });
 
-      if (error) throw error;
-
-      // Create profile entry
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              email: email,
-              name: name, // Use the provided name
-              updated_at: new Date().toISOString(),
-            },
-          ]);
-
-        if (profileError) throw profileError;
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw authError;
       }
 
-      return data;
+      if (!authData.user) {
+        throw new Error('Failed to create user');
+      }
+
+      // Wait a moment to ensure the auth user is fully created
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Create profile entry with explicit error handling
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            id: authData.user.id,
+            email: email,
+            name: name,
+            updated_at: new Date().toISOString(),
+          },
+        ])
+        .select()
+        .single();
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // If profile creation fails, we should clean up the auth user
+        try {
+          await supabase.auth.admin.deleteUser(authData.user.id);
+        } catch (deleteError) {
+          console.error('Error cleaning up auth user:', deleteError);
+        }
+        throw profileError;
+      }
+
+      return { user: authData.user, session: authData.session };
     } catch (error) {
       console.error('Error signing up:', error);
       throw error;
