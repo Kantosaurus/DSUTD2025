@@ -11,12 +11,11 @@ import {
   NavBody,
   NavItems,
   NavbarLogo,
-  NavbarButton,
 } from "@/components/ui/resizable-navbar";
 import { AvatarDropdown } from "@/components/ui/avatar-dropdown";
 
 export default function AccountSettingsPage() {
-  const { user, profile, signOut, updatePassword, deleteAccount, updateProfile, uploadAvatar } = useAuth();
+  const { profile, signOut, updatePassword, deleteAccount, updateProfile, uploadAvatar } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +51,7 @@ export default function AccountSettingsPage() {
     setSuccess(null);
 
     try {
-      const { error, url } = await uploadAvatar(file);
+      const { error } = await uploadAvatar(file);
       if (error) throw error;
       setSuccess('Profile picture updated successfully');
     } catch (err) {
@@ -62,7 +61,7 @@ export default function AccountSettingsPage() {
     }
   }, [uploadAvatar]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: {
       'image/*': ['.png', '.jpg', '.jpeg', '.gif']
