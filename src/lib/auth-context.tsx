@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
-import { useRouter } from "next/navigation";
 
 interface Profile {
   id: string;
