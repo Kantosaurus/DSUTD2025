@@ -43,7 +43,7 @@ export const LoginModal = ({ isOpen, onClose, onSignupClick }: LoginModalProps) 
         setUsername(displayName);
         setShowGreeting(true);
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);

@@ -198,7 +198,7 @@ function Calendar() {
                     </span>
                   )}
                   <div className="flex flex-col gap-1 flex-1">
-                    {dayEvents.slice(0, 3).map((event, i) => (
+                    {dayEvents.slice(0, 3).map((event) => (
                       <div
                         key={event.id}
                         className={

@@ -69,11 +69,11 @@ export const SignupModal = ({ isOpen, onClose, onLoginClick }: SignupModalProps)
     try {
       await signUp(formData.email, formData.password);
       onClose();
-    } catch (error: any) {
-      if (error.message === 'Email already registered') {
+    } catch (error: Error | unknown) {
+      if (error instanceof Error && error.message === 'Email already registered') {
         setError('This email is already registered. Please use a different email or try logging in.');
       } else {
-        setError(error.message || "An error occurred during sign up");
+        setError(error instanceof Error ? error.message : "An error occurred during sign up");
       }
     } finally {
       setIsSubmitting(false);

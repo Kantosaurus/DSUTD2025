@@ -1,18 +1,15 @@
 "use client";
 import { useState } from "react";
-import { motion } from "motion/react";
-import { Highlight } from "@/components/ui/hero-highlight";
-import { PointerHighlight } from "@/components/ui/pointer-highlight";
 import {
   Navbar,
   NavBody,
   NavItems,
+  NavbarButton,
+  NavbarLogo,
   MobileNav,
   MobileNavHeader,
   MobileNavMenu,
   MobileNavToggle,
-  NavbarLogo,
-  NavbarButton,
 } from "@/components/ui/resizable-navbar";
 import { HeroParallax } from "@/components/ui/hero-parallax";
 import { LoginModal } from "@/components/ui/login-modal";
