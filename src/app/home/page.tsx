@@ -5,7 +5,6 @@ import { useState, useRef, useLayoutEffect } from "react";
 import { AnimatePresence } from "motion/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { Highlight } from "@/components/ui/hero-highlight";
-import { EventCards } from "@/components/ui/event-cards";
 import { PointerHighlight } from "@/components/ui/pointer-highlight";
 import {
   Navbar,

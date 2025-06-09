@@ -4,7 +4,6 @@ import React, { useState, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { BentoGrid } from "./bento-grid";
 
 type EventCard = {
   title: string;
@@ -214,13 +213,13 @@ export function EventCards({ cards }: { cards: EventCard[] }) {
 
   // Dynamic grid layout for 1-10 events
   let gridClass = "grid gap-6";
-  let cardClassFn = (i: number) => "";
+  let cardClassFn = (_i: number) => "";
   if (cards.length === 1) {
     gridClass += " grid-cols-1 md:grid-cols-2";
-    cardClassFn = (i) => "md:col-span-2 md:row-span-2";
+    cardClassFn = (_i) => "md:col-span-2 md:row-span-2";
   } else if (cards.length === 2) {
     gridClass += " grid-cols-1 md:grid-cols-2";
-    cardClassFn = (i) => "md:col-span-1 md:row-span-2";
+    cardClassFn = (_i) => "md:col-span-1 md:row-span-2";
   } else if (cards.length === 3) {
     gridClass += " grid-cols-1 md:grid-cols-3 grid-rows-2";
     cardClassFn = (i) =>
@@ -252,7 +251,7 @@ export function EventCards({ cards }: { cards: EventCard[] }) {
   } else {
     // 7-10 events: simple grid
     gridClass += " grid-cols-1 md:grid-cols-4";
-    cardClassFn = (i) => "md:col-span-1 md:row-span-1";
+    cardClassFn = (_i) => "md:col-span-1 md:row-span-1";
   }
 
   return (
