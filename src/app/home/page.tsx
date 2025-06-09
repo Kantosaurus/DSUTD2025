@@ -5,6 +5,20 @@ import { useState, useRef, useLayoutEffect } from "react";
 import { AnimatePresence } from "motion/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { Highlight } from "@/components/ui/hero-highlight";
+import { EventCards } from "@/components/ui/event-cards";
+import { PointerHighlight } from "@/components/ui/pointer-highlight";
+import {
+  Navbar,
+  NavBody,
+  NavItems,
+  MobileNav,
+  MobileNavHeader,
+  MobileNavMenu,
+  MobileNavToggle,
+  NavbarLogo,
+  NavbarButton,
+} from "@/components/ui/resizable-navbar";
+import { AvatarDropdown } from "@/components/ui/avatar-dropdown";
 
 const EVENTS = [
   // Example events for June 2025
@@ -47,6 +61,14 @@ function getEventsForDate(dateStr: string) {
   return EVENTS.filter((e) => e.date === dateStr);
 }
 
+// Format a date as YYYY-MM-DD in local time
+function formatDateLocal(date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 function Calendar() {
   // Month/year state
   const today = new Date();
@@ -81,11 +103,11 @@ function Calendar() {
 
   const closeCard = () => setCardOpen(false);
 
-  const selectedDateStr = selectedDay ? selectedDay.toISOString().slice(0, 10) : "";
+  const selectedDateStr = selectedDay ? formatDateLocal(selectedDay) : "";
   const selectedEvents = selectedDay ? getEventsForDate(selectedDateStr) : [];
 
-  // Get today's date in YYYY-MM-DD format
-  const todayStr = today.toISOString().slice(0, 10);
+  // Get today's date in YYYY-MM-DD format (local time)
+  const todayStr = formatDateLocal(today);
 
   // Month navigation
   const monthNames = [
@@ -149,7 +171,7 @@ function Calendar() {
           </div>
           <div className="grid grid-cols-7 gap-2">
             {matrix.flat().map((date, idx) => {
-              const dateStr = date ? date.toISOString().slice(0, 10) : "";
+              const dateStr = date ? formatDateLocal(date) : "";
               const events = date ? getEventsForDate(dateStr) : [];
               const isSelected = selectedDay && date && dateStr === selectedDateStr;
               const isToday = date && dateStr === todayStr && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
@@ -253,142 +275,193 @@ function Calendar() {
 }
 
 export default function HomePage() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // For demo purposes, set to true
+
+  const navItems = [
+    { name: "Home", link: "/home" },
+    { name: "My Events", link: "/events" },
+    { name: "Contact", link: "/contact" },
+  ];
+
+  const handleLogout = () => {
+    // Add your logout logic here
+    setIsLoggedIn(false);
+    // Redirect to login page or landing page
+    window.location.href = "/";
+  };
+
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-900 font-sans snap-y snap-mandatory overflow-y-auto h-screen">
-      {/* Hero Section */}
-      <section className="relative py-20 px-4 sm:px-6 lg:px-8 snap-start">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-center"
+    <div className="min-h-screen bg-gradient-to-b from-white to-neutral-100 dark:from-neutral-950 dark:to-neutral-900">
+      <Navbar>
+        <NavBody>
+          <NavbarLogo />
+          <NavItems items={navItems} />
+          <div className="flex items-center gap-2">
+            {isLoggedIn ? (
+              <AvatarDropdown onLogout={handleLogout} />
+            ) : (
+              <NavbarButton variant="primary" href="/login">
+                Login
+              </NavbarButton>
+            )}
+          </div>
+        </NavBody>
+
+        <MobileNav>
+          <MobileNavHeader>
+            <NavbarLogo />
+            <div className="flex items-center gap-2">
+              {isLoggedIn ? (
+                <AvatarDropdown onLogout={handleLogout} />
+              ) : (
+                <NavbarButton
+                  variant="primary"
+                  href="/login"
+                  className="w-full"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Login
+                </NavbarButton>
+              )}
+              <MobileNavToggle
+                isOpen={isMobileMenuOpen}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              />
+            </div>
+          </MobileNavHeader>
+          <MobileNavMenu
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
           >
-            <h1 className="text-4xl sm:text-5xl font-bold text-[#800000] dark:text-[#ffb3b3] mb-6">
-              Welcome to DiscoverSUTD
-            </h1>
-            <p className="text-xl text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto">
-              Your gateway to exploring clubs, events, and opportunities at SUTD
-            </p>
-          </motion.div>
-        </div>
-      </section>
+            {navItems.map((item, idx) => (
+              <a
+                key={idx}
+                href={item.link}
+                className="w-full px-4 py-2 text-lg font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-50"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {item.name}
+              </a>
+            ))}
+          </MobileNavMenu>
+        </MobileNav>
+      </Navbar>
 
-      {/* Upcoming Events Section */}
-      <section id="upcoming-events" className="w-full px-2 md:px-6 snap-start">
-        <Calendar />
-      </section>
-
-      {/* Today's Events Section */}
-      <section id="todays-events" className="w-full px-2 md:px-6 py-12 snap-start">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-6">Today&apos;s Events</h2>
-          <TodaysEvents />
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-neutral-50 dark:bg-neutral-800">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
+      <main className="container mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <section className="relative py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="bg-white dark:bg-neutral-900 p-6 rounded-2xl shadow-lg"
+              transition={{ duration: 0.5 }}
+              className="text-center"
             >
-              <h3 className="text-xl font-semibold text-[#800000] dark:text-[#ffb3b3] mb-3">
-                Discover Clubs
-              </h3>
-              <p className="text-neutral-600 dark:text-neutral-400">
-                Explore and join various clubs and organizations at SUTD
-              </p>
-            </motion.div>
-
-            {/* Feature 2 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="bg-white dark:bg-neutral-900 p-6 rounded-2xl shadow-lg"
-            >
-              <h3 className="text-xl font-semibold text-[#800000] dark:text-[#ffb3b3] mb-3">
-                Stay Updated
-              </h3>
-              <p className="text-neutral-600 dark:text-neutral-400">
-                Get the latest news and updates about campus events and activities
-              </p>
-            </motion.div>
-
-            {/* Feature 3 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="bg-white dark:bg-neutral-900 p-6 rounded-2xl shadow-lg"
-            >
-              <h3 className="text-xl font-semibold text-[#800000] dark:text-[#ffb3b3] mb-3">
-                Connect
-              </h3>
-              <p className="text-neutral-600 dark:text-neutral-400">
-                Connect with fellow students and club leaders
+              <h1 className="text-4xl sm:text-5xl font-bold text-[#800000] dark:text-[#ffb3b3] mb-6">
+                Welcome to DiscoverSUTD
+              </h1>
+              <p className="text-xl text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto">
+                Your gateway to exploring clubs, events, and opportunities at SUTD
               </p>
             </motion.div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Call to Action */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            <h2 className="text-3xl font-bold text-[#800000] dark:text-[#ffb3b3] mb-6">
-              Ready to Get Started?
-            </h2>
-            <p className="text-xl text-neutral-600 dark:text-neutral-400 mb-8">
-              Explore our clubs and events to find your perfect fit
-            </p>
-            <button className="px-8 py-4 bg-[#800000] text-white dark:bg-[#ffb3b3] dark:text-[#800000] rounded-xl font-medium hover:opacity-90 transition-all duration-200 shadow-lg shadow-[#800000]/20 dark:shadow-[#ffb3b3]/20">
-              Browse Clubs
-            </button>
-          </motion.div>
-        </div>
-      </section>
+        {/* Calendar Section */}
+        <section id="upcoming-events" className="w-full mb-16">
+          <Calendar />
+        </section>
+
+        {/* Today's Events Section */}
+        <section id="todays-events" className="w-full px-2 md:px-6 py-12">
+          <div className="max-w-6xl mx-auto">
+            <PointerHighlight>
+              <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-6">Today&apos;s Events</h2>
+            </PointerHighlight>
+            <TodaysEvents />
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-neutral-50 dark:bg-neutral-800">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Feature 1 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="bg-white dark:bg-neutral-900 p-6 rounded-2xl shadow-lg"
+              >
+                <h3 className="text-xl font-semibold text-[#800000] dark:text-[#ffb3b3] mb-3">
+                  Discover Clubs
+                </h3>
+                <p className="text-neutral-600 dark:text-neutral-400">
+                  Explore and join various clubs and organizations at SUTD
+                </p>
+              </motion.div>
+
+              {/* Feature 2 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="bg-white dark:bg-neutral-900 p-6 rounded-2xl shadow-lg"
+              >
+                <h3 className="text-xl font-semibold text-[#800000] dark:text-[#ffb3b3] mb-3">
+                  Stay Updated
+                </h3>
+                <p className="text-neutral-600 dark:text-neutral-400">
+                  Get the latest news and updates about campus events and activities
+                </p>
+              </motion.div>
+
+              {/* Feature 3 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="bg-white dark:bg-neutral-900 p-6 rounded-2xl shadow-lg"
+              >
+                <h3 className="text-xl font-semibold text-[#800000] dark:text-[#ffb3b3] mb-3">
+                  Connect
+                </h3>
+                <p className="text-neutral-600 dark:text-neutral-400">
+                  Connect with fellow students and club leaders
+                </p>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* Call to Action */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <h2 className="text-3xl font-bold text-[#800000] dark:text-[#ffb3b3] mb-6">
+                Ready to Get Started?
+              </h2>
+              <p className="text-xl text-neutral-600 dark:text-neutral-400 mb-8">
+                Explore our clubs and events to find your perfect fit
+              </p>
+              <button className="px-8 py-4 bg-[#800000] text-white dark:bg-[#ffb3b3] dark:text-[#800000] rounded-xl font-medium hover:opacity-90 transition-all duration-200 shadow-lg shadow-[#800000]/20 dark:shadow-[#ffb3b3]/20">
+                Browse Clubs
+              </button>
+            </motion.div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
 
 function TodaysEvents() {
-  const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
-  const todaysEvents = EVENTS.filter((e) => e.date === todayStr);
-  if (todaysEvents.length === 0) {
-    return <div className="text-neutral-500 text-base">No events for today.</div>;
-  }
-  return (
-    <ul className="flex flex-col gap-3">
-      {todaysEvents.map((event, i) => (
-        <li
-          key={i}
-          className={
-            "px-4 py-3 rounded-lg text-base font-medium shadow-sm " +
-            (event.type === "special"
-              ? "bg-green-200/80 text-green-900"
-              : event.type === "recurring"
-              ? "bg-purple-200/80 text-purple-900"
-              : event.type === "class"
-              ? "bg-blue-200/80 text-blue-900"
-              : "bg-neutral-200/80 text-neutral-800")
-          }
-        >
-          {event.title}
-        </li>
-      ))}
-    </ul>
-  );
+  // TODO: Integrate with real events database/API
+  // For now, show a placeholder or empty state
+  return <div className="text-neutral-500 text-base">No events for today.</div>;
 } 
