@@ -59,6 +59,7 @@ A modern full-stack web application built with Next.js, React, Tailwind CSS, Nod
 - Tailwind CSS for styling
 - Axios for API communication
 - Modern, responsive UI
+- API request proxying via Next.js rewrites
 
 ### Backend (Port 3001)
 - Express.js server with middleware
@@ -110,6 +111,8 @@ NODE_ENV=development
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
+The frontend uses Next.js rewrites to proxy API requests, allowing seamless API communication without CORS issues.
+
 ## 📚 API Endpoints
 
 ### Items
@@ -126,6 +129,16 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 - **Error Handling**: User-friendly error messages
 - **Form Validation**: Client-side validation
 - **Real-time Updates**: Items list updates immediately after creation
+
+## 🐳 Container Setup
+
+The application is containerized using Docker and orchestrated with Docker Compose. The setup includes:
+
+- **Frontend Container**: Next.js application with hot-reloading
+- **Backend Container**: Node.js Express API with live-reloading
+- **Database Container**: PostgreSQL with persistent volume
+
+All services are connected via a dedicated Docker network for secure communication.
 
 ## 🐳 Docker Commands
 
