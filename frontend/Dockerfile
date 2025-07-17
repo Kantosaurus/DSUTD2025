@@ -1,5 +1,8 @@
 FROM node:18-alpine
 
+# Accept build-time argument for API URL
+ARG NEXT_PUBLIC_API_URL=http://localhost:3001
+
 WORKDIR /app
 
 # Copy package files
