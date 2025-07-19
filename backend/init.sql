@@ -17,9 +17,16 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert some sample data
-INSERT INTO items (title, description) VALUES
-    ('Sample Item 1', 'This is a sample item description'),
-    ('Sample Item 2', 'Another sample item for testing'),
-    ('Sample Item 3', 'Third sample item to populate the database')
-ON CONFLICT DO NOTHING; 
+-- Create calendar_events table
+CREATE TABLE IF NOT EXISTS calendar_events (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    event_date DATE NOT NULL,
+    start_time TIME,
+    end_time TIME,
+    event_type VARCHAR(50) DEFAULT 'regular' CHECK (event_type IN ('regular', 'holiday', 'course')),
+    color VARCHAR(7) DEFAULT '#3B82F6',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
