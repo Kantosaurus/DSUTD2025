@@ -24,4 +24,21 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+}
+
+/* Force dark text for modals and forms */
+.modal-content {
+  color: #111827 !important;
+}
+
+.modal-content * {
+  color: inherit;
+}
+
+.modal-content input {
+  color: #111827 !important;
+}
+
+.modal-content input::placeholder {
+  color: #6b7280 !important;
 } 
