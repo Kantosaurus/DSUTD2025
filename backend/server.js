@@ -16,6 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Database connection
 const { Pool } = require('pg');
+const e = require('express');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
@@ -23,9 +24,9 @@ const pool = new Pool({
 // Color mapping based on event type (matching your frontend expectations)
 const getColorForType = (type) => {
   switch (type) {
-    case 'holiday':
+    case 'Optional':
       return '#EF5800'; // orange
-    case 'course':
+    case 'Pending':
       return '#F0DD59'; // yellow
     default:
       return '#C60003'; // red for regular
@@ -122,33 +123,33 @@ app.get('/api/calendar/events', async (req, res) => {
     res.json(eventsByDate);
   } catch (err) {
     console.error('Error fetching calendar events:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
 
 // Create new calendar event
 app.post('/api/calendar/events', async (req, res) => {
   try {
-    const { title, description, date, start_time, end_time, event_type } = req.body;
-    
-    if (!title || !date) {
+    const { title, description, event_date, start_time, end_time, event_type } = req.body;
+
+    if (!title || !event_date) {
       return res.status(400).json({ error: 'Title and date are required' });
     }
 
     // Validate event type
-    if (event_type && !['regular', 'holiday', 'course'].includes(event_type)) {
-      return res.status(400).json({ error: 'Type must be one of: regular, holiday, course' });
+    if (event_type && !['Mandatory', 'Optional', 'Pending'].includes(event_type)) {
+      return res.status(400).json({ error: 'Type must be one of: Mandatory, Optional, Pending' });
     }
 
     // Automatically set color based on type
     const color = getColorForType(event_type);
 
     const result = await pool.query(
-      `INSERT INTO calendar_events 
+      `INSERT INTO calendar_events
        (title, description, event_date, start_time, end_time, event_type, color) 
        VALUES ($1, $2, $3, $4, $5, $6, $7) 
        RETURNING *`,
-      [title, description || '', date, start_time || null, end_time || null, event_type || 'regular', color]
+      [title, description || '', event_date, start_time || null, end_time || null, event_type || 'regular', color]
     );
 
     const newEvent = result.rows[0];
@@ -185,7 +186,7 @@ app.post('/api/calendar/events', async (req, res) => {
     });
   } catch (err) {
     console.error('Error creating calendar event:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
 
@@ -193,11 +194,11 @@ app.post('/api/calendar/events', async (req, res) => {
 app.put('/api/calendar/events/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, date, start_time, end_time, event_type } = req.body;
+    const { title, description, event_date, start_time, end_time, event_type } = req.body;
     
     // Validate event type
-    if (event_type && !['regular', 'holiday', 'course'].includes(event_type)) {
-      return res.status(400).json({ error: 'Type must be one of: regular, holiday, course' });
+    if (event_type && !['Mandatory', 'Optional', 'Pending'].includes(event_type)) {
+      return res.status(400).json({ error: 'Type must be one of: Mandatory, Optional, Pending' });
     }
 
     // Automatically set color based on type
@@ -208,7 +209,7 @@ app.put('/api/calendar/events/:id', async (req, res) => {
        SET title = $1, description = $2, event_date = $3, start_time = $4, end_time = $5, event_type = $6, color = $7
        WHERE id = $8
        RETURNING *`,
-      [title, description, date, start_time, end_time, event_type, color, id]
+      [title, description, event_date, start_time, end_time, event_type, color, id]
     );
 
     if (result.rows.length === 0) {
@@ -249,7 +250,7 @@ app.put('/api/calendar/events/:id', async (req, res) => {
     });
   } catch (err) {
     console.error('Error updating calendar event:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
 
@@ -270,7 +271,7 @@ app.delete('/api/calendar/events/:id', async (req, res) => {
     res.status(204).send();
   } catch (err) {
     console.error('Error deleting calendar event:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
 

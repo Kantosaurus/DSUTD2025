@@ -17,7 +17,7 @@ interface CalendarEvent {
   id: string;
   time: string;
   title: string;
-  type?: 'regular' | 'holiday' | 'course';
+  type?: 'Mandatory' | 'Optional' | 'Pending';
   color?: string;
   description?: string;
   end_time?: string;
@@ -166,16 +166,16 @@ export default function CalendarPage() {
             key={event.id}
             className={`
               text-xs leading-tight truncate
-              ${event.type === 'holiday' 
+              ${event.type === 'Mandatory' 
                 ? 'bg-green-600 text-white px-1 py-0.5 rounded text-center font-medium' 
                 : 'text-gray-700'
               }
             `}
           >
-            {event.type !== 'holiday' && (
+            {event.type !== 'Mandatory' && (
               <span className="text-gray-500 font-medium">{event.time}</span>
             )}
-            <span className={event.type === 'holiday' ? '' : 'ml-1'}>
+            <span className={event.type === 'Mandatory' ? '' : 'ml-1'}>
               {event.title}
             </span>
           </div>
