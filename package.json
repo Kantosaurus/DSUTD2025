@@ -1,0 +1,20 @@
+{
+  "name": "dsutd2025",
+  "version": "1.0.0",
+  "description": "DSUTD2025 Full-Stack Web Application",
+  "scripts": {
+    "start": "docker-compose up --build",
+    "dev": "docker-compose up --build",
+    "stop": "docker-compose down",
+    "restart": "docker-compose restart",
+    "logs": "docker-compose logs -f",
+    "migrate": "docker exec -i webapp-postgres psql -U webapp_user -d webapp_db < backend/migrate.sql",
+    "clean": "docker-compose down -v && docker system prune -f"
+  },
+  "keywords": ["dsutd", "webapp", "fullstack", "docker"],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "node-fetch": "^2.7.0"
+  }
+} 

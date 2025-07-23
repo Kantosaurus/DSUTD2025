@@ -10,24 +10,44 @@ interface LoginCardProps {
   onForgotPassword?: () => void
 }
 
+interface LoginError {
+  type: 'validation' | 'credentials' | 'locked' | 'deactivated' | 'password_change' | 'network'
+  message: string
+  remainingAttempts?: number
+  lockedUntil?: string
+  remainingMinutes?: number
+}
+
 export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword }: LoginCardProps) {
   const [studentId, setStudentId] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
+  const [error, setError] = useState<LoginError | null>(null)
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!studentId || !password) return
 
     setIsLoading(true)
+    setError(null)
+    setRemainingAttempts(null)
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Use the onSubmit prop from parent component
+      if (onSubmit) {
+        await onSubmit(studentId, password)
+      }
+    } catch (err: any) {
+      setError({
+        type: 'network',
+        message: err.message || 'Network error. Please check your connection and try again.'
+      })
+    } finally {
       setIsLoading(false)
-      onSubmit?.(studentId, password)
-    }, 1000)
+    }
   }
 
   return (
@@ -266,6 +286,73 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
             </AnimatePresence>
           </motion.button>
         </form>
+
+        {/* Error Display */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className={`mt-4 p-4 rounded-xl border ${
+                error.type === 'locked' 
+                  ? 'bg-red-50 border-red-200 text-red-800'
+                  : error.type === 'credentials'
+                  ? 'bg-orange-50 border-orange-200 text-orange-800'
+                  : error.type === 'password_change'
+                  ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                  : 'bg-red-50 border-red-200 text-red-800'
+              }`}
+            >
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  {error.type === 'locked' && (
+                    <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9zM5.5 8a4.5 4.5 0 119 0v1H5.5V8z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                  {error.type === 'credentials' && (
+                    <svg className="h-5 w-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                  {error.type === 'password_change' && (
+                    <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                  {error.type === 'network' && (
+                    <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium">
+                    {error.type === 'locked' && 'Account Locked'}
+                    {error.type === 'credentials' && 'Invalid Credentials'}
+                    {error.type === 'password_change' && 'Password Change Required'}
+                    {error.type === 'network' && 'Connection Error'}
+                  </h3>
+                  <div className="mt-1 text-sm">
+                    <p>{error.message}</p>
+                    {error.type === 'locked' && error.remainingMinutes && (
+                      <p className="mt-1 font-medium">
+                        Account will be unlocked in {error.remainingMinutes} minutes
+                      </p>
+                    )}
+                    {error.type === 'credentials' && error.remainingAttempts !== undefined && (
+                      <p className="mt-1 font-medium">
+                        {error.remainingAttempts} login attempts remaining
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Footer */}
         <motion.div 

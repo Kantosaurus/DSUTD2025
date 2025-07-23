@@ -84,10 +84,10 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
   return (
     <motion.div
       animate={{
-        backdropFilter: visible ? "blur(10px)" : "none",
+        backdropFilter: visible ? "blur(20px)" : "blur(10px)",
         boxShadow: visible
-          ? "0 0 24px rgba(34, 42, 53, 0.06), 0 1px 1px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(34, 42, 53, 0.04), 0 0 4px rgba(34, 42, 53, 0.08), 0 16px 68px rgba(47, 48, 55, 0.05), 0 1px 0 rgba(255, 255, 255, 0.1) inset"
-          : "none",
+          ? "0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.2) inset"
+          : "0 4px 16px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.1) inset",
         width: visible ? "40%" : "100%",
         y: visible ? 20 : 0,
       }}
@@ -100,8 +100,9 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
         minWidth: "800px",
       }}
       className={cn(
-        "relative z-[60] mx-auto hidden w-full max-w-7xl flex-row items-center justify-between self-start rounded-full bg-transparent px-4 py-2 lg:flex dark:bg-transparent",
-        visible && "bg-white/80 dark:bg-neutral-950/80",
+        "relative z-[60] mx-auto hidden w-full max-w-7xl flex-row items-center justify-between self-start rounded-full px-4 py-2 lg:flex",
+        "bg-white/20 backdrop-blur-md border border-white/20",
+        visible && "bg-white/30 backdrop-blur-xl",
         className,
       )}
     >
@@ -117,7 +118,7 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
     <motion.div
       onMouseLeave={() => setHovered(null)}
       className={cn(
-        "hidden flex-row items-center space-x-2 text-sm font-medium text-white transition duration-200 hover:text-gray-200 lg:flex lg:space-x-2",
+        "hidden flex-row items-center space-x-2 text-sm font-medium text-gray-800 transition duration-200 hover:text-gray-600 lg:flex lg:space-x-2",
         className,
       )}
     >
@@ -125,14 +126,14 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
         <a
           onMouseEnter={() => setHovered(idx)}
           onClick={onItemClick}
-          className="relative px-4 py-2 text-white hover:text-gray-200"
+          className="relative px-4 py-2 text-gray-800 hover:text-gray-600"
           key={`link-${idx}`}
           href={item.link}
         >
           {hovered === idx && (
             <motion.div
               layoutId="hovered"
-              className="absolute inset-0 h-full w-full rounded-full bg-gray-800"
+              className="absolute inset-0 h-full w-full rounded-full bg-gray-200"
             />
           )}
           <span className="relative z-20">{item.name}</span>
@@ -146,10 +147,10 @@ export const MobileNav = ({ children, className, visible }: MobileNavProps) => {
   return (
     <motion.div
       animate={{
-        backdropFilter: visible ? "blur(10px)" : "none",
+        backdropFilter: visible ? "blur(20px)" : "blur(10px)",
         boxShadow: visible
-          ? "0 0 24px rgba(34, 42, 53, 0.06), 0 1px 1px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(34, 42, 53, 0.04), 0 0 4px rgba(34, 42, 53, 0.08), 0 16px 68px rgba(47, 48, 55, 0.05), 0 1px 0 rgba(255, 255, 255, 0.1) inset"
-          : "none",
+          ? "0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.2) inset"
+          : "0 4px 16px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.1) inset",
         width: visible ? "90%" : "100%",
         paddingRight: visible ? "12px" : "0px",
         paddingLeft: visible ? "12px" : "0px",
@@ -162,8 +163,9 @@ export const MobileNav = ({ children, className, visible }: MobileNavProps) => {
         damping: 50,
       }}
       className={cn(
-        "relative z-50 mx-auto flex w-full max-w-[calc(100vw-2rem)] flex-col items-center justify-between bg-transparent px-0 py-2 lg:hidden",
-        visible && "bg-white/80 dark:bg-neutral-950/80",
+        "relative z-50 mx-auto flex w-full max-w-[calc(100vw-2rem)] flex-col items-center justify-between px-0 py-2 lg:hidden",
+        "bg-white/20 backdrop-blur-md border border-white/20",
+        visible && "bg-white/30 backdrop-blur-xl",
         className,
       )}
     >
@@ -202,7 +204,8 @@ export const MobileNavMenu = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className={cn(
-            "absolute inset-x-0 top-16 z-50 flex w-full flex-col items-start justify-start gap-4 rounded-lg bg-white px-4 py-8 shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] dark:bg-neutral-950",
+            "absolute inset-x-0 top-16 z-50 flex w-full flex-col items-start justify-start gap-4 rounded-lg px-4 py-8",
+            "bg-white/20 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_rgba(0,_0,_0,_0.1),_0_0_0_1px_rgba(255,_255,_255,_0.2)_inset]",
             className,
           )}
         >
@@ -221,9 +224,9 @@ export const MobileNavToggle = ({
   onClick: () => void;
 }) => {
   return isOpen ? (
-    <IconX className="text-white" onClick={onClick} />
+    <IconX className="text-gray-800" onClick={onClick} />
   ) : (
-    <IconMenu2 className="text-white" onClick={onClick} />
+    <IconMenu2 className="text-gray-800" onClick={onClick} />
   );
 };
 
@@ -231,7 +234,7 @@ export const NavbarLogo = () => {
   return (
     <a
       href="#"
-      className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-white"
+      className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-gray-800"
     >
       <img
         src="/dsutd.png"
@@ -240,7 +243,6 @@ export const NavbarLogo = () => {
         height={40}
         className="object-contain"
       />
-      <span className="font-medium text-white">DSUTD</span>
     </a>
   );
 };
@@ -266,16 +268,24 @@ export const SearchBar = () => {
       <input
         type="text"
         placeholder="Search..."
-        className="w-8 h-8 bg-gray-900 text-white border border-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 pl-3 pr-10 transition-all duration-300 group-hover:w-64 group-hover:rounded-lg group-focus-within:w-64 group-focus-within:rounded-lg"
+        className="w-8 h-8 bg-gray-100 text-gray-800 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 pl-3 pr-10 transition-all duration-300 group-hover:w-64 group-hover:rounded-lg group-focus-within:w-64 group-focus-within:rounded-lg"
       />
     </div>
   );
 };
 
 export const AvatarDropdown = () => {
+  const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    // Redirect to login page
+    window.location.href = '/'
+  }
+
   return (
     <div className="relative group">
-      <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-600 transition-colors duration-200">
+      <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-500 transition-colors duration-200">
         <svg
           className="w-5 h-5 text-white"
           fill="none"
@@ -293,8 +303,20 @@ export const AvatarDropdown = () => {
       <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
         <div className="py-2">
           <a
-            href="#"
+            href="/profile"
             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+            onClick={(e) => {
+              e.preventDefault();
+              const token = localStorage.getItem('token');
+              console.log('Navbar - Profile clicked, token exists:', !!token);
+              if (token) {
+                console.log('Navbar - Navigating to profile page');
+                window.location.href = '/profile';
+              } else {
+                console.log('Navbar - No token found, redirecting to landing page');
+                window.location.href = '/';
+              }
+            }}
           >
             <svg
               className="w-4 h-4 mr-3 text-gray-500"
@@ -311,9 +333,9 @@ export const AvatarDropdown = () => {
             </svg>
             Profile
           </a>
-          <a
-            href="#"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
           >
             <svg
               className="w-4 h-4 mr-3 text-gray-500"
@@ -329,7 +351,7 @@ export const AvatarDropdown = () => {
               />
             </svg>
             Logout
-          </a>
+          </button>
         </div>
       </div>
     </div>
@@ -338,7 +360,7 @@ export const AvatarDropdown = () => {
 
 export const RightSection = () => {
   return (
-    <div className="flex items-center space-x-4 w-64 justify-end">
+    <div className="flex items-center space-x-4">
       <SearchBar />
       <AvatarDropdown />
     </div>
@@ -349,15 +371,19 @@ export const CompleteNavbar = ({ navItems }: { navItems: Array<{ name: string; l
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <Navbar className="bg-black border-b border-gray-800 sticky top-0 z-50">
+    <Navbar className="sticky top-0 z-50">
       {/* Desktop Navigation */}
       <NavBody>
         <div className="flex items-center w-full">
-          <NavbarLogo />
+          <div className="flex items-center w-64">
+            <NavbarLogo />
+          </div>
           <div className="flex-1 flex justify-center">
             <NavItems items={navItems} />
           </div>
-          <RightSection />
+          <div className="flex items-center w-64 justify-end">
+            <RightSection />
+          </div>
         </div>
       </NavBody>
 
@@ -395,7 +421,7 @@ export const CompleteNavbar = ({ navItems }: { navItems: Array<{ name: string; l
               <input
                 type="text"
                 placeholder="Search..."
-                className="w-full px-4 py-2 pl-10 bg-gray-900 text-white border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                className="w-full px-4 py-2 pl-10 bg-gray-100 text-gray-800 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
               />
             </div>
           </div>
@@ -404,7 +430,7 @@ export const CompleteNavbar = ({ navItems }: { navItems: Array<{ name: string; l
               key={`mobile-link-${idx}`}
               href={item.link}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="relative text-white hover:text-gray-200 py-2 transition-colors duration-150"
+              className="relative text-gray-800 hover:text-gray-600 py-2 transition-colors duration-150"
             >
               <span className="block">{item.name}</span>
             </a>

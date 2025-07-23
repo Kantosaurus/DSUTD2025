@@ -1,5 +1,8 @@
 FROM node:20-alpine
 
+# Install PostgreSQL client for migrations
+RUN apk add --no-cache postgresql-client
+
 WORKDIR /app
 
 # Copy package files
@@ -15,4 +18,4 @@ COPY . .
 EXPOSE 3001
 
 # Start the application
-CMD ["npm", "start"]
+CMD ["sh", "-c", "node wait-for-db.js && npm start"]

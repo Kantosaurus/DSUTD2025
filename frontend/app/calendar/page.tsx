@@ -30,24 +30,14 @@ export default function CalendarPage() {
   const [error, setError] = useState('');
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const [selectedDayEvents, setSelectedDayEvents] = useState<CalendarEvent[]>([]);
+  const [signupStatuses, setSignupStatuses] = useState<{[key: string]: boolean}>({});
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const navItems = [
-    {
-      name: "Home",
-      link: "/",
-    },
-    {
-      name: "Events",
-      link: "/calendar",
-    },
-    {
-      name: "Survival Kit",
-      link: "/survival-kit",
-    },
-    {
-      name: "Maps",
-      link: "/maps",
-    },
+    { name: 'Home', link: '/home' },
+    { name: 'Events', link: '/calendar' },
+    { name: 'Survival Kit', link: '/survival-kit' },
+    { name: 'Maps', link: '/maps' },
   ];
 
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -59,8 +49,14 @@ export default function CalendarPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
   useEffect(() => {
+    checkAuth();
     generateCalendarDays();
   }, [currentDate]);
+
+  const checkAuth = () => {
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
+  };
 
   const fetchEvents = async (year: number, month: number) => {
     try {
@@ -136,6 +132,11 @@ export default function CalendarPage() {
     setSelectedDate(day.date);
     setSelectedDayEvents(day.events);
     setSidePanelOpen(true);
+    
+    // Check signup status for all events
+    day.events.forEach(event => {
+      checkSignupStatus(event.id);
+    });
   };
 
   const closeSidePanel = () => {
@@ -193,6 +194,56 @@ export default function CalendarPage() {
   const formatTime = (time: string) => {
     if (!time) return '';
     return time;
+  };
+
+  const handleEventSignup = async (eventId: string) => {
+    if (!isAuthenticated) {
+      alert('Please log in to sign up for events');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/events/${eventId}/signup`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Update signup status
+      setSignupStatuses(prev => ({ ...prev, [eventId]: true }));
+      alert('Successfully signed up for event!');
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to sign up for event');
+    }
+  };
+
+  const handleEventCancel = async (eventId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/events/${eventId}/signup`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Update signup status
+      setSignupStatuses(prev => ({ ...prev, [eventId]: false }));
+      alert('Successfully cancelled event signup!');
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Failed to cancel event signup');
+    }
+  };
+
+  const checkSignupStatus = async (eventId: string) => {
+    if (!isAuthenticated) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/events/${eventId}/signup-status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setSignupStatuses(prev => ({ ...prev, [eventId]: response.data.signedUp }));
+    } catch (error) {
+      console.error('Error checking signup status:', error);
+    }
   };
 
   return (
@@ -398,20 +449,41 @@ export default function CalendarPage() {
                           </p>
                         )}
                       </div>
-                      <span className={`
-                        px-2 py-1 text-xs font-medium rounded-full border
-                        ${getEventTypeColor(event.type || 'regular')}
-                      `}>
-                        {event.type || 'regular'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+                                             <span className={`
+                         px-2 py-1 text-xs font-medium rounded-full border
+                         ${getEventTypeColor(event.type || 'regular')}
+                       `}>
+                         {event.type || 'regular'}
+                       </span>
+                     </div>
+                     
+                     {/* Signup Button */}
+                     {isAuthenticated && (
+                       <div className="mt-3">
+                         {signupStatuses[event.id] ? (
+                           <button
+                             onClick={() => handleEventCancel(event.id)}
+                             className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm font-medium"
+                           >
+                             Cancel Signup
+                           </button>
+                         ) : (
+                           <button
+                             onClick={() => handleEventSignup(event.id)}
+                             className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                           >
+                             Sign Up
+                           </button>
+                         )}
+                       </div>
+                     )}
+                   </div>
+                 ))}
+               </div>
+             )}
+           </div>
+         </div>
+       </div>
 
       {/* Backdrop */}
       {sidePanelOpen && (

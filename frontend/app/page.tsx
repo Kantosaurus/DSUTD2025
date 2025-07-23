@@ -9,16 +9,74 @@ export default function Home() {
   const [showSignUpModal, setShowSignUpModal] = useState(false)
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
 
-  const handleLogin = (studentId: string, password: string) => {
-    console.log('Login attempt:', { studentId, password })
-    // Here you would typically make an API call to authenticate
-    // For now, we'll just log the credentials
+  const handleLogin = async (studentId: string, password: string) => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          studentId,
+          password
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      console.log('Login successful:', data);
+      
+      // Store the token in localStorage
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Redirect to home page after successful login
+      window.location.href = '/home';
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error; // Re-throw the error so the login card can handle it
+    }
   }
 
-  const handleSignUp = (studentId: string, password: string) => {
-    console.log('Sign up attempt:', { studentId, password })
-    // Here you would typically make an API call to create account
-    // For now, we'll just log the credentials
+  const handleSignUp = async (studentId: string, password: string) => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          studentId,
+          password
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Sign up failed');
+      }
+
+      console.log('Sign up successful:', data);
+      
+      // Store the token in localStorage
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Redirect to home page after successful signup
+      window.location.href = '/home';
+      
+    } catch (error) {
+      console.error('Sign up error:', error);
+      throw error; // Re-throw the error so the signup modal can handle it
+    }
   }
 
   const handleForgotPassword = (studentId: string) => {

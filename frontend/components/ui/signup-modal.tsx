@@ -71,10 +71,10 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
     }
 
     let color = 'text-gray-400'
-    if (score >= 4) color = 'text-green-500'
-    else if (score >= 3) color = 'text-yellow-500'
-    else if (score >= 2) color = 'text-orange-500'
-    else if (score >= 1) color = 'text-red-500'
+    if (score >= 5) color = 'text-green-500'
+    else if (score >= 4) color = 'text-yellow-500'
+    else if (score >= 3) color = 'text-orange-500'
+    else if (score >= 2) color = 'text-red-500'
 
     return { score, feedback, color }
   }
@@ -91,21 +91,28 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
     e.preventDefault()
     if (!studentId || !password || !confirmPassword) return
     if (password !== confirmPassword) return
-    if (passwordStrength.score < 3) return
+    if (passwordStrength.score < 5) return
 
     setIsLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      onSubmit?.(studentId, password)
+    try {
+      // Call the onSubmit function which will handle the API call
+      await onSubmit?.(studentId, password)
       onClose()
-    }, 1000)
+    } catch (error) {
+      console.error('Signup error:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
+
+  // Student ID validation
+  const isValidStudentId = /^100[1-9]\d{3}$/.test(studentId)
 
   const isFormValid = studentId && password && confirmPassword && 
                      password === confirmPassword && 
-                     passwordStrength.score >= 3
+                     passwordStrength.score >= 5 &&
+                     isValidStudentId
 
   return (
     <AnimatePresence>
@@ -180,8 +187,12 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
                     onChange={(e) => setStudentId(e.target.value)}
                     onFocus={() => setFocusedField('studentId')}
                     onBlur={() => setFocusedField(null)}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white text-gray-900 placeholder-gray-500"
-                    placeholder="Enter your student ID"
+                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white text-gray-900 placeholder-gray-500 ${
+                      studentId && !isValidStudentId 
+                        ? 'border-red-300 focus:ring-red-500' 
+                        : 'border-gray-200 focus:ring-blue-500'
+                    }`}
+                    placeholder="Enter your student ID (e.g., 1001234)"
                     required
                     whileFocus={{ scale: 1.02 }}
                     transition={{ duration: 0.2 }}
@@ -195,6 +206,42 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
                     transition={{ duration: 0.2 }}
                   />
                 </motion.div>
+                
+                {/* Student ID Validation */}
+                <AnimatePresence>
+                  {studentId && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="flex items-center space-x-2"
+                    >
+                      {isValidStudentId ? (
+                        <>
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", damping: 15 }}
+                          >
+                            <IconCheck className="w-4 h-4 text-green-500" />
+                          </motion.div>
+                          <span className="text-xs text-green-600">Valid student ID format</span>
+                        </>
+                      ) : (
+                        <>
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", damping: 15 }}
+                          >
+                            <IconAlertCircle className="w-4 h-4 text-red-500" />
+                          </motion.div>
+                          <span className="text-xs text-red-600">Must be in format 100XXXX (X = 1-9)</span>
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
 
               {/* Password Input */}
@@ -318,10 +365,10 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
                           animate={{ opacity: 1 }}
                           transition={{ delay: 0.2 }}
                         >
-                          {passwordStrength.score >= 4 ? 'Strong' :
-                           passwordStrength.score >= 3 ? 'Good' :
-                           passwordStrength.score >= 2 ? 'Fair' :
-                           passwordStrength.score >= 1 ? 'Weak' : 'Very Weak'}
+                          {passwordStrength.score >= 5 ? 'Strong' :
+                           passwordStrength.score >= 4 ? 'Good' :
+                           passwordStrength.score >= 3 ? 'Fair' :
+                           passwordStrength.score >= 2 ? 'Weak' : 'Very Weak'}
                         </motion.span>
                       </motion.div>
                       
