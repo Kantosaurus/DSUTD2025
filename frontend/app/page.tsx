@@ -4,10 +4,16 @@ import React, { useState } from 'react'
 import LoginCard from '../components/ui/login-card'
 import SignUpModal from '../components/ui/signup-modal'
 import ForgotPasswordModal from '../components/ui/forgot-password-modal'
+import EmailVerificationModal from '../components/ui/email-verification-modal'
 
 export default function Home() {
   const [showSignUpModal, setShowSignUpModal] = useState(false)
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
+  const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false)
+  const [pendingVerification, setPendingVerification] = useState<{
+    studentId: string;
+    email: string;
+  } | null>(null)
 
   const handleLogin = async (studentId: string, password: string) => {
     try {
@@ -26,6 +32,15 @@ export default function Home() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.requiresVerification) {
+          // Show email verification modal for unverified users
+          setPendingVerification({
+            studentId: data.studentId,
+            email: `${data.studentId}@mymail.sutd.edu.sg`
+          });
+          setShowEmailVerificationModal(true);
+          throw new Error('Please verify your email address before logging in');
+        }
         throw new Error(data.error || 'Login failed');
       }
 
@@ -66,12 +81,22 @@ export default function Home() {
 
       console.log('Sign up successful:', data);
       
-      // Store the token in localStorage
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      // Redirect to home page after successful signup
-      window.location.href = '/home';
+      if (data.requiresVerification) {
+        // Show email verification modal
+        setPendingVerification({
+          studentId: data.user.studentId,
+          email: data.user.email
+        });
+        setShowEmailVerificationModal(true);
+        setShowSignUpModal(false);
+      } else {
+        // Store the token in localStorage
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Redirect to home page after successful signup
+        window.location.href = '/home';
+      }
       
     } catch (error) {
       console.error('Sign up error:', error);
@@ -91,6 +116,11 @@ export default function Home() {
 
   const handleSwitchToForgotPassword = () => {
     setShowForgotPasswordModal(true)
+  }
+
+  const handleVerificationSuccess = (token: string) => {
+    // Redirect to home page after successful verification
+    window.location.href = '/home';
   }
 
   return (
@@ -123,6 +153,20 @@ export default function Home() {
         onClose={() => setShowForgotPasswordModal(false)}
         onSubmit={handleForgotPassword}
       />
+
+      {/* Email Verification Modal */}
+      {pendingVerification && (
+        <EmailVerificationModal
+          isOpen={showEmailVerificationModal}
+          onClose={() => {
+            setShowEmailVerificationModal(false);
+            setPendingVerification(null);
+          }}
+          studentId={pendingVerification.studentId}
+          email={pendingVerification.email}
+          onVerificationSuccess={handleVerificationSuccess}
+        />
+      )}
 
       {/* Optional: Add a subtle pattern overlay */}
       <div className="absolute inset-0 opacity-5">

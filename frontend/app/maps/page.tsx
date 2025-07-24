@@ -10,7 +10,7 @@ const navItems = [
   { name: 'Maps', link: '/maps' },
 ]
 
-export default function HomePage() {
+export default function MapsPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 

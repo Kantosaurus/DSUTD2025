@@ -10,6 +10,7 @@ const slowDown = require('express-slow-down');
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const cookieParser = require('cookie-parser');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
@@ -26,6 +27,29 @@ const SECURITY_CONFIG = {
   RATE_LIMIT_MAX_REQUESTS: 100,
   SLOW_DOWN_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
   SLOW_DOWN_DELAY_MS: 500
+};
+
+// Email configuration
+const EMAIL_CONFIG = {
+  VERIFICATION_CODE_EXPIRY_MINUTES: 15,
+  FROM_EMAIL: process.env.EMAIL_FROM || 'noreply@dsutd2025.com',
+  FROM_NAME: 'DSUTD 2025'
+};
+
+// Create email transporter
+const createEmailTransporter = () => {
+  return nodemailer.createTransport({
+    host: 'smtp-mail.outlook.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD
+    },
+    tls: {
+      ciphers: 'SSLv3'
+    }
+  });
 };
 
 // Rate limiting for login attempts
@@ -318,6 +342,69 @@ const generateSecureToken = (payload) => {
   return token;
 };
 
+// Email utility functions
+const generateVerificationCode = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+const sendVerificationEmail = async (email, verificationCode, studentId) => {
+  try {
+    const transporter = createEmailTransporter();
+    
+    const mailOptions = {
+      from: `"${EMAIL_CONFIG.FROM_NAME}" <${EMAIL_CONFIG.FROM_EMAIL}>`,
+      to: email,
+      subject: 'DSUTD 2025 - Email Verification',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; text-align: center;">
+            <h1 style="color: white; margin: 0;">DSUTD 2025</h1>
+            <p style="color: white; margin: 10px 0 0 0;">Email Verification</p>
+          </div>
+          
+          <div style="padding: 30px; background: #f9f9f9;">
+            <h2 style="color: #333; margin-bottom: 20px;">Welcome to DSUTD 2025!</h2>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              Thank you for signing up! To complete your registration, please verify your email address by entering the verification code below:
+            </p>
+            
+            <div style="background: white; border: 2px solid #667eea; border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0;">
+              <h3 style="color: #333; margin: 0 0 10px 0;">Your Verification Code</h3>
+              <div style="font-size: 32px; font-weight: bold; color: #667eea; letter-spacing: 5px; font-family: 'Courier New', monospace;">
+                ${verificationCode}
+              </div>
+            </div>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              <strong>Student ID:</strong> ${studentId}<br>
+              <strong>Email:</strong> ${email}
+            </p>
+            
+            <p style="color: #999; font-size: 14px; margin-top: 30px;">
+              This verification code will expire in ${EMAIL_CONFIG.VERIFICATION_CODE_EXPIRY_MINUTES} minutes.<br>
+              If you didn't create this account, please ignore this email.
+            </p>
+          </div>
+          
+          <div style="background: #333; padding: 20px; text-align: center;">
+            <p style="color: #999; margin: 0; font-size: 12px;">
+              © 2025 DSUTD. All rights reserved.
+            </p>
+          </div>
+        </div>
+      `
+    };
+    
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Verification email sent:', info.messageId);
+    return true;
+  } catch (error) {
+    console.error('Error sending verification email:', error);
+    return false;
+  }
+};
+
 // Color mapping based on event type (matching your frontend expectations)
 const getColorForType = (type) => {
   switch (type) {
@@ -374,9 +461,9 @@ app.get('/api/calendar/events', async (req, res) => {
         ce.color,
         ce.max_participants,
         ce.current_participants,
-        CASE WHEN er.user_id IS NOT NULL THEN true ELSE false END as is_registered
+        CASE WHEN es.user_id IS NOT NULL THEN true ELSE false END as is_registered
        FROM calendar_events ce
-       LEFT JOIN event_registrations er ON ce.id = er.event_id AND er.user_id = $3
+       LEFT JOIN event_signups es ON ce.id = es.event_id AND es.user_id = $3
        WHERE ce.event_date >= $1 AND ce.event_date <= $2 AND ce.is_active = true
        ORDER BY ce.event_date, ce.start_time`,
       [startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0], req.user?.userId || null]
@@ -626,39 +713,186 @@ app.post('/api/auth/signup', [
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // Create new user
+    // Generate verification code
+    const verificationCode = generateVerificationCode();
+    const verificationExpires = new Date(Date.now() + (EMAIL_CONFIG.VERIFICATION_CODE_EXPIRY_MINUTES * 60 * 1000));
+
+    // Create new user (unverified)
     const result = await pool.query(
-      `INSERT INTO users (student_id, email, password_hash, username) 
-       VALUES ($1, $2, $3, $4) 
+      `INSERT INTO users (student_id, email, password_hash, email_verification_code, email_verification_expires) 
+       VALUES ($1, $2, $3, $4, $5) 
        RETURNING id, student_id, email, created_at`,
-      [studentId, email, passwordHash, studentId] // Use student_id as username
+      [studentId, email, passwordHash, verificationCode, verificationExpires]
     );
 
     const newUser = result.rows[0];
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { 
-        userId: newUser.id, 
-        studentId: newUser.student_id,
-        email: newUser.email 
-      },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
+    // Send verification email
+    const emailSent = await sendVerificationEmail(email, verificationCode, studentId);
+    
+    if (!emailSent) {
+      // If email fails, delete the user and return error
+      await pool.query('DELETE FROM users WHERE id = $1', [newUser.id]);
+      return res.status(500).json({ 
+        error: 'Failed to send verification email. Please try again.' 
+      });
+    }
 
     res.status(201).json({
-      message: 'User created successfully',
+      message: 'Account created successfully! Please check your email for verification code.',
       user: {
         id: newUser.id,
         studentId: newUser.student_id,
         email: newUser.email,
         createdAt: newUser.created_at
       },
-      token
+      requiresVerification: true
     });
   } catch (err) {
     console.error('Error creating user:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Email verification endpoint
+app.post('/api/auth/verify-email', [
+  body('studentId')
+    .isLength({ min: 1 })
+    .withMessage('Student ID is required'),
+  body('verificationCode')
+    .isLength({ min: 6, max: 6 })
+    .withMessage('Verification code must be 6 digits')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: errors.array() 
+      });
+    }
+
+    const { studentId, verificationCode } = req.body;
+
+    // Find user by student ID
+    const result = await pool.query(
+      'SELECT id, student_id, email, email_verification_code, email_verification_expires, email_verified FROM users WHERE student_id = $1',
+      [studentId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+
+    // Check if already verified
+    if (user.email_verified) {
+      return res.status(400).json({ error: 'Email is already verified' });
+    }
+
+    // Check if verification code matches
+    if (user.email_verification_code !== verificationCode) {
+      return res.status(400).json({ error: 'Invalid verification code' });
+    }
+
+    // Check if verification code has expired
+    if (new Date() > user.email_verification_expires) {
+      return res.status(400).json({ error: 'Verification code has expired' });
+    }
+
+    // Mark email as verified and clear verification code
+    await pool.query(
+      'UPDATE users SET email_verified = true, email_verification_code = NULL, email_verification_expires = NULL WHERE id = $1',
+      [user.id]
+    );
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: user.id, 
+        studentId: user.student_id,
+        email: user.email 
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      message: 'Email verified successfully!',
+      user: {
+        id: user.id,
+        studentId: user.student_id,
+        email: user.email
+      },
+      token
+    });
+  } catch (err) {
+    console.error('Error verifying email:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Resend verification email endpoint
+app.post('/api/auth/resend-verification', [
+  body('studentId')
+    .isLength({ min: 1 })
+    .withMessage('Student ID is required')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: errors.array() 
+      });
+    }
+
+    const { studentId } = req.body;
+
+    // Find user by student ID
+    const result = await pool.query(
+      'SELECT id, student_id, email, email_verified FROM users WHERE student_id = $1',
+      [studentId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+
+    // Check if already verified
+    if (user.email_verified) {
+      return res.status(400).json({ error: 'Email is already verified' });
+    }
+
+    // Generate new verification code
+    const verificationCode = generateVerificationCode();
+    const verificationExpires = new Date(Date.now() + (EMAIL_CONFIG.VERIFICATION_CODE_EXPIRY_MINUTES * 60 * 1000));
+
+    // Update user with new verification code
+    await pool.query(
+      'UPDATE users SET email_verification_code = $1, email_verification_expires = $2 WHERE id = $3',
+      [verificationCode, verificationExpires, user.id]
+    );
+
+    // Send verification email
+    const emailSent = await sendVerificationEmail(user.email, verificationCode, user.student_id);
+    
+    if (!emailSent) {
+      return res.status(500).json({ 
+        error: 'Failed to send verification email. Please try again.' 
+      });
+    }
+
+    res.json({
+      message: 'Verification email sent successfully!'
+    });
+  } catch (err) {
+    console.error('Error resending verification email:', err);
     res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
@@ -715,7 +949,7 @@ app.post('/api/auth/login',
         `SELECT id, student_id, email, password_hash, is_active, 
                 failed_login_attempts, account_locked_until, 
                 password_changed_at, require_password_change,
-                two_factor_enabled, session_token_version
+                two_factor_enabled, session_token_version, email_verified
          FROM users WHERE student_id = $1`,
         [studentId]
       );
@@ -744,6 +978,21 @@ app.post('/api/auth/login',
         });
         
         return res.status(401).json({ error: 'Account is deactivated' });
+      }
+
+      // Check if email is verified
+      if (!user.email_verified) {
+        await logLoginAttempt(studentId, false, 'email_not_verified', req);
+        await logSecurityEvent('LOGIN_FAILED', 'Login attempt with unverified email', user.id, {
+          studentId,
+          reason: 'email_not_verified'
+        });
+        
+        return res.status(401).json({ 
+          error: 'Please verify your email address before logging in',
+          requiresVerification: true,
+          studentId: user.student_id
+        });
       }
 
       // Check if password change is required

@@ -8,6 +8,7 @@ import {
   useMotionValueEvent,
 } from "framer-motion";
 import React, { useRef, useState } from "react";
+import { useRouter } from 'next/navigation';
 
 interface NavbarProps {
   children: React.ReactNode;
@@ -275,17 +276,31 @@ export const SearchBar = () => {
 };
 
 export const AvatarDropdown = () => {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // Check authentication status on component mount
+  React.useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
+  }, []);
+  
   const handleLogout = () => {
     // Clear localStorage
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    setIsAuthenticated(false);
     // Redirect to login page
-    window.location.href = '/'
+    router.push('/')
   }
 
   return (
     <div className="relative group">
-      <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-500 transition-colors duration-200">
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors duration-200 ${
+        isAuthenticated 
+          ? 'bg-gray-600 hover:bg-gray-500' 
+          : 'bg-gray-400 hover:bg-gray-300'
+      }`}>
         <svg
           className="w-5 h-5 text-white"
           fill="none"
@@ -304,17 +319,20 @@ export const AvatarDropdown = () => {
         <div className="py-2">
           <a
             href="/profile"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+            className={`flex items-center px-4 py-2 text-sm transition-colors duration-150 ${
+              isAuthenticated 
+                ? 'text-gray-700 hover:bg-gray-100' 
+                : 'text-gray-400 cursor-not-allowed'
+            }`}
             onClick={(e) => {
               e.preventDefault();
-              const token = localStorage.getItem('token');
-              console.log('Navbar - Profile clicked, token exists:', !!token);
-              if (token) {
+              if (isAuthenticated) {
                 console.log('Navbar - Navigating to profile page');
-                window.location.href = '/profile';
+                router.push('/profile');
               } else {
-                console.log('Navbar - No token found, redirecting to landing page');
-                window.location.href = '/';
+                console.log('Navbar - User not authenticated');
+                alert('Please log in to access your profile');
+                router.push('/');
               }
             }}
           >

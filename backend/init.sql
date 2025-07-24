@@ -1,24 +1,4 @@
--- Create tables
-CREATE TABLE IF NOT EXISTS calendar_events (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    event_date DATE NOT NULL,
-    start_time TIME,
-    end_time TIME,
-    event_type VARCHAR(50),
-    color VARCHAR(16),
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create items table (placeholder - add proper fields as needed)
-CREATE TABLE IF NOT EXISTS items (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create users table with proper authentication fields
+-- Create users table with proper authentication fields (must be first due to foreign key references)
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     student_id VARCHAR(50) UNIQUE NOT NULL,
@@ -34,7 +14,34 @@ CREATE TABLE IF NOT EXISTS users (
     require_password_change BOOLEAN DEFAULT FALSE,
     two_factor_enabled BOOLEAN DEFAULT FALSE,
     two_factor_secret VARCHAR(255),
-    session_token_version INTEGER DEFAULT 1
+    session_token_version INTEGER DEFAULT 1,
+    email_verified BOOLEAN DEFAULT FALSE,
+    email_verification_code VARCHAR(6),
+    email_verification_expires TIMESTAMP
+);
+
+-- Create calendar_events table
+CREATE TABLE IF NOT EXISTS calendar_events (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    event_date DATE NOT NULL,
+    start_time TIME,
+    end_time TIME,
+    event_type VARCHAR(50),
+    color VARCHAR(16),
+    max_participants INTEGER,
+    current_participants INTEGER DEFAULT 0,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create items table (placeholder - add proper fields as needed)
+CREATE TABLE IF NOT EXISTS items (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create login attempts table for security monitoring
