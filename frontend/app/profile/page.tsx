@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { CompleteNavbar } from '../../components/ui/resizable-navbar';
+import { MultiStepLoader } from '../../components/ui/multi-step-loader';
+import { AnimatedTooltip } from '../../components/ui/animated-tooltip';
 import axios from 'axios';
 
 interface User {
@@ -38,6 +40,22 @@ export default function ProfilePage() {
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+  const teamMembers = [
+    { id: 1, name: 'Ainsley', designation: 'Mentor', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+    { id: 2, name: 'Nic', designation: 'Mentor', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+    { id: 3, name: 'Leo', designation: 'Mentor', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+    { id: 4, name: 'Amith', designation: 'OpenSUTD', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+    { id: 5, name: 'Yun Lin', designation: 'ROOT', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+    { id: 6, name: 'Bimon', designation: 'ROOT', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+    { id: 7, name: 'Li Yun', designation: 'ROOT', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+    { id: 8, name: 'Mahek', designation: 'ROOT', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+    { id: 9, name: 'Alena', designation: 'ROOT', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+    { id: 10, name: 'Amit', designation: 'OpenSUTD', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+    { id: 11, name: 'Dhyeya', designation: 'ROOT', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+    { id: 12, name: 'Ryan Tan', designation: 'OpenSUTD', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+    { id: 13, name: 'Joey Goh', designation: 'OpenSUTD', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },
+  ];
 
   useEffect(() => {
     checkAuthAndLoadData();
@@ -151,13 +169,22 @@ export default function ProfilePage() {
     }
   };
 
+  const profileLoadingStates = [
+    { text: "Checking authentication..." },
+    { text: "Loading user profile..." },
+    { text: "Fetching your events..." },
+    { text: "Setting up your dashboard..." }
+  ];
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <MultiStepLoader 
+          loadingStates={profileLoadingStates} 
+          loading={isLoading} 
+          duration={1500} 
+          loop={false}
+        />
       </div>
     );
   }
@@ -327,6 +354,19 @@ export default function ProfilePage() {
                   })}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Team Section */}
+          <div className="bg-white rounded-2xl p-8 shadow-lg mt-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Meet the Team</h2>
+            <p className="text-gray-600 text-center mb-8">Click on any team member to learn more about our amazing team!</p>
+            
+            <div className="flex flex-wrap justify-center gap-8 mb-8">
+              <AnimatedTooltip 
+                items={teamMembers} 
+                onImageClick={() => window.location.href = '/meet-the-team'}
+              />
             </div>
           </div>
         </div>

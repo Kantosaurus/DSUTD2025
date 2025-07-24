@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { CompleteNavbar } from '../../components/ui/resizable-navbar'
+import { MultiStepLoader } from '../../components/ui/multi-step-loader'
 
 const navItems = [
   { name: 'Home', link: '/home' },
@@ -26,13 +27,21 @@ export default function HomePage() {
     setIsLoading(false)
   }, [])
 
+  const homeLoadingStates = [
+    { text: "Checking authentication..." },
+    { text: "Loading your dashboard..." },
+    { text: "Preparing your workspace..." }
+  ];
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <MultiStepLoader 
+          loadingStates={homeLoadingStates} 
+          loading={isLoading} 
+          duration={1200} 
+          loop={false}
+        />
       </div>
     )
   }

@@ -139,19 +139,44 @@ npm run clean
 
 ### Environment Variables
 
-Create `.env` files in both frontend and backend directories:
+1. **Copy the example environment file:**
+   ```bash
+   cp env.example .env
+   ```
 
-**Backend (.env)**
-```
-DATABASE_URL=postgresql://webapp_user:webapp_password@localhost:5432/webapp_db
-PORT=3001
-NODE_ENV=development
-```
+2. **Edit the `.env` file with your configuration:**
+   ```env
+   # JWT Configuration
+   JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+   
+   # Gmail Email Configuration (for email verification)
+   EMAIL_USER=your-gmail@gmail.com
+   EMAIL_PASSWORD=your-16-character-app-password
+   EMAIL_FROM=your-gmail@gmail.com
+   
+   # Optional: Frontend URL (for CORS)
+   FRONTEND_URL=http://localhost:3000
+   ```
 
-**Frontend (.env.local)**
-```
-NEXT_PUBLIC_API_URL=http://localhost:3001
-```
+3. **For local development without Docker, create `.env` files in both directories:**
+
+   **Backend (.env)**
+   ```env
+   DATABASE_URL=postgresql://webapp_user:webapp_password@localhost:5432/webapp_db
+   PORT=3001
+   NODE_ENV=development
+   JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+   EMAIL_USER=your-gmail@gmail.com
+   EMAIL_PASSWORD=your-16-character-app-password
+   EMAIL_FROM=your-gmail@gmail.com
+   ```
+
+   **Frontend (.env.local)**
+   ```env
+   NEXT_PUBLIC_API_URL=http://localhost:3001
+   ```
+
+**Note:** See [Gmail Setup Guide](GMAIL_SETUP.md) for detailed email configuration instructions.
 
 The frontend uses Next.js rewrites to proxy API requests, allowing seamless API communication without CORS issues.
 

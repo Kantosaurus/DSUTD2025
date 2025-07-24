@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { CompleteNavbar } from '@/components/ui/resizable-navbar';
+import { MultiStepLoader } from '@/components/ui/multi-step-loader';
 
 interface CalendarEvent {
   id: string;
@@ -246,9 +247,23 @@ export default function CalendarPage() {
     }
   };
 
+  const calendarLoadingStates = [
+    { text: "Fetching calendar events..." },
+    { text: "Loading event details..." },
+    { text: "Preparing your schedule..." }
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       <CompleteNavbar navItems={navItems} />
+      
+      {/* Loading Overlay */}
+      <MultiStepLoader 
+        loadingStates={calendarLoadingStates} 
+        loading={loading} 
+        duration={1000} 
+        loop={false}
+      />
       
       <div className="p-6 relative">
         <div className={`max-w-7xl mx-auto h-full transition-all duration-300 ${sidePanelOpen ? 'blur-sm' : ''}`}>

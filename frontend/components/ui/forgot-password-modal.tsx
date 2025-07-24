@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { MultiStepLoader } from './multi-step-loader'
 import { IconUser, IconX, IconMail, IconCheck, IconAlertCircle } from '@tabler/icons-react'
 
 interface ForgotPasswordModalProps {
@@ -44,6 +45,12 @@ export default function ForgotPasswordModal({ isOpen, onClose, onSubmit }: Forgo
     }
   }
 
+  const forgotPasswordLoadingStates = [
+    { text: "Verifying your account..." },
+    { text: "Generating reset link..." },
+    { text: "Sending email..." }
+  ];
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -54,6 +61,13 @@ export default function ForgotPasswordModal({ isOpen, onClose, onSubmit }: Forgo
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={handleClose}
         >
+          {/* Loading Overlay */}
+          <MultiStepLoader 
+            loadingStates={forgotPasswordLoadingStates} 
+            loading={isLoading} 
+            duration={800} 
+            loop={false}
+          />
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

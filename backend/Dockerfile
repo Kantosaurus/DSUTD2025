@@ -18,4 +18,4 @@ COPY . .
 EXPOSE 3001
 
 # Start the application
-CMD ["sh", "-c", "node wait-for-db.js && npm start"]
+CMD ["npm", "start"]

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { MultiStepLoader } from './multi-step-loader'
 import { IconMail, IconX, IconCheck, IconAlertCircle, IconRefresh } from '@tabler/icons-react'
 
 interface EmailVerificationModalProps {
@@ -120,6 +121,12 @@ export default function EmailVerificationModal({
 
   const isFormValid = verificationCode.length === 6
 
+  const verificationLoadingStates = [
+    { text: "Verifying your code..." },
+    { text: "Checking account status..." },
+    { text: "Activating your account..." }
+  ];
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -130,6 +137,13 @@ export default function EmailVerificationModal({
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={onClose}
         >
+          {/* Loading Overlay */}
+          <MultiStepLoader 
+            loadingStates={verificationLoadingStates} 
+            loading={isLoading} 
+            duration={800} 
+            loop={false}
+          />
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

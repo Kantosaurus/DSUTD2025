@@ -39,15 +39,10 @@ const EMAIL_CONFIG = {
 // Create email transporter
 const createEmailTransporter = () => {
   return nodemailer.createTransport({
-    host: 'smtp-mail.outlook.com',
-    port: 587,
-    secure: false, // true for 465, false for other ports
+    service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    },
-    tls: {
-      ciphers: 'SSLv3'
+      pass: process.env.EMAIL_PASSWORD // Use App Password for Gmail
     }
   });
 };

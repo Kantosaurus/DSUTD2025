@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { IconUser, IconLock, IconEye, IconEyeOff, IconX, IconCheck, IconAlertCircle } from '@tabler/icons-react'
+import { MultiStepLoader } from './multi-step-loader'
 
 interface SignUpModalProps {
   isOpen: boolean
@@ -114,6 +115,12 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
                      passwordStrength.score >= 5 &&
                      isValidStudentId
 
+  const signupLoadingStates = [
+    { text: "Creating your account..." },
+    { text: "Setting up your profile..." },
+    { text: "Sending verification email..." }
+  ];
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -124,6 +131,13 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={onClose}
         >
+          {/* Loading Overlay */}
+          <MultiStepLoader 
+            loadingStates={signupLoadingStates} 
+            loading={isLoading} 
+            duration={1000} 
+            loop={false}
+          />
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

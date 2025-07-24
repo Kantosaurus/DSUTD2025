@@ -9,6 +9,7 @@ import {
 } from "framer-motion";
 import React, { useRef, useState } from "react";
 import { useRouter } from 'next/navigation';
+import { MultiStepLoader } from './multi-step-loader';
 
 interface NavbarProps {
   children: React.ReactNode;
@@ -234,7 +235,7 @@ export const MobileNavToggle = ({
 export const NavbarLogo = () => {
   return (
     <a
-      href="#"
+      href="/home"
       className="relative z-20 mr-4 flex items-center space-x-2 px-2 py-1 text-sm font-normal text-gray-800"
     >
       <img
@@ -278,11 +279,47 @@ export const SearchBar = () => {
 export const AvatarDropdown = () => {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Check authentication status on component mount
   React.useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsAuthenticated(!!token);
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Validate token with backend
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          setIsAuthenticated(true);
+        } else {
+          // Token is invalid, clear it
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        // On error, assume not authenticated
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
   
   const handleLogout = () => {
@@ -294,13 +331,41 @@ export const AvatarDropdown = () => {
     router.push('/')
   }
 
+  const authLoadingStates = [
+    { text: "Checking authentication..." },
+    { text: "Validating session..." }
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="relative group">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-300 animate-pulse">
+          <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative group">
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors duration-200 ${
-        isAuthenticated 
-          ? 'bg-gray-600 hover:bg-gray-500' 
-          : 'bg-gray-400 hover:bg-gray-300'
-      }`}>
+      <div 
+        className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors duration-200 ${
+          isAuthenticated 
+            ? 'bg-gray-600 hover:bg-gray-500' 
+            : 'bg-gray-400 hover:bg-gray-300'
+        }`}
+        onClick={() => {
+          if (isAuthenticated) {
+            console.log('Navbar - Avatar clicked, navigating to profile page');
+            router.push('/profile');
+          } else {
+            console.log('Navbar - Avatar clicked, user not authenticated');
+            // Instead of alert and redirect to landing page, just redirect to landing page
+            // The landing page has the login form
+            router.push('/');
+          }
+        }}
+      >
         <svg
           className="w-5 h-5 text-white"
           fill="none"
@@ -331,7 +396,8 @@ export const AvatarDropdown = () => {
                 router.push('/profile');
               } else {
                 console.log('Navbar - User not authenticated');
-                alert('Please log in to access your profile');
+                // Instead of alert and redirect to landing page, just redirect to landing page
+                // The landing page has the login form
                 router.push('/');
               }
             }}
