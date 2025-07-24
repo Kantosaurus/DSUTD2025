@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { CompleteNavbar } from '@/components/ui/resizable-navbar';
 import { MultiStepLoader } from '@/components/ui/multi-step-loader';
@@ -24,6 +25,7 @@ interface CalendarDay {
 }
 
 export default function CalendarPage() {
+  const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [calendarDays, setCalendarDays] = useState<CalendarDay[]>([]);
@@ -33,12 +35,16 @@ export default function CalendarPage() {
   const [selectedDayEvents, setSelectedDayEvents] = useState<CalendarEvent[]>([]);
   const [signupStatuses, setSignupStatuses] = useState<{[key: string]: boolean}>({});
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<'admin' | 'student'>('student');
+  const [isLoading, setIsLoading] = useState(true);
 
   const navItems = [
     { name: 'Home', link: '/home' },
     { name: 'Events', link: '/calendar' },
     { name: 'Survival Kit', link: '/survival-kit' },
     { name: 'Maps', link: '/maps' },
+    { name: 'Admin Events', link: '/admin/events' },
+    { name: 'Admin Logs', link: '/admin/logs' },
   ];
 
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -51,12 +57,54 @@ export default function CalendarPage() {
 
   useEffect(() => {
     checkAuth();
-    generateCalendarDays();
-  }, [currentDate]);
+  }, [router]);
 
-  const checkAuth = () => {
+  useEffect(() => {
+    if (isAuthenticated) {
+      generateCalendarDays();
+    }
+  }, [currentDate, isAuthenticated]);
+
+  const checkAuth = async () => {
+    // Add a small delay to ensure localStorage is updated after login/signup
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     const token = localStorage.getItem('token');
-    setIsAuthenticated(!!token);
+    if (!token) {
+      // Redirect to login if no token
+      router.push('/');
+      return;
+    }
+
+    try {
+      // Validate token with backend
+      const response = await fetch(`${API_URL}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setIsAuthenticated(true);
+        setUserRole(data.user.role || 'student');
+      } else {
+        // Token is invalid, clear it and redirect
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.push('/');
+        return;
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      // On error, clear token and redirect
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      router.push('/');
+      return;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const fetchEvents = async (year: number, month: number) => {
@@ -248,14 +296,32 @@ export default function CalendarPage() {
   };
 
   const calendarLoadingStates = [
+    { text: "Checking authentication..." },
     { text: "Fetching calendar events..." },
     { text: "Loading event details..." },
     { text: "Preparing your schedule..." }
   ];
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <MultiStepLoader 
+          loadingStates={calendarLoadingStates} 
+          loading={isLoading} 
+          duration={1200} 
+          loop={false}
+        />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-white">
-      <CompleteNavbar navItems={navItems} />
+      <CompleteNavbar navItems={navItems} userRole={userRole} />
       
       {/* Loading Overlay */}
       <MultiStepLoader 
@@ -464,41 +530,41 @@ export default function CalendarPage() {
                           </p>
                         )}
                       </div>
-                                             <span className={`
-                         px-2 py-1 text-xs font-medium rounded-full border
-                         ${getEventTypeColor(event.type || 'regular')}
-                       `}>
-                         {event.type || 'regular'}
-                       </span>
-                     </div>
-                     
-                     {/* Signup Button */}
-                     {isAuthenticated && (
-                       <div className="mt-3">
-                         {signupStatuses[event.id] ? (
-                           <button
-                             onClick={() => handleEventCancel(event.id)}
-                             className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm font-medium"
-                           >
-                             Cancel Signup
-                           </button>
-                         ) : (
-                           <button
-                             onClick={() => handleEventSignup(event.id)}
-                             className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
-                           >
-                             Sign Up
-                           </button>
-                         )}
-                       </div>
-                     )}
-                   </div>
-                 ))}
-               </div>
-             )}
-           </div>
-         </div>
-       </div>
+                      <span className={`
+                        px-2 py-1 text-xs font-medium rounded-full border
+                        ${getEventTypeColor(event.type || 'regular')}
+                      `}>
+                        {event.type || 'regular'}
+                      </span>
+                    </div>
+                    
+                    {/* Signup Button */}
+                    {isAuthenticated && (
+                      <div className="mt-3">
+                        {signupStatuses[event.id] ? (
+                          <button
+                            onClick={() => handleEventCancel(event.id)}
+                            className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm font-medium"
+                          >
+                            Cancel Signup
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleEventSignup(event.id)}
+                            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                          >
+                            Sign Up
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Backdrop */}
       {sidePanelOpen && (

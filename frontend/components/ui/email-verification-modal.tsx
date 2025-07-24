@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MultiStepLoader } from './multi-step-loader'
 import { IconMail, IconX, IconCheck, IconAlertCircle, IconRefresh } from '@tabler/icons-react'
@@ -20,6 +21,7 @@ export default function EmailVerificationModal({
   email, 
   onVerificationSuccess 
 }: EmailVerificationModalProps) {
+  const router = useRouter()
   const [verificationCode, setVerificationCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isResending, setIsResending] = useState(false)

@@ -1,12 +1,14 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import LoginCard from '../components/ui/login-card'
 import SignUpModal from '../components/ui/signup-modal'
-import ForgotPasswordModal from '../components/ui/forgot-password-modal'
+import { ForgotPasswordModal } from '../components/ui/forgot-password-modal'
 import EmailVerificationModal from '../components/ui/email-verification-modal'
 
 export default function Home() {
+  const router = useRouter()
   const [showSignUpModal, setShowSignUpModal] = useState(false)
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false)
@@ -51,7 +53,7 @@ export default function Home() {
       localStorage.setItem('user', JSON.stringify(data.user));
       
       // Redirect to home page after successful login
-      window.location.href = '/home';
+      router.push('/home');
       
     } catch (error) {
       console.error('Login error:', error);
@@ -95,7 +97,7 @@ export default function Home() {
         localStorage.setItem('user', JSON.stringify(data.user));
         
         // Redirect to home page after successful signup
-        window.location.href = '/home';
+        router.push('/home');
       }
       
     } catch (error) {
@@ -104,10 +106,10 @@ export default function Home() {
     }
   }
 
-  const handleForgotPassword = (studentId: string) => {
-    console.log('Forgot password attempt:', { studentId })
-    // Here you would typically make an API call to send reset email
-    // For now, we'll just log the student ID
+  const handleForgotPassword = () => {
+    // This function is called when the forgot password modal is successfully closed
+    // The actual password reset logic is handled within the ForgotPasswordModal component
+    console.log('Forgot password flow completed')
   }
 
   const handleSwitchToSignUp = () => {
@@ -120,7 +122,7 @@ export default function Home() {
 
   const handleVerificationSuccess = (token: string) => {
     // Redirect to home page after successful verification
-    window.location.href = '/home';
+    router.push('/home');
   }
 
   return (
@@ -151,7 +153,7 @@ export default function Home() {
       <ForgotPasswordModal
         isOpen={showForgotPasswordModal}
         onClose={() => setShowForgotPasswordModal(false)}
-        onSubmit={handleForgotPassword}
+        onSuccess={handleForgotPassword}
       />
 
       {/* Email Verification Modal */}

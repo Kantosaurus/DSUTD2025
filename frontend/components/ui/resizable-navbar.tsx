@@ -284,6 +284,9 @@ export const AvatarDropdown = () => {
   // Check authentication status on component mount
   React.useEffect(() => {
     const checkAuth = async () => {
+      // Add a small delay to ensure localStorage is updated after login/signup
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const token = localStorage.getItem('token');
       if (!token) {
         setIsAuthenticated(false);
@@ -451,8 +454,24 @@ export const RightSection = () => {
   );
 };
 
-export const CompleteNavbar = ({ navItems }: { navItems: Array<{ name: string; link: string }> }) => {
+export const CompleteNavbar = ({ 
+  navItems, 
+  userRole = 'student' 
+}: { 
+  navItems: Array<{ name: string; link: string }>;
+  userRole?: 'admin' | 'student';
+}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Filter navigation items based on user role
+  const filteredNavItems = navItems.filter(item => {
+    // Show all items for admin users
+    if (userRole === 'admin') {
+      return true;
+    }
+    // For regular users, hide admin-specific items
+    return !item.name.toLowerCase().includes('admin');
+  });
 
   return (
     <Navbar className="sticky top-0 z-50">
@@ -463,7 +482,7 @@ export const CompleteNavbar = ({ navItems }: { navItems: Array<{ name: string; l
             <NavbarLogo />
           </div>
           <div className="flex-1 flex justify-center">
-            <NavItems items={navItems} />
+            <NavItems items={filteredNavItems} />
           </div>
           <div className="flex items-center w-64 justify-end">
             <RightSection />
@@ -509,7 +528,7 @@ export const CompleteNavbar = ({ navItems }: { navItems: Array<{ name: string; l
               />
             </div>
           </div>
-          {navItems.map((item, idx) => (
+          {filteredNavItems.map((item, idx) => (
             <a
               key={`mobile-link-${idx}`}
               href={item.link}

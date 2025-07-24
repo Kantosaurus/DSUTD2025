@@ -131,7 +131,7 @@ const authenticateToken = async (req, res, next) => {
 
     // Check if user still exists and is active
     const userResult = await pool.query(
-      'SELECT id, student_id, email, is_active, session_token_version FROM users WHERE id = $1',
+      'SELECT id, student_id, email, role, is_active, session_token_version FROM users WHERE id = $1',
       [decoded.userId]
     );
 
@@ -180,7 +180,8 @@ const authenticateToken = async (req, res, next) => {
     // Add user info to request
     req.user = {
       ...decoded,
-      currentUser: user
+      currentUser: user,
+      role: user.role
     };
 
     next();
@@ -196,6 +197,14 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
+// Middleware to check if user is admin
+const requireAdmin = async (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+};
+
 // Security utility functions
 const getClientIP = (req) => {
   return req.headers['x-forwarded-for'] || 
@@ -209,12 +218,15 @@ const getUserAgent = (req) => {
   return req.headers['user-agent'] || 'Unknown';
 };
 
-const logSecurityEvent = async (eventType, eventDescription, userId = null, metadata = {}) => {
+const logSecurityEvent = async (eventType, eventDescription, userId = null, metadata = {}, req = null) => {
   try {
+    const ipAddress = req ? getClientIP(req) : null;
+    const userAgent = req ? getUserAgent(req) : null;
+    
     await pool.query(
       `INSERT INTO security_events (user_id, event_type, event_description, ip_address, user_agent, metadata) 
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [userId, eventType, eventDescription, null, null, JSON.stringify(metadata)]
+      [userId, eventType, eventDescription, ipAddress, userAgent, JSON.stringify(metadata)]
     );
   } catch (error) {
     console.error('Error logging security event:', error);
@@ -342,6 +354,10 @@ const generateVerificationCode = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+const generatePasswordResetToken = () => {
+  return crypto.randomBytes(32).toString('hex');
+};
+
 const sendVerificationEmail = async (email, verificationCode, studentId) => {
   try {
     const transporter = createEmailTransporter();
@@ -396,6 +412,69 @@ const sendVerificationEmail = async (email, verificationCode, studentId) => {
     return true;
   } catch (error) {
     console.error('Error sending verification email:', error);
+    return false;
+  }
+};
+
+const sendPasswordResetEmail = async (email, resetToken, studentId) => {
+  try {
+    const transporter = createEmailTransporter();
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+    
+    const mailOptions = {
+      from: `"${EMAIL_CONFIG.FROM_NAME}" <${EMAIL_CONFIG.FROM_EMAIL}>`,
+      to: email,
+      subject: 'DSUTD 2025 - Password Reset Request',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; text-align: center;">
+            <h1 style="color: white; margin: 0;">DSUTD 2025</h1>
+            <p style="color: white; margin: 10px 0 0 0;">Password Reset</p>
+          </div>
+          
+          <div style="padding: 30px; background: #f9f9f9;">
+            <h2 style="color: #333; margin-bottom: 20px;">Password Reset Request</h2>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              We received a request to reset your password for your DSUTD 2025 account. Click the button below to reset your password:
+            </p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                Reset Password
+              </a>
+            </div>
+            
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              <strong>Student ID:</strong> ${studentId}<br>
+              <strong>Email:</strong> ${email}
+            </p>
+            
+            <p style="color: #999; font-size: 14px; margin-top: 30px;">
+              This password reset link will expire in 1 hour.<br>
+              If you didn't request a password reset, please ignore this email or contact support if you have concerns.
+            </p>
+            
+            <p style="color: #666; line-height: 1.6; margin-top: 20px;">
+              If the button above doesn't work, you can copy and paste this link into your browser:<br>
+              <a href="${resetUrl}" style="color: #667eea; word-break: break-all;">${resetUrl}</a>
+            </p>
+          </div>
+          
+          <div style="background: #333; padding: 20px; text-align: center;">
+            <p style="color: #999; margin: 0; font-size: 12px;">
+              © 2025 DSUTD. All rights reserved.
+            </p>
+          </div>
+        </div>
+      `
+    };
+    
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Password reset email sent:', info.messageId);
+    return true;
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
     return false;
   }
 };
@@ -587,13 +666,25 @@ app.put('/api/calendar/events/:id', authenticateToken, async (req, res) => {
     // Automatically set color based on type
     const color = getColorForType(event_type);
 
-    const result = await pool.query(
-      `UPDATE calendar_events 
-       SET title = $1, description = $2, event_date = $3, start_time = $4, end_time = $5, event_type = $6, color = $7
-       WHERE id = $8 AND user_id = $9
-       RETURNING *`,
-      [title, description, event_date, start_time, end_time, event_type, color, id, req.user.userId]
-    );
+    // Build query based on user role
+    let query, params;
+    if (req.user.role === 'admin') {
+      // Admins can update any event
+      query = `UPDATE calendar_events 
+               SET title = $1, description = $2, event_date = $3, start_time = $4, end_time = $5, event_type = $6, color = $7
+               WHERE id = $8
+               RETURNING *`;
+      params = [title, description, event_date, start_time, end_time, event_type, color, id];
+    } else {
+      // Regular users can only update their own events
+      query = `UPDATE calendar_events 
+               SET title = $1, description = $2, event_date = $3, start_time = $4, end_time = $5, event_type = $6, color = $7
+               WHERE id = $8 AND user_id = $9
+               RETURNING *`;
+      params = [title, description, event_date, start_time, end_time, event_type, color, id, req.user.userId];
+    }
+
+    const result = await pool.query(query, params);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Event not found' });
@@ -642,10 +733,19 @@ app.delete('/api/calendar/events/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     
-    const result = await pool.query(
-      'DELETE FROM calendar_events WHERE id = $1 AND user_id = $2 RETURNING *',
-      [id, req.user.userId]
-    );
+    // Build query based on user role
+    let query, params;
+    if (req.user.role === 'admin') {
+      // Admins can delete any event
+      query = 'DELETE FROM calendar_events WHERE id = $1 RETURNING *';
+      params = [id];
+    } else {
+      // Regular users can only delete their own events
+      query = 'DELETE FROM calendar_events WHERE id = $1 AND user_id = $2 RETURNING *';
+      params = [id, req.user.userId];
+    }
+    
+    const result = await pool.query(query, params);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Event not found' });
@@ -722,12 +822,16 @@ app.post('/api/auth/signup', [
 
     const newUser = result.rows[0];
 
+    // Log user registration
+    await logSecurityEvent('user_registration', `New user registered: ${studentId}`, newUser.id, { studentId, email }, req);
+
     // Send verification email
     const emailSent = await sendVerificationEmail(email, verificationCode, studentId);
     
     if (!emailSent) {
       // If email fails, delete the user and return error
       await pool.query('DELETE FROM users WHERE id = $1', [newUser.id]);
+      await logSecurityEvent('registration_failed', `Email verification failed for: ${studentId}`, newUser.id, { studentId, email }, req);
       return res.status(500).json({ 
         error: 'Failed to send verification email. Please try again.' 
       });
@@ -802,6 +906,9 @@ app.post('/api/auth/verify-email', [
       'UPDATE users SET email_verified = true, email_verification_code = NULL, email_verification_expires = NULL WHERE id = $1',
       [user.id]
     );
+
+    // Log email verification
+    await logSecurityEvent('email_verified', `Email verified for user: ${user.student_id}`, user.id, { studentId: user.student_id, email: user.email }, req);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -888,6 +995,195 @@ app.post('/api/auth/resend-verification', [
     });
   } catch (err) {
     console.error('Error resending verification email:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Forgot password endpoint
+app.post('/api/auth/forgot-password', [
+  body('studentId')
+    .isLength({ min: 1 })
+    .withMessage('Student ID is required')
+    .matches(/^100[1-9]\d{3}$/)
+    .withMessage('Invalid student ID format')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: errors.array() 
+      });
+    }
+
+    const { studentId } = req.body;
+
+    // Find user by student ID
+    const result = await pool.query(
+      'SELECT id, student_id, email, email_verified FROM users WHERE student_id = $1',
+      [studentId]
+    );
+
+    if (result.rows.length === 0) {
+      // Don't reveal if user exists or not for security
+      return res.json({
+        message: 'If an account with this student ID exists, a password reset email has been sent.'
+      });
+    }
+
+    const user = result.rows[0];
+
+    // Check if email is verified
+    if (!user.email_verified) {
+      return res.status(400).json({ 
+        error: 'Please verify your email address before requesting a password reset' 
+      });
+    }
+
+    // Generate password reset token
+    const resetToken = generatePasswordResetToken();
+    const resetExpires = new Date(Date.now() + (60 * 60 * 1000)); // 1 hour
+
+    // Update user with reset token
+    await pool.query(
+      'UPDATE users SET password_reset_token = $1, password_reset_expires = $2 WHERE id = $3',
+      [resetToken, resetExpires, user.id]
+    );
+
+    // Send password reset email
+    const emailSent = await sendPasswordResetEmail(user.email, resetToken, user.student_id);
+    
+    if (!emailSent) {
+      return res.status(500).json({ 
+        error: 'Failed to send password reset email. Please try again.' 
+      });
+    }
+
+    // Log security event
+    await logSecurityEvent('PASSWORD_RESET_REQUESTED', `Password reset requested for: ${studentId}`, user.id, {
+      studentId,
+      email: user.email
+    }, req);
+
+    res.json({
+      message: 'If an account with this student ID exists, a password reset email has been sent.'
+    });
+  } catch (err) {
+    console.error('Error processing forgot password request:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Reset password endpoint
+app.post('/api/auth/reset-password', [
+  body('token')
+    .isLength({ min: 1 })
+    .withMessage('Reset token is required'),
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long')
+    .matches(/[A-Z]/)
+    .withMessage('Password must contain at least one uppercase letter')
+    .matches(/[a-z]/)
+    .withMessage('Password must contain at least one lowercase letter')
+    .matches(/\d/)
+    .withMessage('Password must contain at least one number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/)
+    .withMessage('Password must contain at least one special character')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: errors.array() 
+      });
+    }
+
+    const { token, password } = req.body;
+
+    // Find user by reset token
+    const result = await pool.query(
+      'SELECT id, student_id, email, password_reset_expires FROM users WHERE password_reset_token = $1',
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const user = result.rows[0];
+
+    // Check if token has expired
+    if (new Date() > user.password_reset_expires) {
+      return res.status(400).json({ error: 'Reset token has expired' });
+    }
+
+    // Hash new password
+    const saltRounds = 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Update user password and clear reset token
+    await pool.query(
+      'UPDATE users SET password_hash = $1, password_reset_token = NULL, password_reset_expires = NULL, password_changed_at = CURRENT_TIMESTAMP, session_token_version = session_token_version + 1 WHERE id = $2',
+      [passwordHash, user.id]
+    );
+
+    // Log security event
+    await logSecurityEvent('PASSWORD_RESET_SUCCESS', `Password reset successful for: ${user.student_id}`, user.id, {
+      studentId: user.student_id,
+      email: user.email
+    }, req);
+
+    res.json({
+      message: 'Password reset successfully! You can now log in with your new password.'
+    });
+  } catch (err) {
+    console.error('Error resetting password:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Validate reset token endpoint
+app.post('/api/auth/validate-reset-token', [
+  body('token')
+    .isLength({ min: 1 })
+    .withMessage('Reset token is required')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: errors.array() 
+      });
+    }
+
+    const { token } = req.body;
+
+    // Find user by reset token
+    const result = await pool.query(
+      'SELECT id, password_reset_expires FROM users WHERE password_reset_token = $1',
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid reset token' });
+    }
+
+    const user = result.rows[0];
+
+    // Check if token has expired
+    if (new Date() > user.password_reset_expires) {
+      return res.status(400).json({ error: 'Reset token has expired' });
+    }
+
+    res.json({ valid: true });
+  } catch (err) {
+    console.error('Error validating reset token:', err);
     res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });
@@ -1166,7 +1462,7 @@ app.post('/api/auth/logout-all', authenticateToken, async (req, res) => {
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, student_id, email, created_at, last_login, password_changed_at, two_factor_enabled FROM users WHERE id = $1',
+      'SELECT id, student_id, email, role, created_at, last_login, password_changed_at, two_factor_enabled FROM users WHERE id = $1',
       [req.user.userId]
     );
 
@@ -1185,6 +1481,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
         id: user.id,
         studentId: user.student_id,
         email: user.email,
+        role: user.role,
         createdAt: user.created_at,
         lastLogin: user.last_login,
         twoFactorEnabled: user.two_factor_enabled,
@@ -1504,15 +1801,44 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+// Get all calendar events (admin only)
+app.get('/api/admin/calendar/events', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT ce.*, u.student_id as creator_student_id, u.email as creator_email
+       FROM calendar_events ce
+       LEFT JOIN users u ON ce.user_id = u.id
+       ORDER BY ce.event_date DESC, ce.start_time ASC`
+    );
+
+    const events = result.rows.map(event => ({
+      id: event.id.toString(),
+      title: event.title,
+      description: event.description,
+      event_date: event.event_date,
+      start_time: event.start_time,
+      end_time: event.end_time,
+      event_type: event.event_type,
+      color: event.color,
+      creator_student_id: event.creator_student_id,
+      creator_email: event.creator_email,
+      created_at: event.created_at,
+      updated_at: event.updated_at
+    }));
+
+    res.json({
+      events,
+      total: events.length
+    });
+  } catch (err) {
+    console.error('Error fetching all calendar events:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
+  }
 });
 
 // Security monitoring endpoint (protected)
-app.get('/api/admin/security-events', authenticateToken, async (req, res) => {
+app.get('/api/admin/security-events', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    // Check if user is admin (you can implement admin role checking here)
     const result = await pool.query(
       `SELECT se.*, u.student_id 
        FROM security_events se 
@@ -1532,7 +1858,7 @@ app.get('/api/admin/security-events', authenticateToken, async (req, res) => {
 });
 
 // Login attempts monitoring endpoint (protected)
-app.get('/api/admin/login-attempts', authenticateToken, async (req, res) => {
+app.get('/api/admin/login-attempts', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT la.*, u.student_id 
@@ -1552,6 +1878,237 @@ app.get('/api/admin/login-attempts', authenticateToken, async (req, res) => {
   }
 });
 
+// Comprehensive activity logs endpoint (protected)
+app.get('/api/admin/activity-logs', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 50, type } = req.query;
+    const offset = (page - 1) * limit;
+    
+    let whereClause = '';
+    let params = [];
+    
+    if (type) {
+      whereClause = 'WHERE se.event_type = $1';
+      params.push(type);
+    }
+    
+    const result = await pool.query(
+      `SELECT se.*, u.student_id, u.email
+       FROM security_events se 
+       LEFT JOIN users u ON se.user_id = u.id 
+       ${whereClause}
+       ORDER BY se.created_at DESC 
+       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      [...params, limit, offset]
+    );
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*) as total
+       FROM security_events se 
+       LEFT JOIN users u ON se.user_id = u.id 
+       ${whereClause}`,
+      params
+    );
+
+    res.json({
+      logs: result.rows,
+      total: parseInt(countResult.rows[0].total),
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(countResult.rows[0].total / limit)
+    });
+  } catch (error) {
+    console.error('Error fetching activity logs:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// User registration activity endpoint (protected)
+app.get('/api/admin/user-registrations', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 50 } = req.query;
+    const offset = (page - 1) * limit;
+    
+    const result = await pool.query(
+      `SELECT u.id, u.student_id, u.email, u.role, u.created_at, u.last_login, u.is_active,
+              COUNT(es.id) as total_signups,
+              COUNT(CASE WHEN es.attended = true THEN 1 END) as attended_events
+       FROM users u
+       LEFT JOIN event_signups es ON u.id = es.user_id
+       GROUP BY u.id, u.student_id, u.email, u.role, u.created_at, u.last_login, u.is_active
+       ORDER BY u.created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
+
+    const countResult = await pool.query('SELECT COUNT(*) as total FROM users');
+
+    res.json({
+      users: result.rows,
+      total: parseInt(countResult.rows[0].total),
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(countResult.rows[0].total / limit)
+    });
+  } catch (error) {
+    console.error('Error fetching user registrations:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Event signup activity endpoint (protected)
+app.get('/api/admin/event-signups', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 50 } = req.query;
+    const offset = (page - 1) * limit;
+    
+    const result = await pool.query(
+      `SELECT es.*, u.student_id, u.email, ce.title as event_title, ce.event_date, ce.event_type
+       FROM event_signups es
+       JOIN users u ON es.user_id = u.id
+       JOIN calendar_events ce ON es.event_id = ce.id
+       ORDER BY es.signup_date DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
+
+    const countResult = await pool.query('SELECT COUNT(*) as total FROM event_signups');
+
+    res.json({
+      signups: result.rows,
+      total: parseInt(countResult.rows[0].total),
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(countResult.rows[0].total / limit)
+    });
+  } catch (error) {
+    console.error('Error fetching event signups:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Dashboard statistics endpoint (protected)
+app.get('/api/admin/dashboard-stats', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    // Get total users
+    const usersResult = await pool.query('SELECT COUNT(*) as total FROM users');
+    const totalUsers = parseInt(usersResult.rows[0].total);
+    
+    // Get users by role
+    const roleResult = await pool.query(
+      'SELECT role, COUNT(*) as count FROM users GROUP BY role'
+    );
+    const usersByRole = roleResult.rows.reduce((acc, row) => {
+      acc[row.role] = parseInt(row.count);
+      return acc;
+    }, {});
+    
+    // Get total events
+    const eventsResult = await pool.query('SELECT COUNT(*) as total FROM calendar_events');
+    const totalEvents = parseInt(eventsResult.rows[0].total);
+    
+    // Get events by status (upcoming, ongoing, past)
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    
+    const upcomingEventsResult = await pool.query(
+      'SELECT COUNT(*) as count FROM calendar_events WHERE event_date > $1',
+      [today]
+    );
+    const upcomingEvents = parseInt(upcomingEventsResult.rows[0].count);
+    
+    const pastEventsResult = await pool.query(
+      'SELECT COUNT(*) as count FROM calendar_events WHERE event_date < $1',
+      [today]
+    );
+    const pastEvents = parseInt(pastEventsResult.rows[0].count);
+    
+    const ongoingEventsResult = await pool.query(
+      'SELECT COUNT(*) as count FROM calendar_events WHERE event_date = $1',
+      [today]
+    );
+    const ongoingEvents = parseInt(ongoingEventsResult.rows[0].count);
+    
+    // Get current event
+    const currentEventResult = await pool.query(
+      `SELECT ce.*, u.student_id as creator_student_id
+       FROM calendar_events ce
+       LEFT JOIN users u ON ce.user_id = u.id
+       WHERE ce.event_date = $1
+       ORDER BY ce.start_time ASC
+       LIMIT 1`,
+      [today]
+    );
+    const currentEvent = currentEventResult.rows[0] || null;
+    
+    // Get next event
+    const nextEventResult = await pool.query(
+      `SELECT ce.*, u.student_id as creator_student_id
+       FROM calendar_events ce
+       LEFT JOIN users u ON ce.user_id = u.id
+       WHERE ce.event_date > $1
+       ORDER BY ce.event_date ASC, ce.start_time ASC
+       LIMIT 1`,
+      [today]
+    );
+    const nextEvent = nextEventResult.rows[0] || null;
+    
+    // Get total signups
+    const signupsResult = await pool.query('SELECT COUNT(*) as total FROM event_signups');
+    const totalSignups = parseInt(signupsResult.rows[0].total);
+    
+    // Get attendance rate
+    const attendanceResult = await pool.query(
+      'SELECT COUNT(*) as attended FROM event_signups WHERE attended = true'
+    );
+    const attendedSignups = parseInt(attendanceResult.rows[0].attended);
+    const attendanceRate = totalSignups > 0 ? (attendedSignups / totalSignups * 100).toFixed(1) : 0;
+    
+    // Get recent activity (last 7 days)
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const recentActivityResult = await pool.query(
+      'SELECT COUNT(*) as count FROM security_events WHERE created_at >= $1',
+      [sevenDaysAgo]
+    );
+    const recentActivity = parseInt(recentActivityResult.rows[0].count);
+    
+    // Get failed login attempts (last 24 hours)
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const failedLoginsResult = await pool.query(
+      'SELECT COUNT(*) as count FROM login_attempts WHERE success = false AND attempt_time >= $1',
+      [oneDayAgo]
+    );
+    const failedLogins = parseInt(failedLoginsResult.rows[0].count);
+
+    res.json({
+      users: {
+        total: totalUsers,
+        byRole: usersByRole
+      },
+      events: {
+        total: totalEvents,
+        upcoming: upcomingEvents,
+        ongoing: ongoingEvents,
+        past: pastEvents
+      },
+      currentEvent,
+      nextEvent,
+      signups: {
+        total: totalSignups,
+        attended: attendedSignups,
+        attendanceRate: parseFloat(attendanceRate)
+      },
+      activity: {
+        recent: recentActivity,
+        failedLogins
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Clean up expired sessions (run periodically)
 const cleanupExpiredSessions = async () => {
   try {
@@ -1566,6 +2123,11 @@ const cleanupExpiredSessions = async () => {
 
 // Run cleanup every hour
 setInterval(cleanupExpiredSessions, 60 * 60 * 1000);
+
+// 404 handler - must be last
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

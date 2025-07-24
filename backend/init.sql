@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     student_id VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) DEFAULT 'student' CHECK (role IN ('admin', 'student')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP,
@@ -17,7 +18,9 @@ CREATE TABLE IF NOT EXISTS users (
     session_token_version INTEGER DEFAULT 1,
     email_verified BOOLEAN DEFAULT FALSE,
     email_verification_code VARCHAR(6),
-    email_verification_expires TIMESTAMP
+    email_verification_expires TIMESTAMP,
+    password_reset_token VARCHAR(255),
+    password_reset_expires TIMESTAMP
 );
 
 -- Create calendar_events table
@@ -96,6 +99,8 @@ CREATE INDEX IF NOT EXISTS idx_calendar_events_date ON calendar_events(event_dat
 CREATE INDEX IF NOT EXISTS idx_calendar_events_type ON calendar_events(event_type);
 CREATE INDEX IF NOT EXISTS idx_users_student_id ON users(student_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_password_reset_token ON users(password_reset_token);
 CREATE INDEX IF NOT EXISTS idx_event_signups_user_id ON event_signups(user_id);
 CREATE INDEX IF NOT EXISTS idx_event_signups_event_id ON event_signups(event_id);
 CREATE INDEX IF NOT EXISTS idx_event_signups_signup_date ON event_signups(signup_date);
@@ -124,3 +129,21 @@ CREATE TRIGGER update_users_updated_at
     BEFORE UPDATE ON users 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
+
+-- Insert admin users with password 'DSUTDadmin' (bcrypt hash)
+-- Note: This is a bcrypt hash of 'DSUTDadmin' with salt rounds 10
+INSERT INTO users (student_id, email, password_hash, role, email_verified, is_active) VALUES
+('1007667', '1007667@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1007771', '1007771@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1008456', '1008456@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1007675', '1007675@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1009302', '1009302@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1009099', '1009099@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1009036', '1009036@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1009688', '1009688@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1009035', '1009035@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1007877', '1007877@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1009127', '1009127@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1008153', '1008153@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1008148', '1008148@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE)
+ON CONFLICT (student_id) DO NOTHING;

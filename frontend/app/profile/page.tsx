@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { CompleteNavbar } from '../../components/ui/resizable-navbar';
 import { MultiStepLoader } from '../../components/ui/multi-step-loader';
 import { AnimatedTooltip } from '../../components/ui/animated-tooltip';
@@ -26,10 +27,14 @@ const navItems = [
   { name: 'Events', link: '/calendar' },
   { name: 'Survival Kit', link: '/survival-kit' },
   { name: 'Maps', link: '/maps' },
+  { name: 'Admin Events', link: '/admin/events' },
+  { name: 'Admin Logs', link: '/admin/logs' },
 ];
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<'admin' | 'student'>('student');
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [signedUpEvents, setSignedUpEvents] = useState<Event[]>([]);
@@ -59,19 +64,41 @@ export default function ProfilePage() {
 
   useEffect(() => {
     checkAuthAndLoadData();
-  }, []);
+  }, [router]);
 
   const checkAuthAndLoadData = async () => {
+    // Add a small delay to ensure localStorage is updated after login/signup
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     const token = localStorage.getItem('token');
     console.log('Profile page - Token check:', token ? 'Token exists' : 'No token found');
     
     if (!token) {
       console.log('Profile page - Redirecting to landing page due to no token');
-      window.location.href = '/';
+      router.push('/');
       return;
     }
 
     try {
+      // Validate token with backend first
+      const authResponse = await fetch(`${API_URL}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (authResponse.ok) {
+        const authData = await authResponse.json();
+        setIsAuthenticated(true);
+        setUserRole(authData.user.role || 'student');
+      } else {
+        console.log('Profile page - Token invalid, clearing storage and redirecting');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        router.push('/');
+        return;
+      }
+
       console.log('Profile page - Loading user data...');
       // Load user data
       const userResponse = await axios.get(`${API_URL}/api/profile`, {
@@ -88,18 +115,16 @@ export default function ProfilePage() {
       setSignedUpEvents(eventsResponse.data);
       console.log('Profile page - Events loaded:', eventsResponse.data);
 
-      setIsAuthenticated(true);
     } catch (error: any) {
       console.error('Error loading profile data:', error);
       if (error.response?.status === 401) {
         console.log('Profile page - Token invalid, clearing storage and redirecting');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/';
+        router.push('/');
       } else {
         console.log('Profile page - Other error, but keeping user logged in');
-        // For other errors, don't log out the user, just show an error
-        setPasswordMessage('Error loading profile data. Please try refreshing the page.');
+        setIsAuthenticated(true);
       }
     } finally {
       setIsLoading(false);
@@ -195,7 +220,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <CompleteNavbar navItems={navItems} />
+      <CompleteNavbar navItems={navItems} userRole={userRole} />
       
       <div className="pt-20 px-4">
         <div className="max-w-7xl mx-auto">
@@ -239,7 +264,7 @@ export default function ProfilePage() {
                       type="password"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-500"
                       required
                     />
                   </div>
@@ -252,7 +277,7 @@ export default function ProfilePage() {
                       type="password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-500"
                       required
                     />
                   </div>
@@ -265,7 +290,7 @@ export default function ProfilePage() {
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-500"
                       required
                     />
                   </div>
