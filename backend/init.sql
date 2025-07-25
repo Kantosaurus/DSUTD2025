@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS calendar_events (
     start_time TIME,
     end_time TIME,
     event_type VARCHAR(50),
+    location VARCHAR(255),
     color VARCHAR(16),
     max_participants INTEGER,
     current_participants INTEGER DEFAULT 0,
@@ -89,8 +90,6 @@ CREATE TABLE IF NOT EXISTS event_signups (
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     event_id INTEGER REFERENCES calendar_events(id) ON DELETE CASCADE,
     signup_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    attended BOOLEAN DEFAULT FALSE,
-    attendance_date TIMESTAMP,
     UNIQUE(user_id, event_id)
 );
 

@@ -529,6 +529,7 @@ app.get('/api/calendar/events', async (req, res) => {
         ce.title,
         ce.description,
         ce.event_date,
+        to_char(ce.event_date, 'YYYY-MM-DD') as event_date_str,
         ce.start_time,
         ce.end_time,
         ce.event_type,
@@ -546,7 +547,9 @@ app.get('/api/calendar/events', async (req, res) => {
     // Group events by date
     const eventsByDate = {};
     result.rows.forEach(event => {
-      const dateKey = event.event_date.toISOString().split('T')[0];
+      // Use the date string directly from the database to avoid timezone issues
+      const dateKey = event.event_date_str;
+      
       if (!eventsByDate[dateKey]) {
         eventsByDate[dateKey] = [];
       }
@@ -592,7 +595,7 @@ app.get('/api/calendar/events', async (req, res) => {
 // Create new calendar event
 app.post('/api/calendar/events', authenticateToken, async (req, res) => {
   try {
-    const { title, description, event_date, start_time, end_time, event_type } = req.body;
+    const { title, description, event_date, start_time, end_time, event_type, location, max_participants } = req.body;
 
     if (!title || !event_date) {
       return res.status(400).json({ error: 'Title and date are required' });
@@ -606,12 +609,15 @@ app.post('/api/calendar/events', authenticateToken, async (req, res) => {
     // Automatically set color based on type
     const color = getColorForType(event_type);
 
+    // Convert max_participants to number or null
+    const maxParticipants = max_participants && max_participants.trim() !== '' ? parseInt(max_participants, 10) : null;
+
     const result = await pool.query(
       `INSERT INTO calendar_events
-       (title, description, event_date, start_time, end_time, event_type, color, user_id) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+       (title, description, event_date, start_time, end_time, event_type, location, color, max_participants, user_id, is_active) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
        RETURNING *`,
-      [title, description || '', event_date, start_time || null, end_time || null, event_type || 'regular', color, req.user.userId]
+      [title, description || '', event_date, start_time || null, end_time || null, event_type || 'regular', location || '', color, maxParticipants, req.user.userId, true]
     );
 
     const newEvent = result.rows[0];
@@ -643,6 +649,7 @@ app.post('/api/calendar/events', authenticateToken, async (req, res) => {
       end_time: formattedEndTime,
       title: newEvent.title,
       type: newEvent.event_type,
+      location: newEvent.location,
       color: newEvent.color,
       description: newEvent.description
     });
@@ -656,7 +663,7 @@ app.post('/api/calendar/events', authenticateToken, async (req, res) => {
 app.put('/api/calendar/events/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, event_date, start_time, end_time, event_type } = req.body;
+    const { title, description, event_date, start_time, end_time, event_type, location, max_participants } = req.body;
     
     // Validate event type
     if (event_type && !['Mandatory', 'Optional', 'Pending'].includes(event_type)) {
@@ -666,22 +673,25 @@ app.put('/api/calendar/events/:id', authenticateToken, async (req, res) => {
     // Automatically set color based on type
     const color = getColorForType(event_type);
 
+    // Convert max_participants to number or null
+    const maxParticipants = max_participants && max_participants.trim() !== '' ? parseInt(max_participants, 10) : null;
+
     // Build query based on user role
     let query, params;
     if (req.user.role === 'admin') {
       // Admins can update any event
       query = `UPDATE calendar_events 
-               SET title = $1, description = $2, event_date = $3, start_time = $4, end_time = $5, event_type = $6, color = $7
-               WHERE id = $8
+               SET title = $1, description = $2, event_date = $3, start_time = $4, end_time = $5, event_type = $6, location = $7, color = $8, max_participants = $9
+               WHERE id = $10
                RETURNING *`;
-      params = [title, description, event_date, start_time, end_time, event_type, color, id];
+      params = [title, description, event_date, start_time, end_time, event_type, location, color, maxParticipants, id];
     } else {
       // Regular users can only update their own events
       query = `UPDATE calendar_events 
-               SET title = $1, description = $2, event_date = $3, start_time = $4, end_time = $5, event_type = $6, color = $7
-               WHERE id = $8 AND user_id = $9
+               SET title = $1, description = $2, event_date = $3, start_time = $4, end_time = $5, event_type = $6, location = $7, color = $8, max_participants = $9
+               WHERE id = $10 AND user_id = $11
                RETURNING *`;
-      params = [title, description, event_date, start_time, end_time, event_type, color, id, req.user.userId];
+      params = [title, description, event_date, start_time, end_time, event_type, location, color, maxParticipants, id, req.user.userId];
     }
 
     const result = await pool.query(query, params);
@@ -719,6 +729,7 @@ app.put('/api/calendar/events/:id', authenticateToken, async (req, res) => {
       end_time: formattedEndTime,
       title: updatedEvent.title,
       type: updatedEvent.event_type,
+      location: updatedEvent.location,
       color: updatedEvent.color,
       description: updatedEvent.description
     });
@@ -1730,6 +1741,12 @@ app.post('/api/events/:eventId/signup', authenticateToken, async (req, res) => {
       [req.user.userId, eventId]
     );
 
+    // Update current_participants count
+    await pool.query(
+      'UPDATE calendar_events SET current_participants = current_participants + 1 WHERE id = $1',
+      [eventId]
+    );
+
     // Log security event
     await logSecurityEvent('EVENT_SIGNUP', `User signed up for event: ${eventResult.rows[0].title}`, req.user.userId, {
       eventId: eventId,
@@ -1762,6 +1779,12 @@ app.delete('/api/events/:eventId/signup', authenticateToken, async (req, res) =>
     await pool.query(
       'DELETE FROM event_signups WHERE user_id = $1 AND event_id = $2',
       [req.user.userId, eventId]
+    );
+
+    // Update current_participants count
+    await pool.query(
+      'UPDATE calendar_events SET current_participants = GREATEST(current_participants - 1, 0) WHERE id = $1',
+      [eventId]
     );
 
     // Log security event
@@ -1805,9 +1828,15 @@ app.use((err, req, res, next) => {
 app.get('/api/admin/calendar/events', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT ce.*, u.student_id as creator_student_id, u.email as creator_email
+      `SELECT ce.*, u.student_id as creator_student_id, u.email as creator_email,
+              COALESCE(signup_counts.signup_count, 0) as current_participants
        FROM calendar_events ce
        LEFT JOIN users u ON ce.user_id = u.id
+       LEFT JOIN (
+         SELECT event_id, COUNT(*) as signup_count 
+         FROM event_signups 
+         GROUP BY event_id
+       ) signup_counts ON ce.id = signup_counts.event_id
        ORDER BY ce.event_date DESC, ce.start_time ASC`
     );
 
@@ -1819,7 +1848,10 @@ app.get('/api/admin/calendar/events', authenticateToken, requireAdmin, async (re
       start_time: event.start_time,
       end_time: event.end_time,
       event_type: event.event_type,
+      location: event.location,
       color: event.color,
+      max_participants: event.max_participants,
+      current_participants: event.current_participants,
       creator_student_id: event.creator_student_id,
       creator_email: event.creator_email,
       created_at: event.created_at,
@@ -1931,8 +1963,7 @@ app.get('/api/admin/user-registrations', authenticateToken, requireAdmin, async 
     
     const result = await pool.query(
       `SELECT u.id, u.student_id, u.email, u.role, u.created_at, u.last_login, u.is_active,
-              COUNT(es.id) as total_signups,
-              COUNT(CASE WHEN es.attended = true THEN 1 END) as attended_events
+              COUNT(es.id) as total_signups
        FROM users u
        LEFT JOIN event_signups es ON u.id = es.user_id
        GROUP BY u.id, u.student_id, u.email, u.role, u.created_at, u.last_login, u.is_active
@@ -2057,12 +2088,7 @@ app.get('/api/admin/dashboard-stats', authenticateToken, requireAdmin, async (re
     const signupsResult = await pool.query('SELECT COUNT(*) as total FROM event_signups');
     const totalSignups = parseInt(signupsResult.rows[0].total);
     
-    // Get attendance rate
-    const attendanceResult = await pool.query(
-      'SELECT COUNT(*) as attended FROM event_signups WHERE attended = true'
-    );
-    const attendedSignups = parseInt(attendanceResult.rows[0].attended);
-    const attendanceRate = totalSignups > 0 ? (attendedSignups / totalSignups * 100).toFixed(1) : 0;
+
     
     // Get recent activity (last 7 days)
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -2094,9 +2120,7 @@ app.get('/api/admin/dashboard-stats', authenticateToken, requireAdmin, async (re
       currentEvent,
       nextEvent,
       signups: {
-        total: totalSignups,
-        attended: attendedSignups,
-        attendanceRate: parseFloat(attendanceRate)
+        total: totalSignups
       },
       activity: {
         recent: recentActivity,

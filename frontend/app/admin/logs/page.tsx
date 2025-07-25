@@ -30,8 +30,6 @@ interface DashboardStats {
   nextEvent: any
   signups: {
     total: number
-    attended: number
-    attendanceRate: number
   }
   activity: {
     recent: number
@@ -60,7 +58,6 @@ interface UserRegistration {
   last_login?: string
   is_active: boolean
   total_signups: number
-  attended_events: number
 }
 
 interface EventSignup {
@@ -68,8 +65,6 @@ interface EventSignup {
   user_id: number
   event_id: number
   signup_date: string
-  attended: boolean
-  attendance_date?: string
   student_id: string
   email: string
   event_title: string
@@ -408,13 +403,7 @@ export default function AdminLogsPage() {
                               color: 'from-emerald-500 to-emerald-600',
                               delay: 0.1
                             },
-                            {
-                              title: 'Attendance Rate',
-                              value: `${dashboardStats.signups.attendanceRate}%`,
-                              icon: '📈',
-                              color: 'from-purple-500 to-purple-600',
-                              delay: 0.2
-                            },
+
                             {
                               title: 'Recent Activity',
                               value: dashboardStats.activity.recent,
@@ -758,7 +747,7 @@ export default function AdminLogsPage() {
                                     {user.last_login ? formatDate(user.last_login) : 'Never'}
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-light">
-                                    {user.total_signups} ({user.attended_events} attended)
+                                    {user.total_signups} signups
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -803,7 +792,7 @@ export default function AdminLogsPage() {
                               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Type</th>
                               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Signup Date</th>
                               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Date</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendance</th>
+
                             </tr>
                           </thead>
                           <tbody className="bg-white/30 divide-y divide-gray-100">
@@ -832,13 +821,7 @@ export default function AdminLogsPage() {
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-light">{formatDate(signup.signup_date)}</td>
                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-light">{signup.event_date}</td>
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                      signup.attended ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'
-                                    }`}>
-                                      {signup.attended ? 'Attended' : 'Not Attended'}
-                                    </span>
-                                  </td>
+
                                 </motion.tr>
                               ))}
                             </AnimatePresence>

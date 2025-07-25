@@ -13,6 +13,7 @@ interface CalendarEvent {
   type?: 'Mandatory' | 'Optional' | 'Pending';
   color?: string;
   description?: string;
+  location?: string;
   end_time?: string;
 }
 
@@ -111,8 +112,10 @@ export default function CalendarPage() {
     try {
       setLoading(true);
       setError('');
+      const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/api/calendar/events`, {
-        params: { year, month: month + 1 } // month is 0-indexed, API expects 1-indexed
+        params: { year, month: month + 1 }, // month is 0-indexed, API expects 1-indexed
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       return response.data;
     } catch (err) {
@@ -149,7 +152,11 @@ export default function CalendarPage() {
     const eventsData = await fetchEvents(year, month);
     
     for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-      const dateString = date.toISOString().split('T')[0];
+      // Format date as YYYY-MM-DD without timezone conversion
+      const year = date.getFullYear();
+      const monthStr = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateString = `${year}-${monthStr}-${day}`;
       const events = eventsData[dateString] || [];
       
       days.push({
@@ -522,6 +529,15 @@ export default function CalendarPage() {
                         {event.time && (
                           <p className="text-sm text-gray-600 mb-2">
                             {formatTime(event.time)}
+                          </p>
+                        )}
+                        {event.location && (
+                          <p className="text-sm text-gray-600 mb-2 flex items-center">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            {event.location}
                           </p>
                         )}
                         {event.description && (
