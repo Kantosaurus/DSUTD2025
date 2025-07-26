@@ -54,7 +54,7 @@ services:
     container_name: webapp-frontend
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3001
-      CHOKIDAR_USEPOLLING: "true"       # Added for hot reload support
+      CHOKIDAR_USEPOLLING: "true"
     ports:
       - "3000:3000"
     depends_on:
@@ -63,10 +63,10 @@ services:
       - ./frontend:/app
     networks:
       - webapp-network
-    command: npm run dev                # Make sure it uses dev server!
+    command: npm run dev
 
 volumes:
   postgres_data:
 
 networks:
-  webapp-network:                      # ✅ THIS LINE FIXES THE ERROR
+  webapp-network:
