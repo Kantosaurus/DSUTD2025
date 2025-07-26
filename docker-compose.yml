@@ -32,7 +32,6 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       PORT: 3001
       AUTO_MIGRATE: "true"
-      # Gmail Email Configuration
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       EMAIL_FROM: ${EMAIL_FROM}
@@ -55,20 +54,19 @@ services:
     container_name: webapp-frontend
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3001
+      CHOKIDAR_USEPOLLING: "true"       # Added for hot reload support
     ports:
       - "3000:3000"
     depends_on:
       - backend
     volumes:
       - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
     networks:
       - webapp-network
+    command: npm run dev                # Make sure it uses dev server!
 
 volumes:
   postgres_data:
 
 networks:
-  webapp-network:
-    driver: bridge 
+  webapp-network:                      # ✅ THIS LINE FIXES THE ERROR

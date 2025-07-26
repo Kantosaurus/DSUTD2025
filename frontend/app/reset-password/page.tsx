@@ -8,7 +8,7 @@ function ResetPasswordContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
-  
+
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -53,7 +53,7 @@ function ResetPasswordContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (password !== confirmPassword) {
       setError('Passwords do not match')
       return
@@ -185,23 +185,23 @@ function ResetPasswordContent() {
                required
                disabled={isLoading}
              />
-            
+
             {/* Password Strength Indicator */}
             {password && (
               <div className="mt-2">
                 <div className="flex items-center justify-between text-xs mb-1">
                   <span className="text-gray-600">Password strength:</span>
                   <span className={`font-medium ${
-                    strengthColor === 'red' ? 'text-red-600' : 
+                    strengthColor === 'red' ? 'text-red-600' :
                     strengthColor === 'yellow' ? 'text-yellow-600' : 'text-green-600'
                   }`}>
                     {strengthText}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className={`h-2 rounded-full transition-all duration-300 ${
-                      strengthColor === 'red' ? 'bg-red-500' : 
+                      strengthColor === 'red' ? 'bg-red-500' :
                       strengthColor === 'yellow' ? 'bg-yellow-500' : 'bg-green-500'
                     }`}
                     style={{ width: `${(passwordStrength / 5) * 100}%` }}
@@ -327,4 +327,4 @@ export default function ResetPasswordPage() {
       <ResetPasswordContent />
     </Suspense>
   )
-} 
+}

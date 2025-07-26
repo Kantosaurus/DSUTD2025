@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MultiStepLoader } from './multi-step-loader'
-import { IconUser, IconLock, IconEye, IconEyeOff } from '@tabler/icons-react'
+import { IconUser, IconLock, IconEye, IconEyeOff} from '@tabler/icons-react'
 
 interface LoginCardProps {
   onSubmit?: (studentId: string, password: string) => void
@@ -35,7 +35,7 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
     setIsLoading(true)
     setError(null)
     setRemainingAttempts(null)
-    
+
     try {
       // Use the onSubmit prop from parent component
       if (onSubmit) {
@@ -65,10 +65,10 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
       className="w-full max-w-md mx-auto relative"
     >
       {/* Loading Overlay */}
-      <MultiStepLoader 
-        loadingStates={loginLoadingStates} 
-        loading={isLoading} 
-        duration={800} 
+      <MultiStepLoader
+        loadingStates={loginLoadingStates}
+        loading={isLoading}
+        duration={800}
         loop={false}
       />
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-gray-900">
@@ -78,19 +78,19 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+            className="mx-auto m-0 flex items-center justify-center"
           >
-            <IconUser className="w-8 h-8 text-white" />
+            <img src="/dsutd 2025.svg" className="w-[280px] h-auto max-h-[200px] object-contain" />
           </motion.div>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
             className="text-2xl font-bold text-gray-900 mb-2"
           >
-            Welcome Back
+            Welcome to DSUTD
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
@@ -103,16 +103,16 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Student ID Input */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
             className="space-y-2"
           >
-            <motion.label 
-              htmlFor="studentId" 
+            <motion.label
+              htmlFor="studentId"
               className="text-sm font-medium text-gray-700 block"
-              animate={{ 
+              animate={{
                 color: focusedField === 'studentId' ? '#3b82f6' : '#374151',
                 scale: focusedField === 'studentId' ? 1.02 : 1
               }}
@@ -120,14 +120,14 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
             >
               Student ID
             </motion.label>
-            <motion.div 
+            <motion.div
               className="relative"
               whileHover={{ scale: 1.01 }}
               transition={{ duration: 0.2 }}
             >
-              <motion.div 
+              <motion.div
                 className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-                animate={{ 
+                animate={{
                   color: focusedField === 'studentId' ? '#3b82f6' : '#9ca3af'
                 }}
                 transition={{ duration: 0.2 }}
@@ -159,17 +159,17 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
           </motion.div>
 
           {/* Password Input */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6, duration: 0.5 }}
             className="space-y-2"
           >
             <div className="flex items-center justify-between">
-              <motion.label 
-                htmlFor="password" 
+              <motion.label
+                htmlFor="password"
                 className="text-sm font-medium text-gray-700 block"
-                animate={{ 
+                animate={{
                   color: focusedField === 'password' ? '#3b82f6' : '#374151',
                   scale: focusedField === 'password' ? 1.02 : 1
                 }}
@@ -190,14 +190,14 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
                 </motion.button>
               )}
             </div>
-            <motion.div 
+            <motion.div
               className="relative"
               whileHover={{ scale: 1.01 }}
               transition={{ duration: 0.2 }}
             >
-              <motion.div 
+              <motion.div
                 className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-                animate={{ 
+                animate={{
                   color: focusedField === 'password' ? '#3b82f6' : '#9ca3af'
                 }}
                 transition={{ duration: 0.2 }}
@@ -269,8 +269,7 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isLoading || !studentId || !password}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg"
-          >
+            className="w-full bg-black text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg">
             <AnimatePresence mode="wait">
               {isLoading ? (
                 <motion.div
@@ -280,7 +279,7 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
                   exit={{ opacity: 0 }}
                   className="flex items-center justify-center"
                 >
-                  <motion.div 
+                  <motion.div
                     className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -310,7 +309,7 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
               exit={{ opacity: 0, y: -10, height: 0 }}
               transition={{ duration: 0.3 }}
               className={`mt-4 p-4 rounded-xl border ${
-                error.type === 'locked' 
+                error.type === 'locked'
                   ? 'bg-red-50 border-red-200 text-red-800'
                   : error.type === 'credentials'
                   ? 'bg-orange-50 border-orange-200 text-orange-800'
@@ -369,7 +368,7 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
         </AnimatePresence>
 
         {/* Footer */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.5 }}
@@ -379,7 +378,7 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
             Don't have an account?{' '}
             <motion.button
               onClick={onSwitchToSignUp}
-              className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              className="text-[#FF6B9D] hover:text-[#e35b89] font-medium transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.1 }}
@@ -391,4 +390,4 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
       </div>
     </motion.div>
   )
-} 
+}

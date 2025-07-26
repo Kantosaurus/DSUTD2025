@@ -47,14 +47,14 @@ export default function Home() {
       }
 
       console.log('Login successful:', data);
-      
+
       // Store the token in localStorage
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      
+
       // Redirect to home page after successful login
       router.push('/home');
-      
+
     } catch (error) {
       console.error('Login error:', error);
       throw error; // Re-throw the error so the login card can handle it
@@ -82,7 +82,7 @@ export default function Home() {
       }
 
       console.log('Sign up successful:', data);
-      
+
       if (data.requiresVerification) {
         // Show email verification modal
         setPendingVerification({
@@ -95,11 +95,11 @@ export default function Home() {
         // Store the token in localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
+
         // Redirect to home page after successful signup
         router.push('/home');
       }
-      
+
     } catch (error) {
       console.error('Sign up error:', error);
       throw error; // Re-throw the error so the signup modal can handle it
@@ -135,8 +135,8 @@ export default function Home() {
 
       {/* Main content */}
       <div className="relative z-10 w-full max-w-md">
-        <LoginCard 
-          onSubmit={handleLogin} 
+        <LoginCard
+          onSubmit={handleLogin}
           onSwitchToSignUp={handleSwitchToSignUp}
           onForgotPassword={handleSwitchToForgotPassword}
         />
@@ -178,4 +178,4 @@ export default function Home() {
       </div>
     </div>
   )
-} 
+}
