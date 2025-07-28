@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { CompleteNavbar } from '../../components/ui/resizable-navbar'
 import { MultiStepLoader } from '../../components/ui/multi-step-loader'
 
@@ -24,7 +25,7 @@ export default function SurvivalKitPage() {
     const checkAuth = async () => {
       // Add a small delay to ensure localStorage is updated after login/signup
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       const token = localStorage.getItem('token')
       if (!token) {
         // Redirect to login if no token
@@ -40,7 +41,7 @@ export default function SurvivalKitPage() {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setIsAuthenticated(true);
@@ -76,10 +77,10 @@ export default function SurvivalKitPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <MultiStepLoader 
-          loadingStates={survivalKitLoadingStates} 
-          loading={isLoading} 
-          duration={1200} 
+        <MultiStepLoader
+          loadingStates={survivalKitLoadingStates}
+          loading={isLoading}
+          duration={1200}
           loop={false}
         />
       </div>
@@ -90,15 +91,118 @@ export default function SurvivalKitPage() {
     return null
   }
 
+  const menuItems = [
+    { title: "DiscoverSUTD\nKey Highlights", bg: "bg-pink-100" },
+    { title: "Food And Supper\nHacks", bg: "bg-orange-100" },
+    { title: "Housing and\nHostel Life", bg: "bg-yellow-100" },
+    { title: "Navigating\ncampus", bg: "bg-green-100" },
+    { title: "WIFI and VPN", bg: "bg-blue-100" },
+    { title: "Academic and\nAdmin Links", bg: "bg-purple-100" },
+    { title: "IT services", bg: "bg-indigo-100" },
+    { title: "Sick or Injured?", bg: "bg-red-100" },
+    { title: "Booking Campus\nFacilities", bg: "bg-pink-200" },
+    { title: "Root Services", bg: "bg-gray-200" }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <CompleteNavbar navItems={navItems} userRole={userRole} />
-      
+
       <div className="pt-20 px-4">
         <div className="max-w-7xl mx-auto">
-          {/* Blank content area */}
+          {/* Header with Logo */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="text-center mb-12"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="mx-auto mb-6 flex items-center justify-center"
+            >
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+                <img
+                  src="/dsutd 2025.svg"
+                  className="w-[320px] h-auto max-h-[140px] object-contain mx-auto"
+                  alt="DSUTD Logo"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+                <div className="text-gray-700 text-xl font-bold text-center hidden">
+                  DSUTD
+                </div>
+              </div>
+            </motion.div>
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="text-3xl font-bold text-gray-900 mb-2"
+            >
+              Welcome to DSUTD
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="text-gray-600 text-lg"
+            >
+              Your gateway to campus resources and services
+            </motion.p>
+          </motion.div>
+
+          {/* Menu Grid */}
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {menuItems.map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    delay: 0.6 + (index * 0.1),
+                    duration: 0.5,
+                    ease: "easeOut"
+                  }}
+                  whileHover={{
+                    scale: 1.03,
+                    y: -5,
+                    transition: { duration: 0.2 }
+                  }}
+                  whileTap={{
+                    scale: 0.98,
+                    transition: { duration: 0.1 }
+                  }}
+                  className={`${item.bg} rounded-2xl p-6 h-40 flex items-end cursor-pointer border border-white shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm bg-opacity-80`}
+                >
+                  <motion.h3
+                    className="text-[#631D35] font-bold text-base leading-tight w-full"
+                    whileHover={{
+                      scale: 1.02,
+                      transition: { duration: 0.2 }
+                    }}
+                  >
+                    {item.title.split('\n').map((line, lineIndex) => (
+                      <React.Fragment key={lineIndex}>
+                        {line}
+                        {lineIndex < item.title.split('\n').length - 1 && <br />}
+                      </React.Fragment>
+                    ))}
+                  </motion.h3>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom Spacing */}
+          <div className="h-20"></div>
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

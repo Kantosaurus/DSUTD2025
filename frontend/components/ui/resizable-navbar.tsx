@@ -10,6 +10,7 @@ import {
 import React, { useRef, useState } from "react";
 import { useRouter } from 'next/navigation';
 import { MultiStepLoader } from './multi-step-loader';
+import { usePathname } from 'next/navigation';
 
 interface NavbarProps {
   children: React.ReactNode;
@@ -102,8 +103,8 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
         minWidth: "800px",
       }}
       className={cn(
-        "relative z-[60] mx-auto hidden w-full max-w-7xl flex-row items-center justify-between self-start rounded-full px-4 py-2 lg:flex",
-        "bg-white/20 backdrop-blur-md border border-white/20",
+        "relative z-[60] mx-auto hidden w-full max-w-7xl flex-row items-center justify-between self-start px-4 py-2 lg:flex",
+        "bg-black backdrop-blur-md border border-white/20",
         visible && "bg-white/30 backdrop-blur-xl",
         className,
       )}
@@ -115,32 +116,44 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
 
 export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
   const [hovered, setHovered] = useState<number | null>(null);
+  const pathname = usePathname(); // Works in Next.js
 
   return (
     <motion.div
       onMouseLeave={() => setHovered(null)}
       className={cn(
-        "hidden flex-row items-center space-x-2 text-sm font-medium text-gray-800 transition duration-200 hover:text-gray-600 lg:flex lg:space-x-2",
+        "hidden flex-row items-center space-x-2 text-sm font-medium text-white transition duration-200 lg:flex lg:space-x-2",
         className,
       )}
     >
-      {items.map((item, idx) => (
-        <a
-          onMouseEnter={() => setHovered(idx)}
-          onClick={onItemClick}
-          className="relative px-4 py-2 text-gray-800 hover:text-gray-600"
-          key={`link-${idx}`}
-          href={item.link}
-        >
-          {hovered === idx && (
-            <motion.div
-              layoutId="hovered"
-              className="absolute inset-0 h-full w-full rounded-full bg-gray-200"
-            />
-          )}
-          <span className="relative z-20">{item.name}</span>
-        </a>
-      ))}
+      {items.map((item, idx) => {
+        const isActive = pathname === item.link;
+
+        return (
+          <a
+            key={`link-${idx}`}
+            href={item.link}
+            onMouseEnter={() => setHovered(idx)}
+            onClick={onItemClick}
+            className={cn(
+              "relative px-4 py-2 transition-all duration-200",
+              isActive
+                ? "bg-[#FF6B9D]/40 text-[#FF6B9D] rounded-full"
+                : "text-white hover:text-white"
+            )}
+          >
+            {/* Only show hover background if not already active */}
+            {hovered === idx && !isActive && (
+              <motion.div
+                layoutId="hovered"
+                className="absolute inset-0 h-full w-full rounded-full bg-[#FF6B9D]/40"
+                transition={{ duration: 0.15 }}
+              />
+            )}
+            <span className="relative z-20">{item.name}</span>
+          </a>
+        );
+      })}
     </motion.div>
   );
 };
@@ -254,7 +267,7 @@ export const SearchBar = () => {
     <div className="relative group">
       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
         <svg
-          className="h-4 w-4 text-gray-400"
+          className="h-4 w-4 text-white"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -270,7 +283,7 @@ export const SearchBar = () => {
       <input
         type="text"
         placeholder="Search..."
-        className="w-8 h-8 bg-gray-100 text-gray-800 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 pl-3 pr-10 transition-all duration-300 group-hover:w-64 group-hover:rounded-lg group-focus-within:w-64 group-focus-within:rounded-lg"
+        className="w-8 h-8 bg-black text-gray-100 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 pl-3 pr-10 transition-all duration-300 group-hover:w-64 group-hover:rounded-lg group-focus-within:w-64 group-focus-within:rounded-lg"
       />
     </div>
   );
@@ -280,13 +293,13 @@ export const AvatarDropdown = () => {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Check authentication status on component mount
   React.useEffect(() => {
     const checkAuth = async () => {
       // Add a small delay to ensure localStorage is updated after login/signup
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       const token = localStorage.getItem('token');
       if (!token) {
         setIsAuthenticated(false);
@@ -302,7 +315,7 @@ export const AvatarDropdown = () => {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (response.ok) {
           setIsAuthenticated(true);
         } else {
@@ -324,7 +337,7 @@ export const AvatarDropdown = () => {
 
     checkAuth();
   }, []);
-  
+
   const handleLogout = () => {
     // Clear localStorage
     localStorage.removeItem('token')
@@ -351,10 +364,10 @@ export const AvatarDropdown = () => {
 
   return (
     <div className="relative group">
-      <div 
+      <div
         className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors duration-200 ${
-          isAuthenticated 
-            ? 'bg-gray-600 hover:bg-gray-500' 
+          isAuthenticated
+            ? 'bg-gray-600 hover:bg-gray-500'
             : 'bg-gray-400 hover:bg-gray-300'
         }`}
         onClick={() => {
@@ -388,8 +401,8 @@ export const AvatarDropdown = () => {
           <a
             href="/profile"
             className={`flex items-center px-4 py-2 text-sm transition-colors duration-150 ${
-              isAuthenticated 
-                ? 'text-gray-700 hover:bg-gray-100' 
+              isAuthenticated
+                ? 'text-gray-700 hover:bg-gray-100'
                 : 'text-gray-400 cursor-not-allowed'
             }`}
             onClick={(e) => {
@@ -454,10 +467,10 @@ export const RightSection = () => {
   );
 };
 
-export const CompleteNavbar = ({ 
-  navItems, 
-  userRole = 'student' 
-}: { 
+export const CompleteNavbar = ({
+  navItems,
+  userRole = 'student'
+}: {
   navItems: Array<{ name: string; link: string }>;
   userRole?: 'admin' | 'student';
 }) => {
