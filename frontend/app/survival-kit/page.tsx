@@ -92,16 +92,16 @@ export default function SurvivalKitPage() {
   }
 
   const menuItems = [
-    { title: "DiscoverSUTD\nKey Highlights", bg: "bg-pink-100" },
-    { title: "Food And Supper\nHacks", bg: "bg-orange-100" },
-    { title: "Housing and\nHostel Life", bg: "bg-yellow-100" },
-    { title: "Navigating\ncampus", bg: "bg-green-100" },
-    { title: "WIFI and VPN", bg: "bg-blue-100" },
-    { title: "Academic and\nAdmin Links", bg: "bg-purple-100" },
-    { title: "IT services", bg: "bg-indigo-100" },
-    { title: "Sick or Injured?", bg: "bg-red-100" },
-    { title: "Booking Campus\nFacilities", bg: "bg-pink-200" },
-    { title: "Root Services", bg: "bg-gray-200" }
+    { title: "DiscoverSUTD\nKey Highlights"},
+    { title: "Food And Supper\nHacks"},
+    { title: "Housing and\nHostel Life"},
+    { title: "Navigating\ncampus"},
+    { title: "WIFI and VPN"},
+    { title: "Academic and\nAdmin Links"},
+    { title: "IT services"},
+    { title: "Sick or Injured?"},
+    { title: "Booking Campus\nFacilities"},
+    { title: "Root Services"}
   ];
 
   return (
@@ -165,8 +165,7 @@ export default function SurvivalKitPage() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
-                    delay: 0.6 + (index * 0.1),
-                    duration: 0.5,
+                    duration: 0.1,
                     ease: "easeOut"
                   }}
                   whileHover={{
@@ -178,7 +177,7 @@ export default function SurvivalKitPage() {
                     scale: 0.98,
                     transition: { duration: 0.1 }
                   }}
-                  className={`${item.bg} rounded-2xl p-6 h-40 flex items-end cursor-pointer border border-white shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm bg-opacity-80`}
+                  className={`bg-white/60 rounded-2xl p-6 h-56 flex items-start cursor-pointer border border-white shadow-lg  hover:shadow-xl transition-all duration-300 backdrop-blur-sm bg-opacity-80`}
                 >
                   <motion.h3
                     className="text-[#631D35] font-bold text-base leading-tight w-full"
