@@ -254,8 +254,8 @@ export const NavbarLogo = () => {
       <img
         src="/dsutd.png"
         alt="DSUTD Logo"
-        width={40}
-        height={40}
+        width={70}
+        height={70}
         className="object-contain"
       />
     </a>
