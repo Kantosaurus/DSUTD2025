@@ -24,7 +24,7 @@ export default function HomePage() {
     const checkAuth = async () => {
       // Add a small delay to ensure localStorage is updated after login/signup
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       const token = localStorage.getItem('token')
       if (!token) {
         // Redirect to login if no token
@@ -40,7 +40,7 @@ export default function HomePage() {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setIsAuthenticated(true);
@@ -76,10 +76,10 @@ export default function HomePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <MultiStepLoader 
-          loadingStates={homeLoadingStates} 
-          loading={isLoading} 
-          duration={1200} 
+        <MultiStepLoader
+          loadingStates={homeLoadingStates}
+          loading={isLoading}
+          duration={1200}
           loop={false}
         />
       </div>
@@ -93,12 +93,12 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <CompleteNavbar navItems={navItems} userRole={userRole} />
-      
+
       <div className="pt-20 px-4">
         <div className="max-w-7xl mx-auto">
-          {/* Blank content area */}
+
         </div>
       </div>
     </div>
   )
-} 
+}
