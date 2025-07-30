@@ -90,9 +90,11 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
         backdropFilter: visible ? "blur(20px)" : "blur(10px)",
         boxShadow: visible
           ? "0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.2) inset"
-          : "0 4px 16px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.1) inset",
+          : "0 4px 16px rgba(0, 0, 0, 0.05)",
         width: visible ? "40%" : "100%",
         y: visible ? 20 : 0,
+        padding: visible ? "8px 16px" : "16px 24px",
+        borderWidth: visible ? "1px" : "0px",
       }}
       transition={{
         type: "spring",
@@ -103,9 +105,9 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
         minWidth: "800px",
       }}
       className={cn(
-        "relative z-[60] mx-auto hidden w-full max-w-7xl flex-row items-center justify-between self-start px-4 py-2 lg:flex",
-        "bg-black backdrop-blur-md border border-white/20",
-        visible && "bg-white/30 backdrop-blur-xl",
+        "relative z-[60] mx-auto hidden w-full max-w-6xl flex-row items-center justify-between self-start lg:flex",
+        "bg-white/10 backdrop-blur-md rounded-2xl my-2",
+        visible && "bg-white/20 backdrop-blur-xl border border-white/30",
         className,
       )}
     >
@@ -121,10 +123,10 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
   return (
     <motion.div
       onMouseLeave={() => setHovered(null)}
-      className={cn(
-        "hidden flex-row items-center space-x-2 text-sm font-medium text-white transition duration-200 lg:flex lg:space-x-2",
-        className,
-      )}
+             className={cn(
+         "hidden flex-row items-center space-x-6 text-sm font-medium text-gray-800 transition duration-200 lg:flex lg:space-x-6",
+         className,
+       )}
     >
       {items.map((item, idx) => {
         const isActive = pathname === item.link;
@@ -135,12 +137,12 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
             href={item.link}
             onMouseEnter={() => setHovered(idx)}
             onClick={onItemClick}
-            className={cn(
-              "relative px-4 py-2 transition-all duration-200",
-              isActive
-                ? "bg-[#FF6B9D]/40 text-[#FF6B9D] rounded-full"
-                : "text-white hover:text-white"
-            )}
+                         className={cn(
+               "relative px-6 py-3 transition-all duration-200",
+               isActive
+                 ? "bg-[#FF6B9D]/40 text-[#FF6B9D] rounded-full"
+                 : "text-gray-800 hover:text-gray-600"
+             )}
           >
             {/* Only show hover background if not already active */}
             {hovered === idx && !isActive && (
@@ -165,12 +167,14 @@ export const MobileNav = ({ children, className, visible }: MobileNavProps) => {
         backdropFilter: visible ? "blur(20px)" : "blur(10px)",
         boxShadow: visible
           ? "0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.2) inset"
-          : "0 4px 16px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.1) inset",
+          : "0 4px 16px rgba(0, 0, 0, 0.05)",
         width: visible ? "90%" : "100%",
         paddingRight: visible ? "12px" : "0px",
         paddingLeft: visible ? "12px" : "0px",
         borderRadius: visible ? "4px" : "2rem",
         y: visible ? 20 : 0,
+        padding: visible ? "8px 16px" : "16px 24px",
+        borderWidth: visible ? "1px" : "0px",
       }}
       transition={{
         type: "spring",
@@ -178,9 +182,9 @@ export const MobileNav = ({ children, className, visible }: MobileNavProps) => {
         damping: 50,
       }}
       className={cn(
-        "relative z-50 mx-auto flex w-full max-w-[calc(100vw-2rem)] flex-col items-center justify-between px-0 py-2 lg:hidden",
-        "bg-white/20 backdrop-blur-md border border-white/20",
-        visible && "bg-white/30 backdrop-blur-xl",
+        "relative z-50 mx-auto flex w-full max-w-[calc(100vw-4rem)] flex-col items-center justify-between lg:hidden",
+        "bg-white/10 backdrop-blur-md rounded-2xl my-2",
+        visible && "bg-white/20 backdrop-blur-xl border border-white/30",
         className,
       )}
     >
@@ -267,7 +271,7 @@ export const SearchBar = () => {
     <div className="relative group">
       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
         <svg
-          className="h-4 w-4 text-white"
+          className="h-4 w-4 text-gray-600"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -283,7 +287,7 @@ export const SearchBar = () => {
       <input
         type="text"
         placeholder="Search..."
-        className="w-8 h-8 bg-black text-gray-100 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 pl-3 pr-10 transition-all duration-300 group-hover:w-64 group-hover:rounded-lg group-focus-within:w-64 group-focus-within:rounded-lg"
+        className="w-8 h-8 bg-white/30 text-gray-800 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 pl-3 pr-10 transition-all duration-300 group-hover:w-64 group-hover:rounded-lg group-focus-within:w-64 group-focus-within:rounded-lg"
       />
     </div>
   );
@@ -489,19 +493,19 @@ export const CompleteNavbar = ({
   return (
     <Navbar className="sticky top-0 z-50">
       {/* Desktop Navigation */}
-      <NavBody>
-        <div className="flex items-center w-full">
-          <div className="flex items-center w-64">
-            <NavbarLogo />
-          </div>
-          <div className="flex-1 flex justify-center">
-            <NavItems items={filteredNavItems} />
-          </div>
-          <div className="flex items-center w-64 justify-end">
-            <RightSection />
-          </div>
-        </div>
-      </NavBody>
+             <NavBody>
+         <div className="flex items-center w-full">
+           <div className="flex items-center flex-shrink-0">
+             <NavbarLogo />
+           </div>
+           <div className="flex-1 flex justify-center px-8">
+             <NavItems items={filteredNavItems} />
+           </div>
+           <div className="flex items-center flex-shrink-0">
+             <RightSection />
+           </div>
+         </div>
+       </NavBody>
 
       {/* Mobile Navigation */}
       <MobileNav>
