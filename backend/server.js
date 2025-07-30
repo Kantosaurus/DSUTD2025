@@ -11,6 +11,10 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const cookieParser = require('cookie-parser');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
+const csv = require('csv-parser');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -106,6 +110,14 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+
+// --- ADD MULter CONFIGURATION ---
+// Configure Multer for temporary file storage
+const upload = multer({ dest: 'uploads/' }); 
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)){
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Apply general rate limiting
 app.use(generalRateLimit);
@@ -786,6 +798,154 @@ app.delete('/api/calendar/events/:id', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Error deleting calendar event:', err);
     res.status(500).json({ error: err.message || 'Internal server error' });
+  }
+});
+
+// Batch Create Calendar Events from CSV (Admin only)
+app.post('/api/admin/calendar/events/batch', authenticateToken, requireAdmin, upload.single('csvFile'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'CSV file is required.' });
+  }
+
+  const filePath = req.file.path;
+  const results = [];
+  const errors = [];
+  const createdEvents = [];
+  let rowIndex = 1;
+
+  try {
+    // Parse CSV
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(filePath)
+        .pipe(csv())
+        .on('data', (data) => results.push(data))
+        .on('end', resolve)
+        .on('error', reject);
+    });
+
+    console.log(`Parsed ${results.length} rows from CSV.`);
+
+    // Process Each Row
+    for (const rowData of results) {
+      rowIndex++;
+      try {
+        const { title, description, event_date, start_time, end_time, event_type, location, max_participants } = rowData;
+
+        if (!title || !title.trim()) {
+          errors.push({ row: rowIndex, error: 'Title is required' });
+          continue;
+        }
+
+        if (!event_date || !event_date.trim()) {
+          errors.push({ row: rowIndex, error: 'Date is required' });
+          continue;
+        }
+
+        // Basic date format check (YYYY-MM-DD expected by DB)
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(event_date.trim())) {
+             errors.push({ row: rowIndex, error: 'Invalid date format. Expected YYYY-MM-DD.' });
+             continue;
+        }
+
+        // Validate event type if provided
+        if (event_type && !['Mandatory', 'Optional', 'Pending'].includes(event_type)) {
+             errors.push({ row: rowIndex, error: 'Type must be one of: Mandatory, Optional, Pending' });
+             continue;
+        }
+
+        // Prepare Data for Insertion
+        const color = getColorForType(event_type);
+        const maxParticipants = max_participants && max_participants.toString().trim() !== '' ? parseInt(max_participants, 10) : null;
+        // Ensure times are null if empty/whitespace
+        const startTime = start_time && start_time.trim() !== '' ? start_time.trim() : null;
+        const endTime = end_time && end_time.trim() !== '' ? end_time.trim() : null;
+        const descriptionText = description || '';
+        const locationText = location || '';
+        const eventTypeText = event_type || 'regular';
+
+        // Insert into Database
+        // Using a transaction might be safer for batch operations, but for simplicity, individual inserts
+        const insertResult = await pool.query(
+          `INSERT INTO calendar_events
+           (title, description, event_date, start_time, end_time, event_type, location, color, max_participants, user_id, is_active)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+           RETURNING *`,
+          [title.trim(), descriptionText, event_date.trim(), startTime, endTime, eventTypeText, locationText, color, maxParticipants, req.user.userId, true]
+        );
+
+        const newEvent = insertResult.rows[0];
+
+        // Format for Response (match single event creation response)
+        let formattedTime = '';
+        let formattedEndTime = '';
+        if (newEvent.start_time) {
+          const [hours, minutes] = newEvent.start_time.split(':');
+          const hour = parseInt(hours, 10);
+          const ampm = hour >= 12 ? 'PM' : 'AM';
+          const displayHour = hour % 12 || 12;
+          formattedTime = `${displayHour}:${minutes} ${ampm}`;
+        }
+        if (newEvent.end_time) {
+          const [endHours, endMinutes] = newEvent.end_time.split(':');
+          const endHour = parseInt(endHours, 10);
+          const endAmpm = endHour >= 12 ? 'PM' : 'AM';
+          const endDisplayHour = endHour % 12 || 12;
+          formattedEndTime = `${endDisplayHour}:${endMinutes} ${endAmpm}`;
+        }
+
+        createdEvents.push({
+          id: newEvent.id.toString(),
+          time: formattedTime,
+          end_time: formattedEndTime,
+          title: newEvent.title,
+          type: newEvent.event_type,
+          location: newEvent.location,
+          color: newEvent.color,
+          description: newEvent.description
+          // Optionally add row number for reference: , csv_row: rowIndex
+        });
+
+      } catch (rowError) {
+        console.error(`Error processing row ${rowIndex}:`, rowError);
+        errors.push({ row: rowIndex, error: rowError.message || 'Internal processing error for this row' });
+        // Continue processing other rows
+      }
+    }
+
+    // Cleanup: Delete the temporary uploaded file
+    try {
+        fs.unlinkSync(filePath);
+    } catch (unlinkError) {
+        console.warn(`Could not delete temporary file ${filePath}:`, unlinkError.message);
+    }
+
+
+    // Respond with Summary
+    res.status(201).json({
+      message: `Batch processing complete. ${createdEvents.length} events created, ${errors.length} errors.`,
+      createdEvents: createdEvents,
+      errors: errors
+    });
+
+  } catch (err) {
+    console.error('Error during batch event creation:', err);
+
+    // Attempt cleanup even if processing failed
+    try {
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+    } catch (cleanupError) {
+        console.warn(`Could not delete temporary file ${filePath} after error:`, cleanupError.message);
+    }
+
+    // Provide a general error response
+    res.status(500).json({
+      error: 'Internal server error during batch processing',
+      details: err.message || 'An unexpected error occurred while processing the CSV file.'
+      // Consider omitting detailed errors in production
+    });
   }
 });
 
