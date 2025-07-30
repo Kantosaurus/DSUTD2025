@@ -15,7 +15,6 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // Security configuration
 const SECURITY_CONFIG = {
@@ -26,7 +25,14 @@ const SECURITY_CONFIG = {
   RATE_LIMIT_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
   RATE_LIMIT_MAX_REQUESTS: 100,
   SLOW_DOWN_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-  SLOW_DOWN_DELAY_MS: 500
+  SLOW_DOWN_DELAY_MS: 500,
+  // Enhanced security settings
+  MIN_PASSWORD_LENGTH: 12, // Increased from 8
+  PASSWORD_COMPLEXITY_REQUIRED: true,
+  SESSION_FINGERPRINTING: true,
+  API_VERSION: 'v1',
+  REQUEST_TIMEOUT_MS: 30000,
+  MAX_REQUEST_SIZE: '10mb'
 };
 
 // Email configuration
@@ -110,6 +116,20 @@ const e = require('express');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
+
+// Critical security check - JWT secret must be provided
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET === 'your-secret-key-change-in-production') {
+  console.error('CRITICAL SECURITY ERROR: JWT_SECRET environment variable is not set or is using default value!');
+  console.error('Please set a strong, unique JWT_SECRET in your environment variables.');
+  process.exit(1);
+}
+
+// Validate JWT secret strength
+if (JWT_SECRET.length < 32) {
+  console.error('CRITICAL SECURITY ERROR: JWT_SECRET is too short. Must be at least 32 characters.');
+  process.exit(1);
+}
 
 // Enhanced middleware to verify JWT token
 const authenticateToken = async (req, res, next) => {
@@ -777,8 +797,8 @@ app.post('/api/auth/signup', [
     .matches(/^100[1-9]\d{3}$/)
     .withMessage('Student ID must be in format 100XXXX where X is a digit from 1-9'),
   body('password')
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long')
+    .isLength({ min: 12 })
+    .withMessage('Password must be at least 12 characters long')
     .matches(/[A-Z]/)
     .withMessage('Password must contain at least one uppercase letter')
     .matches(/[a-z]/)
@@ -787,6 +807,10 @@ app.post('/api/auth/signup', [
     .withMessage('Password must contain at least one number')
     .matches(/[!@#$%^&*(),.?":{}|<>]/)
     .withMessage('Password must contain at least one special character')
+    .matches(/^(?!.*(.)\1{2,}).*$/)
+    .withMessage('Password cannot contain repeated characters more than twice')
+    .matches(/^(?!.*(123|abc|qwe|password|admin|user)).*$/i)
+    .withMessage('Password cannot contain common patterns or words')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -1092,8 +1116,8 @@ app.post('/api/auth/reset-password', [
     .isLength({ min: 1 })
     .withMessage('Reset token is required'),
   body('password')
-    .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long')
+    .isLength({ min: 12 })
+    .withMessage('Password must be at least 12 characters long')
     .matches(/[A-Z]/)
     .withMessage('Password must contain at least one uppercase letter')
     .matches(/[a-z]/)
@@ -1102,6 +1126,10 @@ app.post('/api/auth/reset-password', [
     .withMessage('Password must contain at least one number')
     .matches(/[!@#$%^&*(),.?":{}|<>]/)
     .withMessage('Password must contain at least one special character')
+    .matches(/^(?!.*(.)\1{2,}).*$/)
+    .withMessage('Password cannot contain repeated characters more than twice')
+    .matches(/^(?!.*(123|abc|qwe|password|admin|user)).*$/i)
+    .withMessage('Password cannot contain common patterns or words')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -1521,8 +1549,8 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
     
     res.json({
       studentId: user.student_id,
-      email: user.email,
-      password: user.password_hash // Note: In production, you might want to exclude this or show masked version
+      email: user.email
+      // Password hash removed for security - never expose password hashes in API responses
     });
   } catch (err) {
     console.error('Error fetching user profile:', err);
@@ -1540,8 +1568,8 @@ app.put('/api/user/update-password', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Current password and new password are required' });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+    if (newPassword.length < 12) {
+      return res.status(400).json({ error: 'New password must be at least 12 characters long' });
     }
 
     // Get current user data
@@ -1631,7 +1659,21 @@ app.get('/api/profile', authenticateToken, async (req, res) => {
 
 app.put('/api/profile/password', authenticateToken, [
   body('currentPassword').notEmpty().withMessage('Current password is required'),
-  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters long')
+  body('newPassword')
+    .isLength({ min: 12 })
+    .withMessage('New password must be at least 12 characters long')
+    .matches(/[A-Z]/)
+    .withMessage('Password must contain at least one uppercase letter')
+    .matches(/[a-z]/)
+    .withMessage('Password must contain at least one lowercase letter')
+    .matches(/\d/)
+    .withMessage('Password must contain at least one number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/)
+    .withMessage('Password must contain at least one special character')
+    .matches(/^(?!.*(.)\1{2,}).*$/)
+    .withMessage('Password cannot contain repeated characters more than twice')
+    .matches(/^(?!.*(123|abc|qwe|password|admin|user)).*$/i)
+    .withMessage('Password cannot contain common patterns or words')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
