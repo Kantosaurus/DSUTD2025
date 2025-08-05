@@ -523,12 +523,24 @@ const getColorForType = (type) => {
   }
 };
 
-// Test database connection
-pool.query('SELECT NOW()', (err, res) => {
+// Test database connection and seed events
+pool.query('SELECT NOW()', async (err, res) => {
   if (err) {
     console.error('Database connection error:', err);
   } else {
     console.log('Database connected successfully');
+    
+    // Check if events need to be seeded
+    try {
+      const eventCount = await pool.query('SELECT COUNT(*) FROM calendar_events');
+      if (parseInt(eventCount.rows[0].count) === 0) {
+        console.log('No events found, seeding initial events...');
+        const { seedEvents } = require('./seed-events');
+        await seedEvents();
+      }
+    } catch (seedError) {
+      console.error('Error checking/seeding events:', seedError);
+    }
   }
 });
 

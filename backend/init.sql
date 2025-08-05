@@ -146,3 +146,6 @@ INSERT INTO users (student_id, email, password_hash, role, email_verified, is_ac
 ('1008153', '1008153@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
 ('1008148', '1008148@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE)
 ON CONFLICT (student_id) DO NOTHING;
+
+-- Note: Event seeding is handled by the backend application startup
+-- See seed-events.js for event initialization

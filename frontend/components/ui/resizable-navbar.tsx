@@ -128,6 +128,7 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
         "hidden flex-row items-center space-x-6 text-sm font-medium text-gray-800 transition duration-200 lg:flex lg:space-x-6",
         className,
       )}
+    >
       {items.map((item, idx) => {
         const isActive = pathname === item.link;
 
@@ -143,6 +144,7 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
                 ? "bg-[#FF6B9D]/40 text-[#FF6B9D] rounded-full"
                 : "text-gray-800 hover:text-gray-600"
             )}
+          >
             {/* Only show hover background if not already active */}
             {hovered === idx && !isActive && (
               <motion.div

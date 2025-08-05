@@ -11,6 +11,9 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Remove any existing build artifacts
+# RUN rm -rf .next
+
 # Build the application
 RUN npm run build
 
