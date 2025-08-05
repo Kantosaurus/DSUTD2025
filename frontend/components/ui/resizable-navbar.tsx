@@ -123,11 +123,11 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
   return (
     <motion.div
       onMouseLeave={() => setHovered(null)}
-             className={cn(
-         "hidden flex-row items-center space-x-6 text-sm font-medium text-gray-800 transition duration-200 lg:flex lg:space-x-6",
-         className,
-       )}
-    >
+
+      className={cn(
+        "hidden flex-row items-center space-x-6 text-sm font-medium text-gray-800 transition duration-200 lg:flex lg:space-x-6",
+        className,
+      )}
       {items.map((item, idx) => {
         const isActive = pathname === item.link;
 
@@ -137,13 +137,12 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
             href={item.link}
             onMouseEnter={() => setHovered(idx)}
             onClick={onItemClick}
-                         className={cn(
-               "relative px-6 py-3 transition-all duration-200",
-               isActive
-                 ? "bg-[#FF6B9D]/40 text-[#FF6B9D] rounded-full"
-                 : "text-gray-800 hover:text-gray-600"
-             )}
-          >
+            className={cn(
+              "relative px-6 py-3 transition-all duration-200",
+              isActive
+                ? "bg-[#FF6B9D]/40 text-[#FF6B9D] rounded-full"
+                : "text-gray-800 hover:text-gray-600"
+            )}
             {/* Only show hover background if not already active */}
             {hovered === idx && !isActive && (
               <motion.div
@@ -258,8 +257,8 @@ export const NavbarLogo = () => {
       <img
         src="/dsutd.png"
         alt="DSUTD Logo"
-        width={40}
-        height={40}
+        width={70}
+        height={70}
         className="object-contain"
       />
     </a>

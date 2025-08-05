@@ -125,9 +125,9 @@ export default function SurvivalKitPage() {
             >
               <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
                 <img
-                  src="/dsutd 2025.svg"
+                  src=""
                   className="w-[320px] h-auto max-h-[140px] object-contain mx-auto"
-                  alt="DSUTD Logo"
+                  alt="DSUTD Survival Kit Logo"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
