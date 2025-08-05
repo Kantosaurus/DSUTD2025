@@ -129,8 +129,12 @@ export default function SurvivalKitPage() {
                   className="w-[320px] h-auto max-h-[140px] object-contain mx-auto"
                   alt="DSUTD Survival Kit Logo"
                   onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'block';
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const nextElement = target.nextElementSibling as HTMLElement;
+                    if (nextElement) {
+                      nextElement.style.display = 'block';
+                    }
                   }}
                 />
                 <div className="text-gray-700 text-xl font-bold text-center hidden">
