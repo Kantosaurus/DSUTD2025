@@ -43,7 +43,6 @@ export default function CalendarPage() {
     { name: 'Home', link: '/home' },
     { name: 'Events', link: '/calendar' },
     { name: 'Survival Kit', link: '/survival-kit' },
-    { name: 'Maps', link: '/maps' },
     { name: 'Admin Events', link: '/admin/events' },
     { name: 'Admin Logs', link: '/admin/logs' },
   ];

@@ -258,8 +258,18 @@ npm run lint
 
 ## 📖 Documentation
 
-- **[Security Features](SECURITY_FEATURES.md)** - Comprehensive guide to all security features and implementation details
-- **[Database Migration](DATABASE_FIX.md)** - Database migration and troubleshooting guide
+Comprehensive documentation is available in the `/docs` directory:
+
+- **[📚 Complete Documentation](docs/README.md)** - Full documentation index
+- **[🚀 Quick Start Guide](docs/quick-start.md)** - Get up and running in 5 minutes
+- **[🏗️ Architecture Guide](docs/architecture.md)** - System design and structure
+- **[🔌 API Documentation](docs/api.md)** - Complete REST API reference
+- **[🔐 Security Features](docs/security.md)** - Security implementation details
+- **[💾 Database Guide](docs/database.md)** - Database schema and management
+- **[💻 Development Guide](docs/development.md)** - Local development setup
+- **[🚀 Deployment Guide](docs/deployment.md)** - Production deployment
+- **[🔧 Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
+- **[❓ FAQ](docs/faq.md)** - Frequently asked questions
 
 ## 📝 Database Schema
 

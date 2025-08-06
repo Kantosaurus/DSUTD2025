@@ -10,7 +10,6 @@ const navItems = [
   { name: 'Home', link: '/home' },
   { name: 'Events', link: '/calendar' },
   { name: 'Survival Kit', link: '/survival-kit' },
-  { name: 'Maps', link: '/maps' },
   { name: 'Admin Events', link: '/admin/events' },
   { name: 'Admin Logs', link: '/admin/logs' },
 ]
@@ -210,32 +209,7 @@ export default function HomePage() {
               </div>
             </motion.div>
 
-            {/* Maps Section */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1.2, duration: 0.5 }}
-              whileHover={{
-                scale: 1.02,
-                transition: { duration: 0.2 }
-              }}
-              className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 cursor-pointer hover:shadow-2xl transition-all duration-300"
-            >
-              <motion.h3
-                className="text-4xl font-bold mb-4"
-                style={{ color: '#631D35' }}
-                whileHover={{
-                  scale: 1.05,
-                  transition: { duration: 0.2 }
-                }}
-              >
-                Maps
-              </motion.h3>
-              <div className="text-gray-700 text-lg leading-relaxed">
-                <p className="mb-3">Lost on campus? Not anymore.</p>
-                <p>Use this page to find room locations and navigate campus using building and floor codes. The map bot is your new best friend.</p>
-              </div>
-            </motion.div>
+
           </div>
         </div>
       </div>

@@ -10,7 +10,6 @@ const navItems = [
   { name: 'Home', link: '/home' },
   { name: 'Events', link: '/calendar' },
   { name: 'Survival Kit', link: '/survival-kit' },
-  { name: 'Maps', link: '/maps' },
   { name: 'Admin Events', link: '/admin/events' },
   { name: 'Admin Logs', link: '/admin/logs' },
 ]
@@ -391,14 +390,14 @@ export default function AdminLogsPage() {
                           {[
                             {
                               title: 'Total Users',
-                              value: dashboardStats.users.total,
+                              value: dashboardStats?.users?.total || 0,
                               icon: '👥',
                               color: 'from-blue-500 to-blue-600',
                               delay: 0
                             },
                             {
                               title: 'Total Events',
-                              value: dashboardStats.events.total,
+                              value: dashboardStats?.events?.total || 0,
                               icon: '📅',
                               color: 'from-emerald-500 to-emerald-600',
                               delay: 0.1
@@ -406,7 +405,7 @@ export default function AdminLogsPage() {
 
                             {
                               title: 'Recent Activity',
-                              value: dashboardStats.activity.recent,
+                              value: dashboardStats?.activity?.recent || 0,
                               icon: '⚡',
                               color: 'from-orange-500 to-orange-600',
                               delay: 0.3
@@ -458,9 +457,9 @@ export default function AdminLogsPage() {
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Event Status</h3>
                             <div className="space-y-3">
                               {[
-                                { label: 'Upcoming', value: dashboardStats.events.upcoming, color: 'bg-blue-100 text-blue-700' },
-                                { label: 'Ongoing', value: dashboardStats.events.ongoing, color: 'bg-emerald-100 text-emerald-700' },
-                                { label: 'Past', value: dashboardStats.events.past, color: 'bg-gray-100 text-gray-700' }
+                                                            { label: 'Upcoming', value: dashboardStats?.events?.upcoming || 0, color: 'bg-blue-100 text-blue-700' },
+                            { label: 'Ongoing', value: dashboardStats?.events?.ongoing || 0, color: 'bg-emerald-100 text-emerald-700' },
+                            { label: 'Past', value: dashboardStats?.events?.past || 0, color: 'bg-gray-100 text-gray-700' }
                               ].map((item) => (
                                 <motion.div 
                                   key={item.label}
@@ -485,8 +484,8 @@ export default function AdminLogsPage() {
                             <h3 className="text-lg font-medium text-gray-900 mb-4">User Distribution</h3>
                             <div className="space-y-3">
                               {[
-                                { label: 'Admins', value: dashboardStats.users.byRole.admin || 0, color: 'bg-red-100 text-red-700' },
-                                { label: 'Students', value: dashboardStats.users.byRole.student || 0, color: 'bg-emerald-100 text-emerald-700' }
+                                                            { label: 'Admins', value: dashboardStats?.users?.byRole?.admin || 0, color: 'bg-red-100 text-red-700' },
+                            { label: 'Students', value: dashboardStats?.users?.byRole?.student || 0, color: 'bg-emerald-100 text-emerald-700' }
                               ].map((item) => (
                                 <motion.div 
                                   key={item.label}
@@ -511,8 +510,8 @@ export default function AdminLogsPage() {
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Security</h3>
                             <div className="space-y-3">
                               {[
-                                { label: 'Failed Logins (24h)', value: dashboardStats.activity.failedLogins, color: 'bg-red-100 text-red-700' },
-                                { label: 'Total Signups', value: dashboardStats.signups.total, color: 'bg-blue-100 text-blue-700' }
+                                                            { label: 'Failed Logins (24h)', value: dashboardStats?.activity?.failedLogins || 0, color: 'bg-red-100 text-red-700' },
+                            { label: 'Total Signups', value: dashboardStats?.signups?.total || 0, color: 'bg-blue-100 text-blue-700' }
                               ].map((item) => (
                                 <motion.div 
                                   key={item.label}
@@ -531,14 +530,14 @@ export default function AdminLogsPage() {
                         </motion.div>
 
                         {/* Current & Next Events */}
-                        {(dashboardStats.currentEvent || dashboardStats.nextEvent) && (
+                                                  {(dashboardStats?.currentEvent || dashboardStats?.nextEvent) && (
                           <motion.div 
                             className="grid grid-cols-1 lg:grid-cols-2 gap-6"
                             variants={staggerContainer}
                             initial="initial"
                             animate="animate"
                           >
-                            {dashboardStats.currentEvent && (
+                            {dashboardStats?.currentEvent && (
                               <motion.div 
                                 className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg"
                                 variants={fadeInUp}
@@ -546,14 +545,14 @@ export default function AdminLogsPage() {
                               >
                                 <h3 className="text-lg font-medium mb-4">Current Event</h3>
                                 <div className="space-y-2">
-                                  <p className="text-xl font-light">{dashboardStats.currentEvent.title}</p>
-                                  <p className="opacity-90 font-light">{dashboardStats.currentEvent.event_date}</p>
-                                  <p className="opacity-90 font-light">Created by: {dashboardStats.currentEvent.creator_student_id}</p>
+                                                                  <p className="text-xl font-light">{dashboardStats?.currentEvent?.title}</p>
+                                <p className="opacity-90 font-light">{dashboardStats?.currentEvent?.event_date}</p>
+                                <p className="opacity-90 font-light">Created by: {dashboardStats?.currentEvent?.creator_student_id}</p>
                                 </div>
                               </motion.div>
                             )}
 
-                            {dashboardStats.nextEvent && (
+                            {dashboardStats?.nextEvent && (
                               <motion.div 
                                 className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg"
                                 variants={fadeInUp}
@@ -561,9 +560,9 @@ export default function AdminLogsPage() {
                               >
                                 <h3 className="text-lg font-medium mb-4">Next Event</h3>
                                 <div className="space-y-2">
-                                  <p className="text-xl font-light">{dashboardStats.nextEvent.title}</p>
-                                  <p className="opacity-90 font-light">{dashboardStats.nextEvent.event_date}</p>
-                                  <p className="opacity-90 font-light">Created by: {dashboardStats.nextEvent.creator_student_id}</p>
+                                                                  <p className="text-xl font-light">{dashboardStats?.nextEvent?.title}</p>
+                                <p className="opacity-90 font-light">{dashboardStats?.nextEvent?.event_date}</p>
+                                <p className="opacity-90 font-light">Created by: {dashboardStats?.nextEvent?.creator_student_id}</p>
                                 </div>
                               </motion.div>
                             )}

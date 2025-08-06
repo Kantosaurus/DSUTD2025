@@ -9,9 +9,7 @@
     "restart": "docker-compose restart",
     "logs": "docker-compose logs -f",
     "migrate": "docker exec -i webapp-postgres psql -U webapp_user -d webapp_db < backend/migrate.sql",
-    "clean": "docker-compose down -v && docker system prune -f",
-    "security-audit": "node security-audit.js",
-    "security-check": "npm run security-audit && echo 'Security audit completed. Review findings above.'"
+    "clean": "docker-compose down -v && docker system prune -f"
   },
   "keywords": ["dsutd", "webapp", "fullstack", "docker"],
   "author": "DiscoverSUTD",
