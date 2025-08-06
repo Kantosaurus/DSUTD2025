@@ -1,47 +1,1695 @@
 [
   {
-    "title": "Orientation Week - Welcome Session",
-    "description": "Welcome session for new students. Introduction to DSUTD and campus facilities.",
-    "event_date": "2025-01-15",
-    "start_time": "09:00:00",
-    "end_time": "11:00:00",
-    "event_type": "Mandatory",
-    "location": "Main Auditorium"
+    "title": "Dance Derivativez (DDZ) Session",
+    "description": "Regular dance rehearsal for DDZ members.",
+    "event_date": "2025-09-24",
+    "start_time": "19:30:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
   },
   {
-    "title": "Academic Planning Workshop",
-    "description": "Workshop on course selection and academic planning for the upcoming semester.",
-    "event_date": "2025-01-16",
+    "title": "Dance Derivativez (DDZ) Session",
+    "description": "Regular dance rehearsal for DDZ members.",
+    "event_date": "2025-09-26",
+    "start_time": "19:30:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "Dance Derivativez (DDZ) Session",
+    "description": "Regular dance rehearsal for DDZ members.",
+    "event_date": "2025-10-01",
+    "start_time": "19:30:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "Dance Derivativez (DDZ) Session",
+    "description": "Regular dance rehearsal for DDZ members.",
+    "event_date": "2025-10-03",
+    "start_time": "19:30:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "Ultimate Frisbee Intro Session",
+    "description": "Introductory session for Ultimate Frisbee. All experience levels welcome.",
+    "event_date": "2025-09-17",
+    "start_time": "19:30:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Outdoor Sports Field"
+  },
+  {
+    "title": "Ultimate Frisbee Weekly Session",
+    "description": "Weekly Ultimate Frisbee pickup game after Orientation.",
+    "event_date": "2025-09-24",
+    "start_time": "19:30:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Outdoor Sports Field"
+  },
+  {
+    "title": "Photographic Circle (PhotogCircle) Meeting",
+    "description": "Hands-on photography meetup and club introduction.",
+    "event_date": "2025-09-24",
+    "start_time": "15:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Lab 3.201"
+  },
+  {
+    "title": "Changi Coffee Corner Gathering",
+    "description": "Casual coffee meet-up for conversation and networking.",
+    "event_date": "2025-09-24",
+    "start_time": "17:30:00",
+    "end_time": "18:30:00",
+    "event_type": "Optional",
+    "location": "Changi Coffee Corner"
+  },
+  {
+    "title": "Tchoukball Club Practice",
+    "description": "Tchoukball practice open to new and returning members.",
+    "event_date": "2025-09-30",
+    "start_time": "20:00:00",
+    "end_time": "23:00:00",
+    "event_type": "Optional",
+    "location": "Indoor Sports Hall"
+  },
+  {
+    "title": "Tchoukball Club Practice",
+    "description": "Tchoukball practice open to new and returning members.",
+    "event_date": "2025-10-02",
+    "start_time": "20:00:00",
+    "end_time": "23:00:00",
+    "event_type": "Optional",
+    "location": "Indoor Sports Hall"
+  },
+  {
+    "title": "Tchoukball Club Practice",
+    "description": "Tchoukball practice open to new and returning members.",
+    "event_date": "2025-10-07",
+    "start_time": "20:00:00",
+    "end_time": "23:00:00",
+    "event_type": "Optional",
+    "location": "Indoor Sports Hall"
+  },
+  {
+    "title": "Tchoukball Club Practice",
+    "description": "Tchoukball practice open to new and returning members.",
+    "event_date": "2025-10-09",
+    "start_time": "20:00:00",
+    "end_time": "23:00:00",
+    "event_type": "Optional",
+    "location": "Indoor Sports Hall"
+  },
+  {
+    "title": "Tchoukball Club Practice",
+    "description": "Tchoukball practice open to new and returning members.",
+    "event_date": "2025-11-11",
+    "start_time": "20:00:00",
+    "end_time": "23:00:00",
+    "event_type": "Optional",
+    "location": "Indoor Sports Hall"
+  },
+  {
+    "title": "Tchoukball Club Practice",
+    "description": "Tchoukball practice open to new and returning members.",
+    "event_date": "2025-11-13",
+    "start_time": "20:00:00",
+    "end_time": "23:00:00",
+    "event_type": "Optional",
+    "location": "Indoor Sports Hall"
+  },
+  {
+    "title": "Indonesian Cultural Club PADI Introduction",
+    "description": "Introductory meet-up for Indonesian culture enthusiasts.",
+    "event_date": "2025-10-02",
+    "start_time": "18:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Cultural Hall"
+  },
+  {
+    "title": "Climbers Club Session",
+    "description": "Climbing practice at the wall—open to all skill levels.",
+    "event_date": "2025-09-17",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Climbing Wall"
+  },
+  {
+    "title": "Climbers Club Session",
+    "description": "Climbing practice at the wall—open to all skill levels.",
+    "event_date": "2025-09-24",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Climbing Wall"
+  },
+  {
+    "title": "Boxing Club Training",
+    "description": "Boxing fundamentals and sparring drills.",
+    "event_date": "2025-09-17",
+    "start_time": "19:30:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Boxing Gym"
+  },
+  {
+    "title": "Boxing Club Training",
+    "description": "Boxing fundamentals and sparring drills.",
+    "event_date": "2025-09-24",
+    "start_time": "19:30:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Boxing Gym"
+  },
+  {
+    "title": "Boxing Club Training",
+    "description": "Boxing fundamentals and sparring drills.",
+    "event_date": "2025-10-01",
+    "start_time": "19:30:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Boxing Gym"
+  },
+  {
+    "title": "Boxing Club Training",
+    "description": "Boxing fundamentals and sparring drills.",
+    "event_date": "2025-10-08",
+    "start_time": "19:30:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Boxing Gym"
+  },
+  {
+    "title": "Ballroom Dancing Club Session",
+    "description": "Ballroom dance practice for all skill levels.",
+    "event_date": "2025-09-24",
+    "start_time": "19:30:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "Ballroom Dancing Club Session",
+    "description": "Ballroom dance practice for all skill levels.",
+    "event_date": "2025-10-01",
+    "start_time": "19:30:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "Ballroom Dancing Club Session",
+    "description": "Ballroom dance practice for all skill levels.",
+    "event_date": "2025-10-03",
+    "start_time": "19:30:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "Ballroom Dancing Club Session",
+    "description": "Ballroom dance practice for all skill levels.",
+    "event_date": "2025-10-08",
+    "start_time": "19:30:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "Drama Club Rehearsal",
+    "description": "Drama rehearsal and performance workshop.",
+    "event_date": "2025-10-01",
+    "start_time": "19:30:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Drama Theatre"
+  },
+  {
+    "title": "Drama Club Rehearsal",
+    "description": "Drama rehearsal and performance workshop.",
+    "event_date": "2025-10-08",
+    "start_time": "19:30:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Drama Theatre"
+  },
+  {
+    "title": "Drama Club Rehearsal",
+    "description": "Drama rehearsal and performance workshop.",
+    "event_date": "2025-10-10",
+    "start_time": "19:30:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Drama Theatre"
+  },
+  {
+    "title": "SUTDio Session",
+    "description": "Creative audio-visual workshop and jam session.",
+    "event_date": "2025-09-18",
+    "start_time": "19:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Multipurpose Hall"
+  },
+  {
+    "title": "SUTDio Session",
+    "description": "Creative audio-visual workshop and jam session.",
+    "event_date": "2025-09-25",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Multipurpose Hall"
+  },
+  {
+    "title": "SUTDio Session",
+    "description": "Creative audio-visual workshop and jam session.",
+    "event_date": "2025-10-09",
+    "start_time": "19:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Multipurpose Hall"
+  },
+  {
+    "title": "NihonGO! Japanese Club Meeting",
+    "description": "Japanese language and culture practice session.",
+    "event_date": "2025-09-17",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Room 4.101"
+  },
+  {
+    "title": "NihonGO! Japanese Club Meeting",
+    "description": "Japanese language and culture practice session.",
+    "event_date": "2025-10-01",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Room 4.101"
+  },
+  {
+    "title": "Dev & Dice Meetup",
+    "description": "Casual board-gaming session for all enthusiasts.",
+    "event_date": "2025-09-30",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Room 2.202"
+  },
+  {
+    "title": "Archery Club Recreational Session",
+    "description": "Beginner‐friendly archery practice and recruitment.",
+    "event_date": "2025-09-17",
+    "start_time": "18:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Archery Range"
+  },
+  {
+    "title": "Archery Club Recreational Session",
+    "description": "Beginner‐friendly archery practice and recruitment.",
+    "event_date": "2025-09-24",
+    "start_time": "18:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Archery Range"
+  },
+  {
+    "title": "Archery Club Recreational Session",
+    "description": "Beginner‐friendly archery practice and recruitment.",
+    "event_date": "2025-10-01",
+    "start_time": "18:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Archery Range"
+  },
+  {
+    "title": "Archery Club Recreational Session",
+    "description": "Beginner‐friendly archery practice and recruitment.",
+    "event_date": "2025-10-08",
+    "start_time": "18:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Archery Range"
+  },
+  {
+    "title": "Archery Club Competitive Session",
+    "description": "Advanced archery drills for prospective competitive members.",
+    "event_date": "2025-09-16",
+    "start_time": "18:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Archery Classroom"
+  },
+  {
+    "title": "Archery Club Competitive Session",
+    "description": "Advanced archery drills for prospective competitive members.",
+    "event_date": "2025-09-19",
+    "start_time": "18:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Archery Classroom"
+  },
+  {
+    "title": "Archery Club Competitive Session",
+    "description": "Advanced archery drills for prospective competitive members.",
+    "event_date": "2025-09-23",
+    "start_time": "18:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Archery Classroom"
+  },
+  {
+    "title": "Archery Club Competitive Session",
+    "description": "Advanced archery drills for prospective competitive members.",
+    "event_date": "2025-09-26",
+    "start_time": "18:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Archery Classroom"
+  },
+  {
+    "title": "Archery Club Competitive Session",
+    "description": "Advanced archery drills for prospective competitive members.",
+    "event_date": "2025-09-30",
+    "start_time": "18:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Archery Classroom"
+  },
+  {
+    "title": "Archery Club Competitive Session",
+    "description": "Advanced archery drills for prospective competitive members.",
+    "event_date": "2025-10-03",
+    "start_time": "18:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Archery Classroom"
+  },
+  {
+    "title": "Archery Club Competitive Session",
+    "description": "Advanced archery drills for prospective competitive members.",
+    "event_date": "2025-10-07",
+    "start_time": "18:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Archery Classroom"
+  },
+  {
+    "title": "Archery Club Competitive Session",
+    "description": "Advanced archery drills for prospective competitive members.",
+    "event_date": "2025-10-10",
+    "start_time": "18:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Archery Classroom"
+  },
+  {
+    "title": "SOAR Workshop",
+    "description": "Hands-on robotics project workshop by SOAR.",
+    "event_date": "2025-10-01",
+    "start_time": "14:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Robotics Lab"
+  },
+  {
+    "title": "Gunpla Model Build",
+    "description": "Gunpla assembly workshop for hobbyists.",
+    "event_date": "2025-09-24",
     "start_time": "14:00:00",
     "end_time": "16:00:00",
     "event_type": "Optional",
-    "location": "Room 2.101"
+    "location": "Workshop Room"
   },
   {
-    "title": "Student Club Fair",
-    "description": "Meet representatives from various student clubs and organizations.",
-    "event_date": "2025-01-17",
-    "start_time": "12:00:00",
+    "title": "EV Club Meeting",
+    "description": "Discussion and demo of electric vehicle projects.",
+    "event_date": "2025-10-08",
+    "start_time": "14:00:00",
+    "end_time": "16:30:00",
+    "event_type": "Optional",
+    "location": "Engineering Lab"
+  },
+  {
+    "title": "Bands: Picnic at the Disco (Crew Workshop)",
+    "description": "Full-day crew workshop for Picnic at the Disco.",
+    "event_date": "2025-10-01",
+    "start_time": "11:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Bands: Camp Rock",
+    "description": "Full-day rehearsals and performances for Camp Rock.",
+    "event_date": "2025-10-03",
+    "start_time": "15:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Bands: Camp Rock",
+    "description": "Full-day rehearsals and performances for Camp Rock.",
+    "event_date": "2025-10-04",
+    "start_time": "09:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Bands: Instrument Workshop",
+    "description": "Daily instrument skill workshops.",
+    "event_date": "2025-09-22",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Bands: Instrument Workshop",
+    "description": "Daily instrument skill workshops.",
+    "event_date": "2025-09-23",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Bands: Instrument Workshop",
+    "description": "Daily instrument skill workshops.",
+    "event_date": "2025-09-24",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Bands: Instrument Workshop",
+    "description": "Daily instrument skill workshops.",
+    "event_date": "2025-09-25",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Bands: Instrument Workshop",
+    "description": "Daily instrument skill workshops.",
+    "event_date": "2025-09-26",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Bands: Instrument Workshop",
+    "description": "Daily instrument skill workshops.",
+    "event_date": "2025-09-29",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Bands: Instrument Workshop",
+    "description": "Daily instrument skill workshops.",
+    "event_date": "2025-09-30",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+
+  {
+    "title": "IEEE x IES Interest Group Meeting",
+    "description": "Introduction to IEEE and IES collaborative initiatives.",
+    "event_date": "2025-09-19",
+    "start_time": "13:00:00",
+    "end_time": "15:00:00",
+    "event_type": "Optional",
+    "location": "Engineering Seminar Room"
+  },
+  {
+    "title": "Gunpla Club x Mechanical Designer Club Workshop",
+    "description": "Joint session on model design and assembly techniques.",
+    "event_date": "2025-09-24",
+    "start_time": "14:00:00",
+    "end_time": "16:00:00",
+    "event_type": "Optional",
+    "location": "Design Lab"
+  },
+  {
+    "title": "Chinese Culture Club Introduction",
+    "description": "Overview of club activities and cultural workshops.",
+    "event_date": "2025-09-17",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Cultural Centre Room A"
+  },
+  {
+    "title": "Chinese Culture Club Workshop",
+    "description": "Cultural workshops and interactive sessions.",
+    "event_date": "2025-09-19",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Cultural Centre Room A"
+  },
+  {
+    "title": "Chinese Culture Club Workshop",
+    "description": "Cultural workshops and interactive sessions.",
+    "event_date": "2025-09-21",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Cultural Centre Room A"
+  },
+  {
+    "title": "Chinese Culture Club Workshop",
+    "description": "Cultural workshops and interactive sessions.",
+    "event_date": "2025-09-23",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Cultural Centre Room A"
+  },
+  {
+    "title": "Chinese Culture Club Workshop",
+    "description": "Cultural workshops and interactive sessions.",
+    "event_date": "2025-09-25",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Cultural Centre Room A"
+  },
+  {
+    "title": "SUTD AI Interest Group Session",
+    "description": "Discussion on AI trends and projects.",
+    "event_date": "2025-09-30",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "AI Lab"
+  },
+  {
+    "title": "Table Tennis Club Open Play",
+    "description": "Casual table tennis session for all skill levels.",
+    "event_date": "2025-09-15",
+    "start_time": "19:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Sports Hall"
+  },
+  {
+    "title": "XR Community Interest Group Meetup",
+    "description": "Exploration of XR technologies and demos.",
+    "event_date": "2025-10-01",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "VR Lab"
+  },
+  {
+    "title": "Chambers Ensemble Rehearsal",
+    "description": "Chamber music rehearsal for ensemble members.",
+    "event_date": "2025-09-24",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Music Room"
+  },
+  {
+    "title": "FUNKtion Dance Session",
+    "description": "Funk dance workshop for members.",
+    "event_date": "2025-09-15",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "FUNKtion Dance Session",
+    "description": "Funk dance workshop for members.",
+    "event_date": "2025-09-18",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "FUNKtion Dance Session",
+    "description": "Funk dance workshop for members.",
+    "event_date": "2025-09-22",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "FUNKtion Dance Session",
+    "description": "Funk dance workshop for members.",
+    "event_date": "2025-09-25",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "FUNKtion Dance Session",
+    "description": "Funk dance workshop for members.",
+    "event_date": "2025-09-29",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "FUNKtion Dance Session",
+    "description": "Funk dance workshop for members.",
+    "event_date": "2025-10-02",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "FUNKtion Dance Session",
+    "description": "Funk dance workshop for members.",
+    "event_date": "2025-10-06",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "FUNKtion Dance Session",
+    "description": "Funk dance workshop for members.",
+    "event_date": "2025-10-09",
+    "start_time": "20:30:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Dance Studio"
+  },
+  {
+    "title": "SUTD Judo Practice",
+    "description": "Weekly judo training sessions.",
+    "event_date": "2025-09-16",
+    "start_time": "19:30:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "SUTD Judo Practice",
+    "description": "Weekly judo training sessions.",
+    "event_date": "2025-09-18",
+    "start_time": "19:30:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "SUTD Judo Practice",
+    "description": "Weekly judo training sessions.",
+    "event_date": "2025-09-23",
+    "start_time": "19:30:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "SUTD Judo Practice",
+    "description": "Weekly judo training sessions.",
+    "event_date": "2025-09-25",
+    "start_time": "19:30:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "Climbing Club Session",
+    "description": "Climbing wall session for members.",
+    "event_date": "2025-09-18",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Climbing Wall"
+  },
+  {
+    "title": "Climbing Club Session",
+    "description": "Climbing wall session for members.",
+    "event_date": "2025-09-25",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Climbing Wall"
+  },
+  {
+    "title": "Cuesports Club Meet",
+    "description": "Cuesports practice and friendly matches.",
+    "event_date": "2025-09-18",
+    "start_time": "14:00:00",
+    "end_time": "16:00:00",
+    "event_type": "Optional",
+    "location": "Recreation Room"
+  },
+  {
+    "title": "Volleyball SUTD Session",
+    "description": "Volleyball practice games.",
+    "event_date": "2025-10-07",
+    "start_time": "19:00:00",
+    "end_time": "23:00:00",
+    "event_type": "Optional",
+    "location": "Sports Hall"
+  },
+  {
+    "title": "Volleyball SUTD Session",
+    "description": "Volleyball practice games.",
+    "event_date": "2025-10-10",
+    "start_time": "19:00:00",
+    "end_time": "23:00:00",
+    "event_type": "Optional",
+    "location": "Sports Hall"
+  },
+  {
+    "title": "Energy Club Meetup",
+    "description": "Discussion on energy projects and technologies.",
+    "event_date": "2025-10-01",
+    "start_time": "14:30:00",
+    "end_time": "16:30:00",
+    "event_type": "Optional",
+    "location": "Sustainable Tech Centre"
+  },
+  {
+    "title": "APEX Workshop",
+    "description": "Introductory session on APEX platform.",
+    "event_date": "2025-09-17",
+    "start_time": "14:00:00",
+    "end_time": "16:00:00",
+    "event_type": "Optional",
+    "location": "Innovation Lab"
+  },
+  {
+    "title": "Touch Football Session",
+    "description": "Touch football practice game.",
+    "event_date": "2025-09-15",
+    "start_time": "19:30:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Outdoor Field"
+  },
+  {
+    "title": "Touch Football Session",
+    "description": "Touch football practice game.",
+    "event_date": "2025-09-22",
+    "start_time": "19:30:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Outdoor Field"
+  },
+  {
+    "title": "Mechanical Keyboard Interest Group",
+    "description": "Workshop on custom mech keyboard assembly.",
+    "event_date": "2025-09-15",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Electronics Lab"
+  },
+  {
+    "title": "Mechanical Keyboard Interest Group",
+    "description": "Workshop on custom mech keyboard assembly.",
+    "event_date": "2025-09-23",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Electronics Lab"
+  },
+  {
+    "title": "Wind Ensemble Rehearsal",
+    "description": "Wind ensemble practice session.",
+    "event_date": "2025-09-16",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Music Room"
+  },
+  {
+    "title": "Wind Ensemble Rehearsal",
+    "description": "Wind ensemble practice session.",
+    "event_date": "2025-09-18",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Music Room"
+  },
+  {
+    "title": "Wind Ensemble Rehearsal",
+    "description": "Wind ensemble practice session.",
+    "event_date": "2025-09-23",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Music Room"
+  },
+  {
+    "title": "Wind Ensemble Rehearsal",
+    "description": "Wind ensemble practice session.",
+    "event_date": "2025-09-25",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Music Room"
+  },
+  {
+    "title": "Wind Ensemble Rehearsal",
+    "description": "Wind ensemble practice session.",
+    "event_date": "2025-09-30",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Music Room"
+  },
+  {
+    "title": "Wind Ensemble Rehearsal",
+    "description": "Wind ensemble practice session.",
+    "event_date": "2025-10-02",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Music Room"
+  },
+  {
+    "title": "Wind Ensemble Rehearsal",
+    "description": "Wind ensemble practice session.",
+    "event_date": "2025-10-07",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Music Room"
+  },
+  {
+    "title": "Wind Ensemble Rehearsal",
+    "description": "Wind ensemble practice session.",
+    "event_date": "2025-10-09",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Music Room"
+  },
+  {
+    "title": "SEVEN Telegram Bot Workshop",
+    "description": "Hands-on workshop building a Telegram bot.",
+    "event_date": "2025-09-17",
+    "start_time": "14:00:00",
     "end_time": "17:00:00",
     "event_type": "Optional",
-    "location": "Campus Plaza"
+    "location": "Hack Lab"
   },
   {
-    "title": "Safety Briefing",
-    "description": "Mandatory safety briefing for all students covering campus safety protocols.",
-    "event_date": "2025-01-18",
-    "start_time": "10:00:00",
-    "end_time": "11:30:00",
-    "event_type": "Mandatory",
-    "location": "Lecture Theatre 1"
+    "title": "SEVEN Hackathon Day",
+    "description": "Day-long hackathon for project development.",
+    "event_date": "2025-09-19",
+    "start_time": "14:00:00",
+    "end_time": "18:00:00",
+    "event_type": "Optional",
+    "location": "Innovation Workspace"
   },
   {
-    "title": "Career Services Introduction",
-    "description": "Introduction to career services and internship opportunities.",
-    "event_date": "2025-01-20",
+    "title": "SEVEN Art of Design Workshop",
+    "description": "Creative design thinking session.",
+    "event_date": "2025-10-01",
+    "start_time": "14:00:00",
+    "end_time": "18:00:00",
+    "event_type": "Optional",
+    "location": "Design Studio"
+  },
+  {
+    "title": "SEVEN Talk with Founders & VIE",
+    "description": "Talk by SUTD founders and venture fund overview.",
+    "event_date": "2025-10-03",
+    "start_time": "14:00:00",
+    "end_time": "18:00:00",
+    "event_type": "Optional",
+    "location": "Lecture Theatre 2"
+  },
+  {
+    "title": "Swimming Club Session",
+    "description": "Lap swimming practice for all members.",
+    "event_date": "2025-09-15",
+    "start_time": "18:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Swimming Pool"
+  },
+  {
+    "title": "Swimming Club Session",
+    "description": "Lap swimming practice for all members.",
+    "event_date": "2025-09-22",
+    "start_time": "18:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Swimming Pool"
+  },
+  {
+    "title": "Swimming Club Session",
+    "description": "Lap swimming practice for all members.",
+    "event_date": "2025-09-29",
+    "start_time": "18:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Swimming Pool"
+  },
+  {
+    "title": "Swimming Club Session",
+    "description": "Lap swimming practice for all members.",
+    "event_date": "2025-09-17",
+    "start_time": "18:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Swimming Pool"
+  },
+  {
+    "title": "Swimming Club Session",
+    "description": "Lap swimming practice for all members.",
+    "event_date": "2025-09-24",
+    "start_time": "18:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Swimming Pool"
+  },
+  {
+    "title": "Swimming Club Session",
+    "description": "Lap swimming practice for all members.",
+    "event_date": "2025-10-01",
+    "start_time": "18:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Swimming Pool"
+  },
+  {
+    "title": "Chinese Orchestra Club Rehearsal",
+    "description": "Traditional orchestra practice session.",
+    "event_date": "2025-09-15",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Orchestra Room"
+  },
+  {
+    "title": "Chinese Orchestra Club Rehearsal",
+    "description": "Traditional orchestra practice session.",
+    "event_date": "2025-09-16",
+    "start_time": "11:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Orchestra Room"
+  },
+  {
+    "title": "Chinese Orchestra Club Rehearsal",
+    "description": "Traditional orchestra practice session.",
+    "event_date": "2025-09-18",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Orchestra Room"
+  },
+  {
+    "title": "Chinese Orchestra Club Rehearsal",
+    "description": "Traditional orchestra practice session.",
+    "event_date": "2025-09-22",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Orchestra Room"
+  },
+  {
+    "title": "Chinese Orchestra Club Rehearsal",
+    "description": "Traditional orchestra practice session.",
+    "event_date": "2025-09-23",
+    "start_time": "19:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Orchestra Room"
+  },
+  {
+    "title": "Chinese Orchestra Club Marathon Rehearsal",
+    "description": "Extended rehearsal and workshop day.",
+    "event_date": "2025-09-20",
+    "start_time": "11:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Orchestra Room"
+  },
+  {
+    "title": "Scratch Programming Workshop",
+    "description": "Introductory Scratch coding sessions (Mon–Fri).",
+    "event_date": "2025-09-15",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Computer Lab"
+  },
+  {
+    "title": "Scratch Programming Workshop",
+    "description": "Introductory Scratch coding sessions (Mon–Fri).",
+    "event_date": "2025-09-16",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Computer Lab"
+  },
+  {
+    "title": "Scratch Programming Workshop",
+    "description": "Introductory Scratch coding sessions (Mon–Fri).",
+    "event_date": "2025-09-17",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Computer Lab"
+  },
+  {
+    "title": "Scratch Programming Workshop",
+    "description": "Introductory Scratch coding sessions (Mon–Fri).",
+    "event_date": "2025-09-18",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Computer Lab"
+  },
+  {
+    "title": "Scratch Programming Workshop",
+    "description": "Introductory Scratch coding sessions (Mon–Fri).",
+    "event_date": "2025-09-19",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Computer Lab"
+  },
+  {
+    "title": "Cycling Interest Group Ride",
+    "description": "Evening cycling meet-up and group ride.",
+    "event_date": "2025-09-18",
+    "start_time": "19:00:00",
+    "end_time": "20:30:00",
+    "event_type": "Optional",
+    "location": "Campus Entrance"
+  },
+  {
+    "title": "Vertex (Cheerleading) Club Practice",
+    "description": "Cheerleading practice sessions.",
+    "event_date": "2025-09-15",
+    "start_time": "20:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Sports Hall"
+  },
+  {
+    "title": "Vertex (Cheerleading) Club Practice",
+    "description": "Cheerleading practice sessions.",
+    "event_date": "2025-09-17",
+    "start_time": "20:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Sports Hall"
+  },
+  {
+    "title": "Vertex (Cheerleading) Club Practice",
+    "description": "Cheerleading practice sessions.",
+    "event_date": "2025-09-22",
+    "start_time": "20:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Sports Hall"
+  },
+  {
+    "title": "Vertex (Cheerleading) Club Practice",
+    "description": "Cheerleading practice sessions.",
+    "event_date": "2025-09-24",
+    "start_time": "20:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Sports Hall"
+  },
+  {
+    "title": "Vertex (Cheerleading) Club Practice",
+    "description": "Cheerleading practice sessions.",
+    "event_date": "2025-09-29",
+    "start_time": "20:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Sports Hall"
+  },
+  {
+    "title": "Vertex (Cheerleading) Club Practice",
+    "description": "Cheerleading practice sessions.",
+    "event_date": "2025-10-01",
+    "start_time": "20:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Sports Hall"
+  },
+  {
+    "title": "Vertex (Cheerleading) Club Practice",
+    "description": "Cheerleading practice sessions.",
+    "event_date": "2025-10-08",
+    "start_time": "20:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Sports Hall"
+  },
+  {
+    "title": "SUTD Christian Fellowship Intro Session",
+    "description": "Fellowship introduction and dinner with Freshmores.",
+    "event_date": "2025-09-16",
+    "start_time": "18:45:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Fellowship Hall"
+  },
+  {
+    "title": "SUTD Christian Fellowship Club Meeting",
+    "description": "First club meeting with Freshmores and dinner.",
+    "event_date": "2025-09-23",
+    "start_time": "18:45:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Fellowship Hall"
+  },
+  {
+    "title": "SUTD Christian Fellowship BBQ",
+    "description": "Outdoor BBQ gathering for fellowship members.",
+    "event_date": "2025-10-03",
+    "start_time": "18:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Outdoor Plaza"
+  },
+  {
+    "title": "Computer Enthusiasts Interest Group Discussion",
+    "description": "Planning meeting post-compulsory briefings.",
+    "event_date": "2025-09-17",
     "start_time": "15:00:00",
-    "end_time": "16:30:00",
+    "end_time": "17:00:00",
     "event_type": "Pending",
-    "location": "Career Center"
+    "location": "Innovation Lab"
+  },
+  {
+    "title": "Chess Club Match",
+    "description": "Casual chess matches and strategy discussion.",
+    "event_date": "2025-09-19",
+    "start_time": "15:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Game Room"
+  },
+  {
+    "title": "Tamil Cultural Club Session",
+    "description": "Tamil culture presentations and workshops.",
+    "event_date": "2025-10-02",
+    "start_time": "18:30:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Cultural Centre Room B"
+  },
+  {
+    "title": "Visual Arts Club Workshop",
+    "description": "Art workshop and Q&A about club activities.",
+    "event_date": "2025-09-24",
+    "start_time": "14:00:00",
+    "end_time": "15:30:00",
+    "event_type": "Optional",
+    "location": "Art Studio"
+  },
+  {
+    "title": "Grub Ig and KLEC Meetup",
+    "description": "Foodie exploration meet-up.",
+    "event_date": "2025-10-01",
+    "start_time": "18:00:00",
+    "end_time": "19:30:00",
+    "event_type": "Optional",
+    "location": "Food Court"
+  },
+  {
+    "title": "Grub Ig and KLEC Meetup",
+    "description": "Foodie exploration meet-up.",
+    "event_date": "2025-10-08",
+    "start_time": "18:00:00",
+    "end_time": "19:30:00",
+    "event_type": "Optional",
+    "location": "Food Court"
+  },
+  {
+    "title": "Makerspace Club Workshop",
+    "description": "Hands-on makerspace projects (tentative).",
+    "event_date": "2025-09-28",
+    "start_time": "15:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Makerspace"
+  },
+  {
+    "title": "Makerspace Club Workshop",
+    "description": "Hands-on makerspace projects (tentative).",
+    "event_date": "2025-09-29",
+    "start_time": "15:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Makerspace"
+  },
+  {
+    "title": "Makerspace Club Workshop",
+    "description": "Hands-on makerspace projects (tentative).",
+    "event_date": "2025-09-30",
+    "start_time": "15:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Makerspace"
+  },
+  {
+    "title": "Makerspace Club Workshop",
+    "description": "Hands-on makerspace projects.",
+    "event_date": "2025-10-09",
+    "start_time": "15:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Makerspace"
+  },
+  {
+    "title": "Marketwatch Club Trading Session",
+    "description": "Weekend trading rounds and discussion.",
+    "event_date": "2025-09-27",
+    "start_time": "14:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Finance Lab"
+  },
+  {
+    "title": "SUTD Productions Event",
+    "description": "Production meeting and project showcase.",
+    "event_date": "2025-09-22",
+    "start_time": "00:00:00",
+    "end_time": "23:59:00",
+    "event_type": "Optional",
+    "location": "Studio"
+  },
+  {
+    "title": "Esports Club Practice",
+    "description": "Regular esports practice sessions.",
+    "event_date": "2025-09-16",
+    "start_time": "19:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Gaming Lab"
+  },
+  {
+    "title": "Esports Club Practice",
+    "description": "Regular esports practice sessions.",
+    "event_date": "2025-09-18",
+    "start_time": "19:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Gaming Lab"
+  },
+  {
+    "title": "Esports Club Practice",
+    "description": "Regular esports practice sessions.",
+    "event_date": "2025-09-23",
+    "start_time": "19:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Gaming Lab"
+  },
+  {
+    "title": "Esports Club Practice",
+    "description": "Regular esports practice sessions.",
+    "event_date": "2025-09-25",
+    "start_time": "19:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Gaming Lab"
+  },
+  {
+    "title": "Esports Club Practice",
+    "description": "Regular esports practice sessions.",
+    "event_date": "2025-09-30",
+    "start_time": "19:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Gaming Lab"
+  },
+  {
+    "title": "Esports Club Practice",
+    "description": "Regular esports practice sessions.",
+    "event_date": "2025-10-02",
+    "start_time": "19:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Gaming Lab"
+  },
+  {
+    "title": "Esports Club Practice",
+    "description": "Regular esports practice sessions.",
+    "event_date": "2025-10-07",
+    "start_time": "19:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Gaming Lab"
+  },
+  {
+    "title": "Esports Club Practice",
+    "description": "Regular esports practice sessions.",
+    "event_date": "2025-10-09",
+    "start_time": "19:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Gaming Lab"
+  },
+  {
+    "title": "Multi Rotor SUTD Session",
+    "description": "TBC session for multirotor UAV enthusiasts.",
+    "event_date": "2025-10-10",
+    "start_time": "00:00:00",
+    "end_time": "00:00:00",
+    "event_type": "Pending",
+    "location": "Drone Lab"
+  },
+  {
+    "title": "Muay Thai Training",
+    "description": "Muay Thai techniques and sparring.",
+    "event_date": "2025-09-15",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "Muay Thai Training",
+    "description": "Muay Thai techniques and sparring.",
+    "event_date": "2025-09-17",
+    "start_time": "17:00:00",
+    "end_time": "19:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "Muay Thai Training",
+    "description": "Muay Thai techniques and sparring.",
+    "event_date": "2025-09-19",
+    "start_time": "17:00:00",
+    "end_time": "19:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "Tortured Poets Interest Group Meeting",
+    "description": "Poetry writing and critique session.",
+    "event_date": "2025-09-30",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Literature Lounge"
+  },
+  {
+    "title": "Crochet Interest Group Session",
+    "description": "Beginner crochet workshop.",
+    "event_date": "2025-09-16",
+    "start_time": "17:00:00",
+    "end_time": "19:00:00",
+    "event_type": "Optional",
+    "location": "Craft Room"
+  },
+  {
+    "title": "Crochet Interest Group Session",
+    "description": "Beginner crochet workshop.",
+    "event_date": "2025-09-17",
+    "start_time": "17:00:00",
+    "end_time": "19:00:00",
+    "event_type": "Optional",
+    "location": "Craft Room"
+  },
+  {
+    "title": "Karate Interest Group Training",
+    "description": "Karate basics and kata practice.",
+    "event_date": "2025-09-18",
+    "start_time": "20:00:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "SUTD Uni-Y Club Intro Session",
+    "description": "Introductory meet-up for Uni-Y club (TBC).",
+    "event_date": "2025-09-17",
+    "start_time": "14:00:00",
+    "end_time": "16:00:00",
+    "event_type": "Pending",
+    "location": "Community Room"
+  },
+  {
+    "title": "Vocomotives Music Jam",
+    "description": "Live jam sessions for club members.",
+    "event_date": "2025-09-16",
+    "start_time": "20:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Vocomotives Music Jam",
+    "description": "Live jam sessions for club members.",
+    "event_date": "2025-09-23",
+    "start_time": "20:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Vocomotives Music Jam",
+    "description": "Live jam sessions for club members.",
+    "event_date": "2025-09-30",
+    "start_time": "20:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Vocomotives Music Jam",
+    "description": "Live jam sessions for club members.",
+    "event_date": "2025-10-07",
+    "start_time": "20:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Music Studio"
+  },
+  {
+    "title": "Writer's Block Meetup",
+    "description": "Creative writing workshop and peer review.",
+    "event_date": "2025-10-01",
+    "start_time": "19:00:00",
+    "end_time": "21:30:00",
+    "event_type": "Optional",
+    "location": "Literature Lounge"
+  },
+  {
+    "title": "SUTKD Karate & Krav Maga",
+    "description": "Martial arts training sessions.",
+    "event_date": "2025-09-15",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "SUTKD Karate & Krav Maga",
+    "description": "Martial arts training sessions.",
+    "event_date": "2025-09-17",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "SUTKD Karate & Krav Maga",
+    "description": "Martial arts training sessions.",
+    "event_date": "2025-09-22",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "SUTKD Karate & Krav Maga",
+    "description": "Martial arts training sessions.",
+    "event_date": "2025-09-24",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "SUTKD Karate & Krav Maga",
+    "description": "Martial arts training sessions.",
+    "event_date": "2025-09-29",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "SUTKD Karate & Krav Maga",
+    "description": "Martial arts training sessions.",
+    "event_date": "2025-10-01",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Martial Arts Dojo"
+  },
+  {
+    "title": "Namaste Indian Cultural IG Session",
+    "description": "Indian cultural activities and performances (tentative).",
+    "event_date": "2025-09-19",
+    "start_time": "20:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Cultural Centre Room C"
+  },
+  {
+    "title": "Space Bar Workshop",
+    "description": "Space-themed workshop and competition.",
+    "event_date": "2025-09-24",
+    "start_time": "15:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Innovation Lab"
+  },
+  {
+    "title": "Space Bar Workshop",
+    "description": "Space-themed workshop and competition.",
+    "event_date": "2025-10-01",
+    "start_time": "15:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Innovation Lab"
+  },
+  {
+    "title": "Space Bar Competition",
+    "description": "Space bar competition event.",
+    "event_date": "2025-10-08",
+    "start_time": "15:00:00",
+    "end_time": "17:00:00",
+    "event_type": "Optional",
+    "location": "Innovation Lab"
+  },
+  {
+    "title": "Squash Club Match",
+    "description": "Squash matches and practice drills.",
+    "event_date": "2025-09-16",
+    "start_time": "19:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Squash Courts"
+  },
+  {
+    "title": "Squash Club Match",
+    "description": "Squash matches and practice drills.",
+    "event_date": "2025-09-23",
+    "start_time": "19:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Squash Courts"
+  },
+  {
+    "title": "Project Management Interest Group Meeting",
+    "description": "Project management methodologies workshop.",
+    "event_date": "2025-09-25",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Business Lab"
+  },
+  {
+    "title": "Project Management Interest Group Meeting",
+    "description": "Project management methodologies workshop.",
+    "event_date": "2025-10-07",
+    "start_time": "19:00:00",
+    "end_time": "21:00:00",
+    "event_type": "Optional",
+    "location": "Business Lab"
+  },
+  {
+    "title": "Galois Group Session",
+    "description": "Mathematics discussion group on algebra topics.",
+    "event_date": "2025-09-18",
+    "start_time": "20:00:00",
+    "end_time": "22:00:00",
+    "event_type": "Optional",
+    "location": "Math Department Room"
+  },
+  {
+    "title": "Floorball Club Game",
+    "description": "Floorball practice matches.",
+    "event_date": "2025-09-24",
+    "start_time": "19:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Sports Hall"
+  },
+  {
+    "title": "Floorball Club Game",
+    "description": "Floorball practice matches.",
+    "event_date": "2025-10-08",
+    "start_time": "19:00:00",
+    "end_time": "22:30:00",
+    "event_type": "Optional",
+    "location": "Sports Hall"
+  },
+  {
+    "title": "Greenprint Flower Workshop",
+    "description": "Flower arrangement workshop.",
+    "event_date": "2025-09-18",
+    "start_time": "14:00:00",
+    "end_time": "15:00:00",
+    "event_type": "Optional",
+    "location": "Green Lab"
+  },
+  {
+    "title": "Greenprint Wax Workshop",
+    "description": "Wax crafting workshop.",
+    "event_date": "2025-09-24",
+    "start_time": "14:00:00",
+    "end_time": "16:00:00",
+    "event_type": "Optional",
+    "location": "Green Lab"
+  },
+  {
+    "title": "Greenprint Flower Workshop",
+    "description": "Flower arrangement workshop.",
+    "event_date": "2025-10-02",
+    "start_time": "19:00:00",
+    "end_time": "20:00:00",
+    "event_type": "Optional",
+    "location": "Green Lab"
+  },
+  {
+    "title": "Greenprint Wax Workshop",
+    "description": "Wax crafting workshop.",
+    "event_date": "2025-10-08",
+    "start_time": "14:00:00",
+    "end_time": "16:00:00",
+    "event_type": "Optional",
+    "location": "Green Lab"
   }
 ]
