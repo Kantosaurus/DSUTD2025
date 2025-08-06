@@ -199,6 +199,19 @@ export default function CalendarPage() {
     setSelectedDate(null);
   };
 
+  const getEventTypeStyle = (type: string) => {
+    switch (type) {
+      case 'Mandatory':
+        return 'bg-red-500 text-white px-1 py-0.5 rounded text-center font-medium';
+      case 'Optional':
+        return 'bg-blue-500 text-white px-1 py-0.5 rounded text-center font-medium';
+      case 'Pending':
+        return 'bg-amber-500 text-white px-1 py-0.5 rounded text-center font-medium';
+      default:
+        return 'text-gray-700';
+    }
+  };
+
   const renderEvents = (events: CalendarEvent[], maxVisible: number = 3) => {
     if (events.length === 0) return null;
 
@@ -207,25 +220,22 @@ export default function CalendarPage() {
 
     return (
       <div className="space-y-1 mt-2">
-        {visibleEvents.map((event) => (
-          <div
-            key={event.id}
-            className={`
-              text-xs leading-tight truncate
-              ${event.type === 'Mandatory' 
-                ? 'bg-green-600 text-white px-1 py-0.5 rounded text-center font-medium' 
-                : 'text-gray-700'
-              }
-            `}
-          >
-            {event.type !== 'Mandatory' && (
-              <span className="text-gray-500 font-medium">{event.time}</span>
-            )}
-            <span className={event.type === 'Mandatory' ? '' : 'ml-1'}>
-              {event.title}
-            </span>
-          </div>
-        ))}
+        {visibleEvents.map((event) => {
+          const isColoredEvent = ['Mandatory', 'Optional', 'Pending'].includes(event.type || '');
+          return (
+            <div
+              key={event.id}
+              className={`text-xs leading-tight truncate ${getEventTypeStyle(event.type || '')}`}
+            >
+              {!isColoredEvent && (
+                <span className="text-gray-500 font-medium">{event.time}</span>
+              )}
+              <span className={isColoredEvent ? '' : 'ml-1'}>
+                {event.title}
+              </span>
+            </div>
+          );
+        })}
         {remainingCount > 0 && (
           <div className="text-xs text-gray-500 font-medium">
             {remainingCount} more
@@ -237,6 +247,12 @@ export default function CalendarPage() {
 
   const getEventTypeColor = (type: string) => {
     switch (type) {
+      case 'Mandatory':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'Optional':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'Pending':
+        return 'bg-amber-100 text-amber-800 border-amber-200';
       case 'holiday':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'course':
@@ -282,7 +298,11 @@ export default function CalendarPage() {
       setSignupStatuses(prev => ({ ...prev, [eventId]: false }));
       alert('Successfully cancelled event signup!');
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to cancel event signup');
+      if (error.response?.status === 403 && error.response?.data?.eventType === 'Mandatory') {
+        alert('Cannot cancel signup for mandatory events. You are automatically enrolled in all mandatory events.');
+      } else {
+        alert(error.response?.data?.error || 'Failed to cancel event signup');
+      }
     }
   };
 
@@ -557,12 +577,18 @@ export default function CalendarPage() {
                     {isAuthenticated && (
                       <div className="mt-3">
                         {signupStatuses[event.id] ? (
-                          <button
-                            onClick={() => handleEventCancel(event.id)}
-                            className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm font-medium"
-                          >
-                            Cancel Signup
-                          </button>
+                          event.type === 'Mandatory' ? (
+                            <div className="w-full bg-gray-100 text-gray-600 py-2 px-4 rounded-lg text-sm font-medium text-center border">
+                              ✓ Mandatory Event - Auto Enrolled
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleEventCancel(event.id)}
+                              className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm font-medium"
+                            >
+                              Cancel Signup
+                            </button>
+                          )
                         ) : (
                           <button
                             onClick={() => handleEventSignup(event.id)}

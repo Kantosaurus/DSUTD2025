@@ -155,6 +155,28 @@ router.post('/verify-email', [
       [user.id]
     );
 
+    // Auto-sign up user for all mandatory events after email verification
+    try {
+      const mandatoryEvents = await pool.query(
+        "SELECT id FROM calendar_events WHERE event_type = 'Mandatory' AND is_active = true"
+      );
+      
+      for (const event of mandatoryEvents.rows) {
+        await pool.query(
+          'INSERT INTO event_signups (user_id, event_id) VALUES ($1, $2) ON CONFLICT (user_id, event_id) DO NOTHING',
+          [user.id, event.id]
+        );
+      }
+
+      await logSecurityEvent('MANDATORY_EVENTS_AUTO_SIGNUP', `Auto-signed up for ${mandatoryEvents.rows.length} mandatory events after email verification`, user.id, {
+        studentId,
+        mandatoryEventCount: mandatoryEvents.rows.length
+      }, req);
+    } catch (autoSignupError) {
+      console.error('Error auto-signing up for mandatory events:', autoSignupError);
+      // Don't fail verification if auto-signup fails
+    }
+
     await logSecurityEvent('EMAIL_VERIFIED', `Email verified for user: ${studentId}`, user.id, { studentId, email: user.email }, req);
 
     res.json({ message: 'Email verified successfully' });

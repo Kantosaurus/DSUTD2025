@@ -102,6 +102,20 @@ router.get('/events', optionalAuth, async (req, res) => {
   }
 });
 
+// Helper function to get color based on event type
+const getEventTypeColor = (eventType) => {
+  switch (eventType) {
+    case 'Mandatory':
+      return '#EF4444';
+    case 'Optional':
+      return '#3B82F6';
+    case 'Pending':
+      return '#F59E0B';
+    default:
+      return '#3B82F6'; // Default to blue for any other types
+  }
+};
+
 // Create new calendar event (admin only)
 router.post('/events', authenticateToken, requireAdmin, [
   body('title').notEmpty().withMessage('Title is required'),
@@ -110,8 +124,9 @@ router.post('/events', authenticateToken, requireAdmin, [
   body('start_time').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Valid start time is required (HH:MM)'),
   body('end_time').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Valid end time is required (HH:MM)'),
   body('location').optional(),
-  body('event_type').isIn(['workshop', 'seminar', 'social', 'mandatory', 'competition', 'networking']).withMessage('Valid event type is required'),
-  body('is_mandatory').isBoolean().withMessage('Mandatory flag must be boolean')
+  body('event_type').isIn(['Mandatory', 'Optional', 'Pending', 'workshop', 'seminar', 'social', 'mandatory', 'competition', 'networking']).withMessage('Valid event type is required'),
+  body('color').optional(),
+  body('max_participants').optional().isInt({ min: 0 }).withMessage('Max participants must be a positive integer')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -122,14 +137,43 @@ router.post('/events', authenticateToken, requireAdmin, [
       });
     }
 
-    const { title, description, event_date, start_time, end_time, location, event_type, is_mandatory } = req.body;
+    const { title, description, event_date, start_time, end_time, location, event_type, color, max_participants } = req.body;
+    
+    // Auto-assign color based on event type if not provided
+    const eventColor = color || getEventTypeColor(event_type);
     
     const result = await pool.query(
-      `INSERT INTO calendar_events (title, description, event_date, start_time, end_time, location, event_type, is_mandatory) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+      `INSERT INTO calendar_events (title, description, event_date, start_time, end_time, location, event_type, color, max_participants) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
        RETURNING *`,
-      [title, description, event_date, start_time, end_time, location, event_type, is_mandatory]
+      [title, description, event_date, start_time, end_time, location, event_type, eventColor, max_participants || null]
     );
+
+    // If this is a mandatory event, automatically sign up all verified users
+    if (event_type === 'Mandatory') {
+      try {
+        const verifiedUsers = await pool.query(
+          'SELECT id FROM users WHERE email_verified = true AND is_active = true'
+        );
+        
+        for (const user of verifiedUsers.rows) {
+          await pool.query(
+            'INSERT INTO event_signups (user_id, event_id) VALUES ($1, $2) ON CONFLICT (user_id, event_id) DO NOTHING',
+            [user.id, result.rows[0].id]
+          );
+        }
+
+        await logSecurityEvent('MANDATORY_EVENT_AUTO_SIGNUP', `Auto-signed up ${verifiedUsers.rows.length} users for mandatory event: ${title}`, req.user.currentUser.id, {
+          eventId: result.rows[0].id,
+          eventTitle: title,
+          eventDate: event_date,
+          autoSignupCount: verifiedUsers.rows.length
+        }, req);
+      } catch (autoSignupError) {
+        console.error('Error auto-signing up users for mandatory event:', autoSignupError);
+        // Don't fail event creation if auto-signup fails
+      }
+    }
 
     await logSecurityEvent('CALENDAR_EVENT_CREATED', `Event created: ${title}`, req.user.currentUser.id, {
       eventId: result.rows[0].id,
@@ -155,8 +199,9 @@ router.put('/events/:id', authenticateToken, requireAdmin, [
   body('start_time').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Valid start time is required (HH:MM)'),
   body('end_time').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Valid end time is required (HH:MM)'),
   body('location').optional(),
-  body('event_type').isIn(['workshop', 'seminar', 'social', 'mandatory', 'competition', 'networking']).withMessage('Valid event type is required'),
-  body('is_mandatory').isBoolean().withMessage('Mandatory flag must be boolean')
+  body('event_type').isIn(['Mandatory', 'Optional', 'Pending', 'workshop', 'seminar', 'social', 'mandatory', 'competition', 'networking']).withMessage('Valid event type is required'),
+  body('color').optional(),
+  body('max_participants').optional().isInt({ min: 0 }).withMessage('Max participants must be a positive integer')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -168,15 +213,18 @@ router.put('/events/:id', authenticateToken, requireAdmin, [
     }
 
     const eventId = req.params.id;
-    const { title, description, event_date, start_time, end_time, location, event_type, is_mandatory } = req.body;
+    const { title, description, event_date, start_time, end_time, location, event_type, color, max_participants } = req.body;
+    
+    // Auto-assign color based on event type if not provided
+    const eventColor = color || getEventTypeColor(event_type);
     
     const result = await pool.query(
       `UPDATE calendar_events 
        SET title = $1, description = $2, event_date = $3, start_time = $4, end_time = $5, 
-           location = $6, event_type = $7, is_mandatory = $8, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $9 
+           location = $6, event_type = $7, color = $8, max_participants = $9, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $10 
        RETURNING *`,
-      [title, description, event_date, start_time, end_time, location, event_type, is_mandatory, eventId]
+      [title, description, event_date, start_time, end_time, location, event_type, eventColor, max_participants || null, eventId]
     );
 
     if (result.rows.length === 0) {

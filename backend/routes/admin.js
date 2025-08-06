@@ -12,6 +12,22 @@ const router = express.Router();
 // Configure Multer for temporary file storage
 const upload = multer({ dest: 'uploads/' });
 
+// Helper function to get color based on event type
+const getEventTypeColor = (eventType) => {
+  switch (eventType) {
+    case 'Mandatory':
+      return '#EF4444';
+    case 'Optional':
+      return '#3B82F6';
+    case 'Pending':
+      return '#F59E0B';
+    case 'mandatory':
+      return '#EF4444';
+    default:
+      return '#3B82F6'; // Default to blue for any other types
+  }
+};
+
 // Batch upload calendar events from CSV (admin only)
 router.post('/calendar/events/batch', authenticateToken, requireAdmin, upload.single('csvFile'), async (req, res) => {
   let processedCount = 0;
@@ -50,7 +66,7 @@ router.post('/calendar/events/batch', authenticateToken, requireAdmin, upload.si
         }
 
         // Validate event type
-        const validEventTypes = ['workshop', 'seminar', 'social', 'mandatory', 'competition', 'networking'];
+        const validEventTypes = ['Mandatory', 'Optional', 'Pending', 'workshop', 'seminar', 'social', 'mandatory', 'competition', 'networking'];
         if (!validEventTypes.includes(event.event_type)) {
           errors.push(`Row ${i + 1}: Invalid event type '${event.event_type}'`);
           skippedCount++;
@@ -65,10 +81,13 @@ router.post('/calendar/events/batch', authenticateToken, requireAdmin, upload.si
           continue;
         }
 
+        // Auto-assign color based on event type
+        const eventColor = event.color || getEventTypeColor(event.event_type);
+
         // Insert event
-        await pool.query(
-          `INSERT INTO calendar_events (title, description, event_date, start_time, end_time, location, event_type, is_mandatory) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        const insertResult = await pool.query(
+          `INSERT INTO calendar_events (title, description, event_date, start_time, end_time, location, event_type, color, max_participants) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
           [
             event.title,
             event.description || null,
@@ -77,9 +96,29 @@ router.post('/calendar/events/batch', authenticateToken, requireAdmin, upload.si
             event.end_time,
             event.location || null,
             event.event_type,
-            event.is_mandatory === 'true' || event.is_mandatory === true
+            eventColor,
+            event.max_participants ? parseInt(event.max_participants) : null
           ]
         );
+
+        // If this is a mandatory event, automatically sign up all verified users
+        if (event.event_type === 'Mandatory') {
+          try {
+            const verifiedUsers = await pool.query(
+              'SELECT id FROM users WHERE email_verified = true AND is_active = true'
+            );
+            
+            for (const user of verifiedUsers.rows) {
+              await pool.query(
+                'INSERT INTO event_signups (user_id, event_id) VALUES ($1, $2) ON CONFLICT (user_id, event_id) DO NOTHING',
+                [user.id, insertResult.rows[0].id]
+              );
+            }
+          } catch (autoSignupError) {
+            console.error('Error auto-signing up users for mandatory batch event:', autoSignupError);
+            // Don't fail batch import if auto-signup fails
+          }
+        }
 
         processedCount++;
       } catch (error) {

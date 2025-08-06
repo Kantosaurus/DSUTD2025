@@ -115,14 +115,41 @@ router.get('/events-count', authenticateToken, async (req, res) => {
 router.get('/events', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT ce.*, es.signup_date
+      SELECT 
+        ce.id,
+        ce.title,
+        ce.description,
+        ce.event_date as date,
+        ce.start_time as time,
+        ce.end_time,
+        ce.event_type as type,
+        ce.location,
+        ce.color,
+        ce.event_date < CURRENT_DATE as "isOver",
+        es.signup_date
       FROM calendar_events ce
       INNER JOIN event_signups es ON ce.id = es.event_id
-      WHERE es.user_id = $1
+      WHERE es.user_id = $1 AND ce.is_active = true
       ORDER BY ce.event_date ASC, ce.start_time ASC
     `, [req.user.currentUser.id]);
 
-    res.json(result.rows);
+    // Format the response to match the frontend interface
+    const formattedEvents = result.rows.map(event => ({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      date: event.date,
+      time: event.time,
+      endTime: event.end_time,
+      type: event.type,
+      location: event.location,
+      color: event.color,
+      isOver: event.isOver,
+      signupDate: event.signup_date,
+      isMandatory: event.type === 'Mandatory'
+    }));
+
+    res.json(formattedEvents);
   } catch (err) {
     console.error('Error fetching user events:', err);
     res.status(500).json({ error: 'Internal server error' });

@@ -20,6 +20,7 @@ interface Event {
   description?: string;
   type?: string;
   isOver: boolean;
+  isMandatory?: boolean;
 }
 
 const navItems = [
@@ -365,14 +366,27 @@ export default function ProfilePage() {
                           </span>
                         </div>
                         
-                        {event.type && (
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs text-gray-500">Type:</span>
-                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                              {event.type}
-                            </span>
-                          </div>
-                        )}
+                        <div className="flex items-center justify-between">
+                          {event.type && (
+                            <div className="flex items-center space-x-2">
+                              <span className="text-xs text-gray-500">Type:</span>
+                              <span className={`text-xs px-2 py-1 rounded ${
+                                event.type === 'Mandatory' 
+                                  ? 'bg-red-100 text-red-700 border border-red-200' 
+                                  : event.type === 'Optional'
+                                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                                  : event.type === 'Pending'
+                                  ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                                  : 'bg-gray-100 text-gray-700'
+                              }`}>
+                                {event.type}
+                              </span>
+                            </div>
+                          )}
+                          {event.type === 'Mandatory' && (
+                            <span className="text-xs text-gray-500 italic">Auto-enrolled</span>
+                          )}
+                        </div>
                       </div>
                     );
                   })}

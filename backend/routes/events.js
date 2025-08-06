@@ -58,9 +58,12 @@ router.delete('/:eventId/signup', authenticateToken, async (req, res) => {
     const eventId = req.params.eventId;
     const userId = req.user.currentUser.id;
 
-    // Check if user is signed up for the event
+    // Check if user is signed up for the event and get event details
     const signupResult = await pool.query(
-      'SELECT id FROM event_signups WHERE user_id = $1 AND event_id = $2',
+      `SELECT es.id, ce.title, ce.event_type 
+       FROM event_signups es 
+       JOIN calendar_events ce ON es.event_id = ce.id 
+       WHERE es.user_id = $1 AND es.event_id = $2`,
       [userId, eventId]
     );
 
@@ -68,11 +71,15 @@ router.delete('/:eventId/signup', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Not signed up for this event' });
     }
 
-    // Get event details for logging
-    const eventResult = await pool.query(
-      'SELECT title FROM calendar_events WHERE id = $1',
-      [eventId]
-    );
+    const signup = signupResult.rows[0];
+
+    // Prevent cancellation of mandatory events
+    if (signup.event_type === 'Mandatory') {
+      return res.status(403).json({ 
+        error: 'Cannot cancel signup for mandatory events',
+        eventType: 'Mandatory'
+      });
+    }
 
     // Remove signup
     await pool.query(
@@ -80,9 +87,10 @@ router.delete('/:eventId/signup', authenticateToken, async (req, res) => {
       [userId, eventId]
     );
 
-    await logSecurityEvent('EVENT_SIGNUP_CANCELLED', `User cancelled signup for event: ${eventResult.rows[0]?.title || 'Unknown'}`, userId, {
+    await logSecurityEvent('EVENT_SIGNUP_CANCELLED', `User cancelled signup for event: ${signup.title}`, userId, {
       eventId: eventId,
-      eventTitle: eventResult.rows[0]?.title || 'Unknown',
+      eventTitle: signup.title,
+      eventType: signup.event_type,
       studentId: req.user.currentUser.student_id
     }, req);
 
