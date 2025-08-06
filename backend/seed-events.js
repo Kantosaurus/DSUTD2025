@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const { Pool } = require('pg');
 
 // Color mapping function (same as in server.js)
 const getColorForType = (type) => {
@@ -15,9 +14,8 @@ const getColorForType = (type) => {
 };
 
 async function seedEvents() {
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://webapp_user:webapp_password@localhost:5432/webapp_db',
-  });
+  // Import pool from database config to avoid creating multiple connections
+  const { pool } = require('./config/database');
 
   try {
     // Read the events JSON file
@@ -51,9 +49,9 @@ async function seedEvents() {
     console.log('Events seeded successfully!');
   } catch (error) {
     console.error('Error seeding events:', error);
-  } finally {
-    await pool.end();
+    throw error; // Re-throw to let caller handle
   }
+  // Don't close the pool here since it's shared
 }
 
 // Run if called directly
