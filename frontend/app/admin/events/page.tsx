@@ -9,7 +9,6 @@ const navItems = [
   { name: 'Home', link: '/home' },
   { name: 'Events', link: '/calendar' },
   { name: 'Survival Kit', link: '/survival-kit' },
-  { name: 'Maps', link: '/maps' },
   { name: 'Admin Events', link: '/admin/events' },
   { name: 'Admin Logs', link: '/admin/logs' },
 ]
@@ -149,7 +148,7 @@ export default function AdminEventsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setEvents(data.events);
+        setEvents(data);
       } else {
         setError('Failed to fetch events');
       }
@@ -412,7 +411,7 @@ export default function AdminEventsPage() {
           {/* Events List */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">All Events ({events.length})</h2>
+              <h2 className="text-xl font-semibold text-gray-900">All Events ({events?.length || 0})</h2>
             </div>
             
             {isLoadingEvents ? (
@@ -420,7 +419,7 @@ export default function AdminEventsPage() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                 <p className="mt-2 text-gray-600">Loading events...</p>
               </div>
-            ) : events.length === 0 ? (
+            ) : !events || events.length === 0 ? (
               <div className="p-8 text-center">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -445,7 +444,7 @@ export default function AdminEventsPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {events.map((event) => (
+                    {events?.map((event) => (
                       <tr key={event.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
