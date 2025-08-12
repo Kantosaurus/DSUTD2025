@@ -82,41 +82,62 @@ const SUTDMap = () => {
       // SUTD Buildings and Points of Interest (based on actual campus layout)
       const sutdBuildings = [
         {
-          name: "Building 1 (Academic)",
-          coords: [1.3415, 103.9635],
-          description: "Main academic building with lecture halls and labs",
-          color: "#FF6B6B"
-        },
-        {
-          name: "Building 2 (Library)",
-          coords: [1.3413, 103.9633],
-          description: "SUTD Library and study spaces",
-          color: "#4ECDC4"
-        },
-        {
-          name: "Building 3 (Academic)",
-          coords: [1.3408, 103.9635],
-          description: "Academic facilities and classrooms",
-          color: "#45B7D1"
-        },
-        {
-          name: "Building 5 (Admin)",
-          coords: [1.3420, 103.9640],
-          description: "Administrative offices",
-          color: "#96CEB4"
-        },
-        {
-          name: "Fabrication Lab",
-          coords: [1.3412, 103.9638],
-          description: "Digital fabrication and prototyping lab",
-          color: "#FCEA2B"
-        },
-        {
-          name: "SUTD Sports Field",
-          coords: [1.3405, 103.9642],
-          description: "Sports facilities and recreational area",
-          color: "#FF8E53"
-        }
+            name: "Building 5 – Fab Lab & Admin",
+            coords: [1.34164, 103.96271],
+            description: "Admin offices + Fab Lab cluster (B5).",
+
+          },
+          {
+            name: "Building 2 (Campus Centre)",
+            coords: [1.340784, 103.962542],
+            description: "Campus Centre; main concourse linking B1–B3."
+          },
+          {
+            name: "Building 1 (Academic & Library)",
+            coords: [1.340214, 103.962462],
+            description: "Lecture theatres & library block."
+          },
+          {
+            name: "Campus Centre & Canteen",
+            coords: [1.34105, 103.96302],
+            description: "Level 2 canteen inside Campus Centre."
+          },
+          {
+            name: "Library",
+            coords: [1.340197, 103.962836],
+            description: "SUTD Library @ B1 (approx. entrance area)."
+          },
+          {
+            name: "Gomgom (B2 #01-202A)",
+            coords: [1.340784, 103.962542],
+            description: "Ground-floor retail at B2 (uses B2 centroid)."
+          },
+          {
+            name: "Cheers (B2 #01-201)",
+            coords: [1.340784, 103.962542],
+            description: "Convenience store at B2 facing d’Star (B1)."
+          },
+          {
+            name: "Mala (Canteen stall)",
+            coords: [1.34105, 103.96302],
+            description: "Canteen L2; vendor lineup can change."
+          },
+          {
+            name: "d’Star Bistro (B1 #01-102)",
+            coords: [1.34043, 103.96257],
+            description: "Bistro at B1 ground floor facing Campus Centre."
+          },
+          {
+            name: "Hostel Buildings (Student Housing)",
+            coords: [1.34213, 103.96419],
+            description: "SUTD Student Housing cluster (representative point)."
+          },
+          {
+            name: "Sports Complex & Recreational Centre",
+            coords: [1.34161, 103.96486],
+            description: "SUTD Multifunction Sport Center (tennis, halls, etc.)."
+          }
+
       ]
 
       // Add building markers with working popups (using simple marker approach like your example)
@@ -176,7 +197,7 @@ const SUTDMap = () => {
               font-size: 16px;
               font-weight: 600;
             ">
-              🏫 SUTD Campus
+              SUTD Campus
             </h4>
             <p style="
               margin: 0;
