@@ -68,14 +68,23 @@ export default function CalendarPage() {
     }
   }, [currentDate, isAuthenticated]);
 
+  // Also generate calendar days for non-authenticated users (public events)
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      generateCalendarDays();
+    }
+  }, [currentDate, isLoading, isAuthenticated]);
+
   const checkAuth = async () => {
     // Add a small delay to ensure localStorage is updated after login/signup
     await new Promise(resolve => setTimeout(resolve, 100));
 
     const token = localStorage.getItem('token');
     if (!token) {
-      // Redirect to login if no token
-      router.push('/');
+      // No token - allow viewing public events without authentication
+      setIsAuthenticated(false);
+      setUserRole('student');
+      setIsLoading(false);
       return;
     }
 
@@ -92,19 +101,19 @@ export default function CalendarPage() {
         setIsAuthenticated(true);
         setUserRole(data.user.role || 'student');
       } else {
-        // Token is invalid, clear it and redirect
+        // Token is invalid, clear it and allow public viewing
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        router.push('/');
-        return;
+        setIsAuthenticated(false);
+        setUserRole('student');
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-      // On error, clear token and redirect
+      // On error, clear token and allow public viewing
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      router.push('/');
-      return;
+      setIsAuthenticated(false);
+      setUserRole('student');
     } finally {
       setIsLoading(false);
     }

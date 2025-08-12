@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS calendar_events (
     current_participants INTEGER DEFAULT 0,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -92,6 +93,10 @@ CREATE TABLE IF NOT EXISTS event_signups (
     signup_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, event_id)
 );
+
+-- Add unique constraint for ON CONFLICT clause
+ALTER TABLE calendar_events ADD CONSTRAINT unique_event_schedule 
+UNIQUE (title, event_date, start_time);
 
 -- Add indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_calendar_events_date ON calendar_events(event_date);
@@ -336,7 +341,28 @@ INSERT INTO calendar_events (title, description, event_date, start_time, end_tim
 ('Greenprint Flower Workshop', 'Flower arrangement workshop.', '2025-09-18', '14:00:00', '15:00:00', 'Optional', 'Green Lab', NULL, NULL, 0, 1, TRUE),
 ('Greenprint Wax Workshop', 'Wax crafting workshop.', '2025-09-24', '14:00:00', '16:00:00', 'Optional', 'Green Lab', NULL, NULL, 0, 1, TRUE),
 ('Greenprint Flower Workshop', 'Flower arrangement workshop.', '2025-10-02', '19:00:00', '20:00:00', 'Optional', 'Green Lab', NULL, NULL, 0, 1, TRUE),
-('Greenprint Wax Workshop', 'Wax crafting workshop.', '2025-10-08', '14:00:00', '16:00:00', 'Optional', 'Green Lab', NULL, NULL, 0, 1, TRUE)
+('Greenprint Wax Workshop', 'Wax crafting workshop.', '2025-10-08', '14:00:00', '16:00:00', 'Optional', 'Green Lab', NULL, NULL, 0, 1, TRUE),
+
+-- Newly added events
+('Freshmen Hostel briefing and Floor Gathering', 'Mandatory briefing for freshmen students and floor gathering session', '2025-09-09', '19:00:00', '21:30:00', 'Mandatory', 'Auditorium', '#C60003', NULL, 0, 1, TRUE),
+('Mass Floor Events', 'Large-scale floor events across various venues', '2025-09-15', '19:00:00', '22:00:00', 'Mandatory', 'Various venues', '#C60003', NULL, 0, 1, TRUE),
+('HG Info Session', 'Information session about HG (House Group)', '2025-09-17', '20:00:00', '21:00:00', 'Optional', 'Hostel Lounge', '#EF5800', NULL, 0, 1, TRUE),
+('ROOT briefing', 'Information briefing about ROOT organization', '2025-09-24', '19:00:00', '20:00:00', 'Optional', 'Albert Hong', '#EF5800', NULL, 0, 1, TRUE),
+('Student Relations briefing', 'Information session about Student Relations department', '2025-10-01', '19:00:00', '20:00:00', 'Optional', 'Root Cove', '#EF5800', NULL, 0, 1, TRUE),
+('Media and Marketing briefing', 'Information session about Media and Marketing department', '2025-10-01', '19:00:00', '20:00:00', 'Optional', 'Root Cove', '#EF5800', NULL, 0, 1, TRUE),
+('ROOTech briefing', 'Information session about ROOTech department', '2025-10-08', '19:00:00', '20:00:00', 'Optional', 'Root Cove', '#EF5800', NULL, 0, 1, TRUE),
+('Events briefing', 'Information session about Events department', '2025-10-15', '19:00:00', '20:00:00', 'Optional', 'Root Cove', '#EF5800', NULL, 0, 1, TRUE),
+('Finance briefing', 'Information session about Finance department', '2025-10-15', '19:00:00', '20:00:00', 'Optional', 'Root Cove', '#EF5800', NULL, 0, 1, TRUE),
+
+-- Freshmen Orientation 2025 (3-day event)
+('Freshmen Orientation 2025', 'Comprehensive orientation program for new freshmen students - Day 1', '2025-09-11', '08:00:00', '18:00:00', 'Mandatory', 'Campus-wide', '#C60003', NULL, 0, 1, TRUE),
+('Freshmen Orientation 2025', 'Comprehensive orientation program for new freshmen students - Day 2', '2025-09-12', '08:00:00', '18:00:00', 'Mandatory', 'Campus-wide', '#C60003', NULL, 0, 1, TRUE),
+('Freshmen Orientation 2025', 'Comprehensive orientation program for new freshmen students - Day 3', '2025-09-13', '08:00:00', '18:00:00', 'Mandatory', 'Campus-wide', '#C60003', NULL, 0, 1, TRUE),
+
+-- What the Hack 2025 (3-day hackathon)
+('What the Hack 2025', 'SUTD''s signature hackathon 2025 - Day 1', '2025-09-19', '08:00:00', '23:59:00', 'Optional', 'Campus-wide', '#EF5800', NULL, 0, 1, TRUE),
+('What the Hack 2025', 'SUTD''s signature hackathon 2025 - Day 2', '2025-09-20', '08:00:00', '23:59:00', 'Optional', 'Campus-wide', '#EF5800', NULL, 0, 1, TRUE),
+('What the Hack 2025', 'SUTD''s signature hackathon 2025 - Day 3', '2025-09-21', '08:00:00', '18:00:00', 'Optional', 'Campus-wide', '#EF5800', NULL, 0, 1, TRUE)
 ON CONFLICT (title, event_date, start_time) DO NOTHING;
 
 -- Update colors for events that have NULL colors based on their event type
@@ -348,3 +374,22 @@ SET color = CASE
   ELSE '#EF5800'
 END
 WHERE color IS NULL;
+
+-- Auto-signup all users for mandatory events
+INSERT INTO event_signups (user_id, event_id, signup_date)
+SELECT u.id, ce.id, CURRENT_TIMESTAMP
+FROM users u
+CROSS JOIN calendar_events ce
+WHERE ce.event_type IN ('Mandatory', 'mandatory') 
+  AND ce.is_active = true 
+  AND u.is_active = true
+ON CONFLICT (user_id, event_id) DO NOTHING;
+
+-- Update participant counts for mandatory events
+UPDATE calendar_events 
+SET current_participants = (
+  SELECT COUNT(*) 
+  FROM event_signups es 
+  WHERE es.event_id = calendar_events.id
+)
+WHERE event_type IN ('Mandatory', 'mandatory') AND is_active = true;

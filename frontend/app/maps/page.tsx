@@ -186,7 +186,7 @@ const SUTDMap = () => {
       }).addTo(map)
 
       // Add modern info panel
-      const info = window.L.control({ position: 'topright' })
+      const info = window.L.control({ position: 'bottomright' })
       info.onAdd = function() {
         const div = window.L.DomUtil.create('div', 'info-panel')
         div.innerHTML = `
@@ -266,9 +266,11 @@ const SUTDMap = () => {
         }
 
         #sutd-map {
-          border-radius: 12px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-          border: 1px solid #e0e0e0;
+          border-radius: 0;
+          box-shadow: none;
+          border: none;
+          position: relative;
+          z-index: 1;
         }
 
         .leaflet-control-zoom a {
@@ -280,6 +282,26 @@ const SUTDMap = () => {
         .leaflet-control-zoom a:hover {
           background-color: #f5f5f5 !important;
           border-color: #999 !important;
+        }
+
+        /* Ensure all map elements stay below navbar */
+        .leaflet-control-container,
+        .leaflet-popup,
+        .leaflet-tooltip {
+          z-index: 1000 !important;
+        }
+
+        .leaflet-marker-pane,
+        .leaflet-tile-pane,
+        .leaflet-overlay-pane {
+          z-index: 100 !important;
+        }
+
+        /* Style navbar for maps page overlay */
+        .absolute.top-0 nav {
+          background: rgba(255, 255, 255, 0.9) !important;
+          backdrop-filter: blur(10px) !important;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
         }
       `
       document.head.appendChild(style)
@@ -300,7 +322,7 @@ const SUTDMap = () => {
 
   return (
     <motion.div
-      className="w-full h-96 relative"
+      className="w-full h-full relative"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.2 }}
@@ -309,12 +331,12 @@ const SUTDMap = () => {
         id="sutd-map"
         className="w-full h-full"
         style={{
-          minHeight: '400px',
+          height: '100vh',
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
         }}
       >
         {!mapLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 rounded-15">
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
               <p className="text-blue-600 font-medium">Loading SUTD Campus Map...</p>
@@ -339,8 +361,10 @@ export default function HomePage() {
 
       const token = localStorage.getItem('token')
       if (!token) {
-        // Redirect to login if no token
-        router.push('/')
+        // No token - allow viewing maps without authentication
+        setIsAuthenticated(false)
+        setUserRole('student')
+        setIsLoading(false)
         return
       }
 
@@ -358,19 +382,19 @@ export default function HomePage() {
           setIsAuthenticated(true);
           setUserRole(data.user.role || 'student');
         } else {
-          // Token is invalid, clear it and redirect
+          // Token is invalid, clear it and allow public viewing
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          router.push('/');
-          return;
+          setIsAuthenticated(false);
+          setUserRole('student');
         }
       } catch (error) {
         console.error('Auth check failed:', error);
-        // On error, clear token and redirect
+        // On error, clear token and allow public viewing
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        router.push('/');
-        return;
+        setIsAuthenticated(false);
+        setUserRole('student');
       } finally {
         setIsLoading(false);
       }
@@ -398,34 +422,18 @@ export default function HomePage() {
     )
   }
 
-  if (!isAuthenticated) {
-    return null
-  }
+  // Allow access for both authenticated and non-authenticated users
 
   return (
-    <div className="min-h-screen bg-white from-slate-50 via-blue-50 to-indigo-100">
-      <CompleteNavbar navItems={navItems} userRole={userRole} />
+    <div className="h-screen bg-white overflow-hidden relative">
+      {/* Navbar positioned over the map */}
+      <div className="absolute top-0 left-0 right-0 z-50" style={{ zIndex: 9999 }}>
+        <CompleteNavbar navItems={navItems} userRole={userRole} />
+      </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8"
-        >
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Welcome to SUTD</h1>
-          <p className="text-gray-600 text-lg">Explore the campus with this map</p>
-        </motion.div>
-
+      {/* Fullscreen map */}
+      <div className="h-screen w-full">
         <SUTDMap />
-
-        <motion.div
-          className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-        </motion.div>
       </div>
     </div>
   );

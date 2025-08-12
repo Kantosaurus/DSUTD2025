@@ -12,40 +12,7 @@ const router = express.Router();
 // Configure Multer for temporary file storage
 const upload = multer({ dest: 'uploads/' });
 
-// Get all calendar events (admin only)
-router.get('/calendar/events', authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT 
-        ce.id,
-        ce.title,
-        ce.description,
-        ce.event_date,
-        ce.start_time,
-        ce.end_time,
-        ce.event_type,
-        ce.location,
-        ce.color,
-        ce.max_participants,
-        ce.current_participants,
-        ce.user_id,
-        u.student_id as creator_student_id,
-        u.email as creator_email,
-        ce.created_at,
-        ce.updated_at,
-        ce.is_active
-       FROM calendar_events ce
-       LEFT JOIN users u ON ce.user_id = u.id
-       WHERE ce.is_active = true
-       ORDER BY ce.event_date DESC, ce.start_time DESC`
-    );
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Error fetching admin calendar events:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+// Get all calendar events (admin only) - removed duplicate, keeping comprehensive version below
 
 // Helper function to get color based on event type
 const getEventTypeColor = (eventType) => {
