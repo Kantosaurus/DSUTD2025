@@ -117,8 +117,6 @@ export default function HomePage() {
                 there<br />
                 Freshies!
               </motion.h1>
-
-              {/* DSUTD Placeholder */}
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -126,7 +124,19 @@ export default function HomePage() {
               >
                 <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 lg:p-12">
                   <div className="text-gray-500 text-sm text-center">
-                    [Placeholder]
+                    <img
+                      src="/DSUTDHomePage.png"
+                      className="w-[400px] h-auto max-h-[600px] object-contain mx-auto"
+                      alt="DSUTD Survival Kit Logo"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const nextElement = target.nextElementSibling as HTMLElement;
+                        if (nextElement) {
+                          nextElement.style.display = 'block';
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               </motion.div>
