@@ -12,6 +12,7 @@ const navItems = [
   { name: 'Survival Kit', link: '/survival-kit' },
   { name: 'Admin Events', link: '/admin/events' },
   { name: 'Admin Logs', link: '/admin/logs' },
+  { name: 'Team', link: 'meet-the-team' }
 ]
 
 export default function HomePage() {
@@ -91,7 +92,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-white from-slate-50 via-blue-50 to-indigo-100">
       <CompleteNavbar navItems={navItems} userRole={userRole} />
 
       <div className="pt-20 px-4">
@@ -122,12 +123,12 @@ export default function HomePage() {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.7 }}
               >
-                <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 lg:p-12">
+                <div className="p-8 lg:p-12">
                   <div className="text-gray-500 text-sm text-center">
                     <img
                       src="/DSUTDHomePage.png"
                       className="w-[400px] h-auto max-h-[600px] object-contain mx-auto"
-                      alt="DSUTD Survival Kit Logo"
+                      alt="DSUTD home page logo"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
