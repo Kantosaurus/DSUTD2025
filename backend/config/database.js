@@ -1,5 +1,4 @@
 const { Pool } = require('pg');
-const path = require('path');
 
 // Database connection
 const pool = new Pool({
@@ -20,22 +19,16 @@ if (JWT_SECRET.length < 32) {
   process.exit(1);
 }
 
-// Initialize database and seed events
+// Initialize database
 async function initializeDatabase() {
   try {
     // Test database connection
     await pool.query('SELECT NOW()');
     console.log('Database connected successfully');
     
-    // Check if events need to be seeded
+    // Check event count for informational purposes
     const eventCount = await pool.query('SELECT COUNT(*) FROM calendar_events');
-    if (parseInt(eventCount.rows[0].count) === 0) {
-      console.log('No events found, seeding initial events...');
-      const { seedEvents } = require(path.join(__dirname, '..', 'seed-events'));
-      await seedEvents();
-    } else {
-      console.log(`Database already contains ${eventCount.rows[0].count} events`);
-    }
+    console.log(`Database contains ${eventCount.rows[0].count} events`);
   } catch (error) {
     console.error('Database initialization error:', error);
     // Don't exit process, let the app continue but log the error

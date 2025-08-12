@@ -341,7 +341,7 @@ export default function CalendarPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setSignupStatuses(prev => ({ ...prev, [eventId]: response.data.signedUp }));
+      setSignupStatuses(prev => ({ ...prev, [eventId]: response.data.isSignedUp }));
     } catch (error) {
       console.error('Error checking signup status:', error);
     }

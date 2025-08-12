@@ -17,7 +17,7 @@ export default function SurvivalKitPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState<'admin' | 'student'>('student')
   const [isLoading, setIsLoading] = useState(true)
-  const [expandedIndex, setExpandedIndex] = useState(null)
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
   useEffect(() => {
     const checkAuth = async () => {
       // Add a small delay to ensure localStorage is updated after login/signup
@@ -389,7 +389,7 @@ export default function SurvivalKitPage() {
       ]
     }
   ];
-  const handleBoxClick = (index) => {
+  const handleBoxClick = (index: number) => {
     setExpandedIndex(expandedIndex === index ? null : index);
   };
   if (isLoading) {
