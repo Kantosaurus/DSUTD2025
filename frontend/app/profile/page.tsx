@@ -36,8 +36,10 @@ const navItems = [
   { name: 'Home', link: '/home' },
   { name: 'Events', link: '/calendar' },
   { name: 'Survival Kit', link: '/survival-kit' },
+  { name: 'Maps', link: '/maps' },
+  { name: 'Team', link: '/meet-the-team' },
   { name: 'Admin Events', link: '/admin/events' },
-  { name: 'Admin Logs', link: '/admin/logs' },
+  { name: 'Admin Logs', link: '/admin/logs' }
 ];
 
 export default function ProfilePage() {
@@ -78,10 +80,10 @@ export default function ProfilePage() {
   const checkAuthAndLoadData = async () => {
     // Add a small delay to ensure localStorage is updated after login/signup
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     const token = localStorage.getItem('token');
     console.log('Profile page - Token check:', token ? 'Token exists' : 'No token found');
-    
+
     if (!token) {
       console.log('Profile page - Redirecting to landing page due to no token');
       router.push('/');
@@ -95,7 +97,7 @@ export default function ProfilePage() {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (authResponse.ok) {
         const authData = await authResponse.json();
         setIsAuthenticated(true);
@@ -153,7 +155,7 @@ export default function ProfilePage() {
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newPassword !== confirmPassword) {
       setPasswordMessage('New passwords do not match');
       return;
@@ -204,7 +206,7 @@ export default function ProfilePage() {
   const getEventStatus = (event: Event) => {
     const eventDate = new Date(`${event.date}T${event.time}`);
     const now = new Date();
-    
+
     if (event.isOver) {
       return { status: 'completed', color: 'bg-gray-100 text-gray-600', text: 'Completed' };
     } else if (eventDate < now) {
@@ -224,10 +226,10 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <MultiStepLoader 
-          loadingStates={profileLoadingStates} 
-          loading={isLoading} 
-          duration={1500} 
+        <MultiStepLoader
+          loadingStates={profileLoadingStates}
+          loading={isLoading}
+          duration={1500}
           loop={false}
         />
       </div>
@@ -241,7 +243,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <CompleteNavbar navItems={navItems} userRole={userRole} />
-      
+
       <div className="pt-20 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -254,7 +256,7 @@ export default function ProfilePage() {
             {/* Profile Information */}
             <div className="bg-white rounded-2xl p-8 shadow-lg">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Account Information</h2>
-              
+
               <div className="space-y-4 mb-8">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
@@ -262,7 +264,7 @@ export default function ProfilePage() {
                     {user?.student_id}
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                   <div className="bg-gray-50 px-4 py-3 rounded-lg text-gray-900">
@@ -274,7 +276,7 @@ export default function ProfilePage() {
               {/* Password Update Form */}
               <div className="border-t pt-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Update Password</h3>
-                
+
                 <form onSubmit={handlePasswordUpdate} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -288,7 +290,7 @@ export default function ProfilePage() {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       New Password
@@ -301,7 +303,7 @@ export default function ProfilePage() {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Confirm New Password
@@ -314,17 +316,17 @@ export default function ProfilePage() {
                       required
                     />
                   </div>
-                  
+
                   {passwordMessage && (
                     <div className={`p-3 rounded-lg text-sm ${
-                      passwordMessage.includes('successfully') 
-                        ? 'bg-green-100 text-green-700' 
+                      passwordMessage.includes('successfully')
+                        ? 'bg-green-100 text-green-700'
                         : 'bg-red-100 text-red-700'
                     }`}>
                       {passwordMessage}
                     </div>
                   )}
-                  
+
                   <button
                     type="submit"
                     disabled={isUpdatingPassword}
@@ -339,25 +341,23 @@ export default function ProfilePage() {
             {/* Events Queue */}
             <div className="bg-white rounded-2xl p-8 shadow-lg">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">My Events</h2>
-              
-                             {signedUpEvents.length === 0 ? (
-                 <div className="text-center py-12">
-                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                     <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                     </svg>
-                   </div>
-                   <h3 className="text-lg font-medium text-gray-900 mb-2">No Events</h3>
-                                       <p className="text-gray-500">You haven't signed up for any events yet.</p>
-                    <p className="text-xs text-gray-400 mt-2">Debug: Events array length: {signedUpEvents.length}</p>
-                    <p className="text-xs text-gray-400">To see events here, sign up for events on the calendar page.</p>
-                   <a 
-                     href="/calendar" 
-                     className="inline-block mt-4 text-blue-600 hover:text-blue-700 font-medium"
-                   >
-                     Browse Events →
-                   </a>
-                 </div>
+
+              {signedUpEvents.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Events</h3>
+                  <p className="text-gray-500">You haven't signed up for any events yet.</p>
+                  <a
+                    href="/calendar"
+                    className="inline-block mt-4 text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    Browse Events →
+                  </a>
+                </div>
               ) : (
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                   {signedUpEvents.map((event) => {
@@ -387,14 +387,14 @@ export default function ProfilePage() {
                             {status.text}
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           {event.type && (
                             <div className="flex items-center space-x-2">
                               <span className="text-xs text-gray-500">Type:</span>
                               <span className={`text-xs px-2 py-1 rounded ${
-                                ['Mandatory', 'mandatory'].includes(event.type || '') 
-                                  ? 'bg-red-100 text-red-700 border border-red-200' 
+                                ['Mandatory', 'mandatory'].includes(event.type || '')
+                                  ? 'bg-red-100 text-red-700 border border-red-200'
                                   : ['Optional', 'optional', 'workshop', 'seminar', 'social', 'competition', 'networking'].includes(event.type || '')
                                   ? 'bg-blue-100 text-blue-700 border border-blue-200'
                                   : ['Pending', 'pending'].includes(event.type || '')
@@ -421,10 +421,10 @@ export default function ProfilePage() {
           <div className="bg-white rounded-2xl p-8 shadow-lg mt-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Meet the Team</h2>
             <p className="text-gray-600 text-center mb-8">Click on any team member to learn more about our amazing team!</p>
-            
+
             <div className="flex flex-wrap justify-center gap-8 mb-8">
-              <AnimatedTooltip 
-                items={teamMembers} 
+              <AnimatedTooltip
+                items={teamMembers}
                 onImageClick={() => window.location.href = '/meet-the-team'}
               />
             </div>
@@ -433,4 +433,4 @@ export default function ProfilePage() {
       </div>
     </div>
   );
-} 
+}

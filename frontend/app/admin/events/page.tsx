@@ -9,9 +9,10 @@ const navItems = [
   { name: 'Home', link: '/home' },
   { name: 'Events', link: '/calendar' },
   { name: 'Survival Kit', link: '/survival-kit' },
+  { name: 'Maps', link: '/maps' },
+  { name: 'Team', link: '/meet-the-team' },
   { name: 'Admin Events', link: '/admin/events' },
-  { name: 'Admin Logs', link: '/admin/logs' },
-  { name: 'Team', link: 'meet-the-team' }
+  { name: 'Admin Logs', link: '/admin/logs' }
 ]
 
 interface Event {
@@ -203,7 +204,7 @@ export default function AdminEventsPage() {
     try {
       const token = localStorage.getItem('token');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      
+
       // Process the form data before sending
       const processedData = {
         ...formData,
@@ -211,13 +212,13 @@ export default function AdminEventsPage() {
         start_time: formData.start_time ? formData.start_time.substring(0, 5) : null,
         end_time: formData.end_time ? formData.end_time.substring(0, 5) : null,
         // Convert max_participants from string to number or null
-        max_participants: formData.max_participants && formData.max_participants.trim() !== '' 
-          ? parseInt(formData.max_participants, 10) 
+        max_participants: formData.max_participants && formData.max_participants.trim() !== ''
+          ? parseInt(formData.max_participants, 10)
           : null,
         // Clean up color field (remove any extra characters)
         color: formData.color ? formData.color.replace(/[^#0-9A-Fa-f]/g, '') : null
       };
-      
+
       const response = await fetch(`${API_URL}/api/calendar/events`, {
         method: 'POST',
         headers: {
@@ -254,7 +255,7 @@ export default function AdminEventsPage() {
     try {
       const token = localStorage.getItem('token');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      
+
       // Process the form data before sending
       const processedData = {
         ...formData,
@@ -262,13 +263,13 @@ export default function AdminEventsPage() {
         start_time: formData.start_time ? formData.start_time.substring(0, 5) : null,
         end_time: formData.end_time ? formData.end_time.substring(0, 5) : null,
         // Convert max_participants from string to number or null
-        max_participants: formData.max_participants && formData.max_participants.trim() !== '' 
-          ? parseInt(formData.max_participants, 10) 
+        max_participants: formData.max_participants && formData.max_participants.trim() !== ''
+          ? parseInt(formData.max_participants, 10)
           : null,
         // Clean up color field (remove any extra characters)
         color: formData.color ? formData.color.replace(/[^#0-9A-Fa-f]/g, '') : null
       };
-      
+
       const response = await fetch(`${API_URL}/api/calendar/events/${editingEvent.id}`, {
         method: 'PUT',
         headers: {

@@ -42,7 +42,7 @@ services:
         condition: service_healthy
     volumes:
       - ./backend:/app
-      - /app/node_modules
+      - ./backend/node_modules:/app/node_modules
     networks:
       - webapp-network
 

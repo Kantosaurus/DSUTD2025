@@ -10,9 +10,10 @@ const navItems = [
   { name: 'Home', link: '/home' },
   { name: 'Events', link: '/calendar' },
   { name: 'Survival Kit', link: '/survival-kit' },
+  { name: 'Maps', link: '/maps' },
+  { name: 'Team', link: '/meet-the-team' },
   { name: 'Admin Events', link: '/admin/events' },
-  { name: 'Admin Logs', link: '/admin/logs' },
-  { name: 'Team', link: 'meet-the-team' }
+  { name: 'Admin Logs', link: '/admin/logs' }
 ];
 
 const teamMembers = [

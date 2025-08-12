@@ -44,9 +44,10 @@ export default function CalendarPage() {
     { name: 'Home', link: '/home' },
     { name: 'Events', link: '/calendar' },
     { name: 'Survival Kit', link: '/survival-kit' },
+    { name: 'Maps', link: '/maps' },
+    { name: 'Team', link: '/meet-the-team' },
     { name: 'Admin Events', link: '/admin/events' },
-    { name: 'Admin Logs', link: '/admin/logs' },
-    { name: 'Team', link: 'meet-the-team' }
+    { name: 'Admin Logs', link: '/admin/logs' }
   ];
 
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -206,7 +207,7 @@ export default function CalendarPage() {
     if (event.color) {
       return 'text-white px-1 py-0.5 rounded text-center font-medium';
     }
-    
+
     // Fallback for events without stored colors
     switch (event.type) {
       case 'Mandatory':
@@ -239,7 +240,7 @@ export default function CalendarPage() {
         {visibleEvents.map((event) => {
           const isMandatoryEvent = ['Mandatory', 'mandatory'].includes(event.type || '');
           const eventStyle = getEventTypeStyle(event);
-          
+
           return (
             <div
               key={event.id}
