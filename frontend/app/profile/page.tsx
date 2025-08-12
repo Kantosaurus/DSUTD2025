@@ -36,7 +36,7 @@ const navItems = [
   { name: 'Home', link: '/home' },
   { name: 'Events', link: '/calendar' },
   { name: 'Survival Kit', link: '/survival-kit' },
-  { name: 'Team', link: 'meet-the-team' },
+  { name: 'Team', link: '/meet-the-team' },
   { name: 'Admin Events', link: '/admin/events' },
   { name: 'Admin Logs', link: '/admin/logs' }
 ];
@@ -359,7 +359,7 @@ export default function ProfilePage() {
                   </a>
                 </div>
 =======
-              
+
                              {signedUpEvents.length === 0 ? (
                  <div className="text-center py-12">
                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -371,8 +371,8 @@ export default function ProfilePage() {
                                        <p className="text-gray-500">You haven't signed up for any events yet.</p>
                     <p className="text-xs text-gray-400 mt-2">Debug: Events array length: {signedUpEvents.length}</p>
                     <p className="text-xs text-gray-400">To see events here, sign up for events on the calendar page.</p>
-                   <a 
-                     href="/calendar" 
+                   <a
+                     href="/calendar"
                      className="inline-block mt-4 text-blue-600 hover:text-blue-700 font-medium"
                    >
                      Browse Events →
@@ -419,8 +419,8 @@ export default function ProfilePage() {
                                   ? 'bg-red-100 text-red-700 border border-red-200'
                                   : event.type === 'Optional'
 =======
-                                ['Mandatory', 'mandatory'].includes(event.type || '') 
-                                  ? 'bg-red-100 text-red-700 border border-red-200' 
+                                ['Mandatory', 'mandatory'].includes(event.type || '')
+                                  ? 'bg-red-100 text-red-700 border border-red-200'
                                   : ['Optional', 'optional', 'workshop', 'seminar', 'social', 'competition', 'networking'].includes(event.type || '')
 >>>>>>> d951f5972fc46f889418f01c77b48020b8994470
                                   ? 'bg-blue-100 text-blue-700 border border-blue-200'
