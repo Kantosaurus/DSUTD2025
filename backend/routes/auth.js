@@ -155,11 +155,11 @@ router.post('/verify-email', [
       [user.id]
     );
 
-    // Auto-sign up user for all mandatory events after email verification
-    try {
-      const mandatoryEvents = await pool.query(
-        "SELECT id FROM calendar_events WHERE event_type = 'Mandatory' AND is_active = true"
-      );
+          // Auto-sign up user for all mandatory events after email verification
+      try {
+        const mandatoryEvents = await pool.query(
+          "SELECT id FROM calendar_events WHERE (event_type = 'Mandatory' OR event_type = 'mandatory') AND is_active = true"
+        );
       
       for (const event of mandatoryEvents.rows) {
         await pool.query(
