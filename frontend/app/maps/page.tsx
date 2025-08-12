@@ -1,6 +1,13 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+
+// Extend Window interface to include Leaflet
+declare global {
+  interface Window {
+    L: any;
+  }
+}
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CompleteNavbar } from '../../components/ui/resizable-navbar'
@@ -35,7 +42,7 @@ const SUTDMap = () => {
 
       // Load JS and wait for it to be ready
       if (!window.L) {
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
           const script = document.createElement('script')
           script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js'
           script.onload = () => {
@@ -286,7 +293,7 @@ const SUTDMap = () => {
       // Cleanup
       const mapContainer = document.getElementById('sutd-map')
       if (mapContainer) {
-        mapContainer._leaflet_id = null
+        (mapContainer as any)._leaflet_id = null
       }
     }
   }, [])
