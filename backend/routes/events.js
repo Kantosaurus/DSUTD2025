@@ -74,7 +74,7 @@ router.delete('/:eventId/signup', authenticateToken, async (req, res) => {
     const signup = signupResult.rows[0];
 
     // Prevent cancellation of mandatory events
-    if (signup.event_type === 'Mandatory') {
+    if (signup.event_type === 'Mandatory' || signup.event_type === 'mandatory') {
       return res.status(403).json({ 
         error: 'Cannot cancel signup for mandatory events',
         eventType: 'Mandatory'

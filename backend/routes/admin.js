@@ -16,15 +16,21 @@ const upload = multer({ dest: 'uploads/' });
 const getEventTypeColor = (eventType) => {
   switch (eventType) {
     case 'Mandatory':
-      return '#EF4444';
-    case 'Optional':
-      return '#3B82F6';
-    case 'Pending':
-      return '#F59E0B';
     case 'mandatory':
-      return '#EF4444';
+      return '#C60003'; // Red
+    case 'Optional':
+    case 'optional':
+    case 'workshop':
+    case 'seminar':
+    case 'social':
+    case 'competition':
+    case 'networking':
+      return '#EF5800'; // Orange
+    case 'Pending':
+    case 'pending':
+      return '#F0DD59'; // Yellow
     default:
-      return '#3B82F6'; // Default to blue for any other types
+      return '#EF5800'; // Default to orange for any other types
   }
 };
 
@@ -102,7 +108,7 @@ router.post('/calendar/events/batch', authenticateToken, requireAdmin, upload.si
         );
 
         // If this is a mandatory event, automatically sign up all verified users
-        if (event.event_type === 'Mandatory') {
+        if (event.event_type === 'Mandatory' || event.event_type === 'mandatory') {
           try {
             const verifiedUsers = await pool.query(
               'SELECT id FROM users WHERE email_verified = true AND is_active = true'

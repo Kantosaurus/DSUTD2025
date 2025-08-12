@@ -8,8 +8,13 @@ import { AnimatedTooltip } from '../../components/ui/animated-tooltip';
 import axios from 'axios';
 
 interface User {
-  studentId: string;
+  id: number;
+  student_id: string;
   email: string;
+  role: string;
+  created_at: string;
+  last_login: string | null;
+  email_verified: boolean;
 }
 
 interface Event {
@@ -17,9 +22,13 @@ interface Event {
   title: string;
   date: string;
   time: string;
+  endTime?: string;
   description?: string;
   type?: string;
+  location?: string;
+  color?: string;
   isOver: boolean;
+  signupDate?: string;
   isMandatory?: boolean;
 }
 
@@ -105,16 +114,27 @@ export default function ProfilePage() {
       const userResponse = await axios.get(`${API_URL}/api/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUser(userResponse.data);
+      setUser(userResponse.data.user); // Access the nested user object
       console.log('Profile page - User data loaded:', userResponse.data);
 
       console.log('Profile page - Loading signed up events...');
       // Load signed up events
-      const eventsResponse = await axios.get(`${API_URL}/api/profile/events`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setSignedUpEvents(eventsResponse.data);
-      console.log('Profile page - Events loaded:', eventsResponse.data);
+      try {
+        const eventsResponse = await axios.get(`${API_URL}/api/user/events`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        console.log('Profile page - Events response:', eventsResponse);
+        console.log('Profile page - Events data:', eventsResponse.data);
+        setSignedUpEvents(eventsResponse.data);
+        console.log('Profile page - Events loaded:', eventsResponse.data);
+      } catch (eventsError: any) {
+        console.error('Error loading events:', eventsError);
+        console.error('Events error response:', eventsError.response?.data);
+        console.error('Events error status:', eventsError.response?.status);
+        console.error('Events error message:', eventsError.message);
+        console.error('Events error config:', eventsError.config);
+        setSignedUpEvents([]);
+      }
 
     } catch (error: any) {
       console.error('Error loading profile data:', error);
@@ -150,7 +170,7 @@ export default function ProfilePage() {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${API_URL}/api/profile/password`, {
+      await axios.put(`${API_URL}/api/update-password`, {
         currentPassword,
         newPassword
       }, {
@@ -240,7 +260,7 @@ export default function ProfilePage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
                   <div className="bg-gray-50 px-4 py-3 rounded-lg text-gray-900 font-medium">
-                    {user?.studentId}
+                    {user?.student_id}
                   </div>
                 </div>
 
@@ -320,6 +340,7 @@ export default function ProfilePage() {
             {/* Events Queue */}
             <div className="bg-white rounded-2xl p-8 shadow-lg">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">My Events</h2>
+<<<<<<< HEAD
 
               {signedUpEvents.length === 0 ? (
                 <div className="text-center py-12">
@@ -337,6 +358,27 @@ export default function ProfilePage() {
                     Browse Events →
                   </a>
                 </div>
+=======
+              
+                             {signedUpEvents.length === 0 ? (
+                 <div className="text-center py-12">
+                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                     <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                     </svg>
+                   </div>
+                   <h3 className="text-lg font-medium text-gray-900 mb-2">No Events</h3>
+                                       <p className="text-gray-500">You haven't signed up for any events yet.</p>
+                    <p className="text-xs text-gray-400 mt-2">Debug: Events array length: {signedUpEvents.length}</p>
+                    <p className="text-xs text-gray-400">To see events here, sign up for events on the calendar page.</p>
+                   <a 
+                     href="/calendar" 
+                     className="inline-block mt-4 text-blue-600 hover:text-blue-700 font-medium"
+                   >
+                     Browse Events →
+                   </a>
+                 </div>
+>>>>>>> d951f5972fc46f889418f01c77b48020b8994470
               ) : (
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                   {signedUpEvents.map((event) => {
@@ -372,19 +414,25 @@ export default function ProfilePage() {
                             <div className="flex items-center space-x-2">
                               <span className="text-xs text-gray-500">Type:</span>
                               <span className={`text-xs px-2 py-1 rounded ${
+<<<<<<< HEAD
                                 event.type === 'Mandatory'
                                   ? 'bg-red-100 text-red-700 border border-red-200'
                                   : event.type === 'Optional'
+=======
+                                ['Mandatory', 'mandatory'].includes(event.type || '') 
+                                  ? 'bg-red-100 text-red-700 border border-red-200' 
+                                  : ['Optional', 'optional', 'workshop', 'seminar', 'social', 'competition', 'networking'].includes(event.type || '')
+>>>>>>> d951f5972fc46f889418f01c77b48020b8994470
                                   ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                                  : event.type === 'Pending'
+                                  : ['Pending', 'pending'].includes(event.type || '')
                                   ? 'bg-amber-100 text-amber-700 border border-amber-200'
-                                  : 'bg-gray-100 text-gray-700'
+                                  : 'bg-blue-100 text-blue-700 border border-blue-200'
                               }`}>
                                 {event.type}
                               </span>
                             </div>
                           )}
-                          {event.type === 'Mandatory' && (
+                          {['Mandatory', 'mandatory'].includes(event.type || '') && (
                             <span className="text-xs text-gray-500 italic">Auto-enrolled</span>
                           )}
                         </div>

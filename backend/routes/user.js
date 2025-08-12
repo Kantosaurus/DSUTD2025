@@ -146,7 +146,7 @@ router.get('/events', authenticateToken, async (req, res) => {
       color: event.color,
       isOver: event.isOver,
       signupDate: event.signup_date,
-      isMandatory: event.type === 'Mandatory'
+      isMandatory: event.type === 'Mandatory' || event.type === 'mandatory'
     }));
 
     res.json(formattedEvents);

@@ -1,15 +1,17 @@
 const fs = require('fs');
 const path = require('path');
 
-// Color mapping function (same as in server.js)
+// Color mapping function with correct colors
 const getColorForType = (type) => {
   switch (type) {
+    case 'Mandatory':
+      return '#C60003'; // Red
     case 'Optional':
-      return '#EF5800'; // orange
+      return '#EF5800'; // Orange  
     case 'Pending':
-      return '#F0DD59'; // yellow
+      return '#F0DD59'; // Yellow
     default:
-      return '#C60003'; // red for Mandatory
+      return '#EF5800'; // Default to orange for any other types
   }
 };
 

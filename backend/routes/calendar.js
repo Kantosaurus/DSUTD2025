@@ -106,13 +106,21 @@ router.get('/events', optionalAuth, async (req, res) => {
 const getEventTypeColor = (eventType) => {
   switch (eventType) {
     case 'Mandatory':
-      return '#EF4444';
+    case 'mandatory':
+      return '#C60003'; // Red
     case 'Optional':
-      return '#3B82F6';
+    case 'optional':
+    case 'workshop':
+    case 'seminar':
+    case 'social':
+    case 'competition':
+    case 'networking':
+      return '#EF5800'; // Orange
     case 'Pending':
-      return '#F59E0B';
+    case 'pending':
+      return '#F0DD59'; // Yellow
     default:
-      return '#3B82F6'; // Default to blue for any other types
+      return '#EF5800'; // Default to orange for any other types
   }
 };
 
@@ -121,16 +129,18 @@ router.post('/events', authenticateToken, requireAdmin, [
   body('title').notEmpty().withMessage('Title is required'),
   body('description').optional(),
   body('event_date').isISO8601().withMessage('Valid event date is required'),
-  body('start_time').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Valid start time is required (HH:MM)'),
-  body('end_time').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Valid end time is required (HH:MM)'),
+  body('start_time').optional().matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/).withMessage('Start time must be in HH:MM or HH:MM:SS format'),
+  body('end_time').optional().matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/).withMessage('End time must be in HH:MM or HH:MM:SS format'),
   body('location').optional(),
-  body('event_type').isIn(['Mandatory', 'Optional', 'Pending', 'workshop', 'seminar', 'social', 'mandatory', 'competition', 'networking']).withMessage('Valid event type is required'),
+  body('event_type').isIn(['Mandatory', 'Optional', 'Pending', 'workshop', 'seminar', 'social', 'mandatory', 'optional', 'pending', 'competition', 'networking']).withMessage('Valid event type is required'),
   body('color').optional(),
   body('max_participants').optional().isInt({ min: 0 }).withMessage('Max participants must be a positive integer')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.error('Validation errors for event creation:', errors.array());
+      console.error('Request body:', req.body);
       return res.status(400).json({ 
         error: 'Validation failed', 
         details: errors.array() 
@@ -150,7 +160,7 @@ router.post('/events', authenticateToken, requireAdmin, [
     );
 
     // If this is a mandatory event, automatically sign up all verified users
-    if (event_type === 'Mandatory') {
+    if (event_type === 'Mandatory' || event_type === 'mandatory') {
       try {
         const verifiedUsers = await pool.query(
           'SELECT id FROM users WHERE email_verified = true AND is_active = true'
@@ -196,16 +206,18 @@ router.put('/events/:id', authenticateToken, requireAdmin, [
   body('title').notEmpty().withMessage('Title is required'),
   body('description').optional(),
   body('event_date').isISO8601().withMessage('Valid event date is required'),
-  body('start_time').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Valid start time is required (HH:MM)'),
-  body('end_time').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Valid end time is required (HH:MM)'),
+  body('start_time').optional().matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/).withMessage('Start time must be in HH:MM or HH:MM:SS format'),
+  body('end_time').optional().matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/).withMessage('End time must be in HH:MM or HH:MM:SS format'),
   body('location').optional(),
-  body('event_type').isIn(['Mandatory', 'Optional', 'Pending', 'workshop', 'seminar', 'social', 'mandatory', 'competition', 'networking']).withMessage('Valid event type is required'),
+  body('event_type').isIn(['Mandatory', 'Optional', 'Pending', 'workshop', 'seminar', 'social', 'mandatory', 'optional', 'pending', 'competition', 'networking']).withMessage('Valid event type is required'),
   body('color').optional(),
   body('max_participants').optional().isInt({ min: 0 }).withMessage('Max participants must be a positive integer')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.error('Validation errors for event update:', errors.array());
+      console.error('Request body:', req.body);
       return res.status(400).json({ 
         error: 'Validation failed', 
         details: errors.array() 

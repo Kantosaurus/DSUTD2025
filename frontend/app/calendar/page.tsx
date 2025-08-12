@@ -11,7 +11,7 @@ interface CalendarEvent {
   id: string;
   time: string;
   title: string;
-  type?: 'Mandatory' | 'Optional' | 'Pending';
+  type?: string; // Allow any string type to handle both cases
   color?: string;
   description?: string;
   location?: string;
@@ -201,16 +201,30 @@ export default function CalendarPage() {
     setSelectedDate(null);
   };
 
-  const getEventTypeStyle = (type: string) => {
-    switch (type) {
+  const getEventTypeStyle = (event: CalendarEvent) => {
+    // Use the color from the database if available, otherwise fallback to type-based colors
+    if (event.color) {
+      return 'text-white px-1 py-0.5 rounded text-center font-medium';
+    }
+    
+    // Fallback for events without stored colors
+    switch (event.type) {
       case 'Mandatory':
-        return 'bg-red-500 text-white px-1 py-0.5 rounded text-center font-medium';
+      case 'mandatory':
+        return 'text-white px-1 py-0.5 rounded text-center font-medium';
       case 'Optional':
-        return 'bg-blue-500 text-white px-1 py-0.5 rounded text-center font-medium';
+      case 'optional':
+      case 'workshop':
+      case 'seminar':
+      case 'social':
+      case 'competition':
+      case 'networking':
+        return 'text-white px-1 py-0.5 rounded text-center font-medium';
       case 'Pending':
-        return 'bg-amber-500 text-white px-1 py-0.5 rounded text-center font-medium';
+      case 'pending':
+        return 'text-white px-1 py-0.5 rounded text-center font-medium';
       default:
-        return 'text-gray-700';
+        return 'text-white px-1 py-0.5 rounded text-center font-medium';
     }
   };
 
@@ -223,16 +237,18 @@ export default function CalendarPage() {
     return (
       <div className="space-y-1 mt-2">
         {visibleEvents.map((event) => {
-          const isColoredEvent = ['Mandatory', 'Optional', 'Pending'].includes(event.type || '');
+          const isMandatoryEvent = ['Mandatory', 'mandatory'].includes(event.type || '');
+          const eventStyle = getEventTypeStyle(event);
+          
           return (
             <div
               key={event.id}
-              className={`text-xs leading-tight truncate ${getEventTypeStyle(event.type || '')}`}
+              className={`text-xs leading-tight truncate ${eventStyle}`}
+              style={{
+                backgroundColor: event.color || '#3B82F6', // Use database color or default to blue
+              }}
             >
-              {!isColoredEvent && (
-                <span className="text-gray-500 font-medium">{event.time}</span>
-              )}
-              <span className={isColoredEvent ? '' : 'ml-1'}>
+              <span>
                 {event.title}
               </span>
             </div>
@@ -250,17 +266,25 @@ export default function CalendarPage() {
   const getEventTypeColor = (type: string) => {
     switch (type) {
       case 'Mandatory':
+      case 'mandatory':
         return 'bg-red-100 text-red-800 border-red-200';
       case 'Optional':
+      case 'optional':
+      case 'workshop':
+      case 'seminar':
+      case 'social':
+      case 'competition':
+      case 'networking':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'Pending':
+      case 'pending':
         return 'bg-amber-100 text-amber-800 border-amber-200';
       case 'holiday':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'course':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-blue-100 text-blue-800 border-blue-200'; // Default to blue for any other types
     }
   };
 
@@ -609,7 +633,7 @@ export default function CalendarPage() {
                     {isAuthenticated && (
                       <div className="mt-3">
                         {signupStatuses[event.id] ? (
-                          event.type === 'Mandatory' ? (
+                          ['Mandatory', 'mandatory'].includes(event.type || '') ? (
                             <div className="w-full bg-gray-100 text-gray-600 py-2 px-4 rounded-lg text-sm font-medium text-center border">
                               ✓ Mandatory Event - Auto Enrolled
                             </div>
