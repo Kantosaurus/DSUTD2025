@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion'
 import { CompleteNavbar } from '@/components/ui/resizable-navbar';
 import { MultiStepLoader } from '@/components/ui/multi-step-loader';
 
@@ -45,6 +46,7 @@ export default function CalendarPage() {
     { name: 'Survival Kit', link: '/survival-kit' },
     { name: 'Admin Events', link: '/admin/events' },
     { name: 'Admin Logs', link: '/admin/logs' },
+    { name: 'Team', link: 'meet-the-team' }
   ];
 
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -68,7 +70,7 @@ export default function CalendarPage() {
   const checkAuth = async () => {
     // Add a small delay to ensure localStorage is updated after login/signup
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     const token = localStorage.getItem('token');
     if (!token) {
       // Redirect to login if no token
@@ -83,7 +85,7 @@ export default function CalendarPage() {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setIsAuthenticated(true);
@@ -129,27 +131,27 @@ export default function CalendarPage() {
   const generateCalendarDays = async () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    
+
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
-    
+
     // Adjust for Monday start (0 = Monday, 6 = Sunday)
     const startDate = new Date(firstDayOfMonth);
     const firstDayOfWeek = firstDayOfMonth.getDay();
     const mondayStart = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1; // Convert Sunday=0 to Sunday=6
     startDate.setDate(startDate.getDate() - mondayStart);
-    
+
     const endDate = new Date(lastDayOfMonth);
     const lastDayOfWeek = lastDayOfMonth.getDay();
     const mondayEnd = lastDayOfWeek === 0 ? 0 : 7 - lastDayOfWeek; // Days to add to complete the week
     endDate.setDate(endDate.getDate() + mondayEnd);
-    
+
     const days: CalendarDay[] = [];
     const today = new Date();
-    
+
     // Fetch events for the current month
     const eventsData = await fetchEvents(year, month);
-    
+
     for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
       // Format date as YYYY-MM-DD without timezone conversion
       const year = date.getFullYear();
@@ -157,7 +159,7 @@ export default function CalendarPage() {
       const day = String(date.getDate()).padStart(2, '0');
       const dateString = `${year}-${monthStr}-${day}`;
       const events = eventsData[dateString] || [];
-      
+
       days.push({
         date: new Date(date),
         isCurrentMonth: date.getMonth() === month,
@@ -166,7 +168,7 @@ export default function CalendarPage() {
         events: events,
       });
     }
-    
+
     setCalendarDays(days);
   };
 
@@ -187,7 +189,7 @@ export default function CalendarPage() {
     setSelectedDate(day.date);
     setSelectedDayEvents(day.events);
     setSidePanelOpen(true);
-    
+
     // Check signup status for all events
     day.events.forEach(event => {
       checkSignupStatus(event.id);
@@ -302,7 +304,7 @@ export default function CalendarPage() {
       await axios.post(`${API_URL}/api/events/${eventId}/signup`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       // Update signup status
       setSignupStatuses(prev => ({ ...prev, [eventId]: true }));
       alert('Successfully signed up for event!');
@@ -317,7 +319,7 @@ export default function CalendarPage() {
       await axios.delete(`${API_URL}/api/events/${eventId}/signup`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       // Update signup status
       setSignupStatuses(prev => ({ ...prev, [eventId]: false }));
       alert('Successfully cancelled event signup!');
@@ -332,13 +334,13 @@ export default function CalendarPage() {
 
   const checkSignupStatus = async (eventId: string) => {
     if (!isAuthenticated) return;
-    
+
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API_URL}/api/events/${eventId}/signup-status`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       setSignupStatuses(prev => ({ ...prev, [eventId]: response.data.signedUp }));
     } catch (error) {
       console.error('Error checking signup status:', error);
@@ -355,10 +357,10 @@ export default function CalendarPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <MultiStepLoader 
-          loadingStates={calendarLoadingStates} 
-          loading={isLoading} 
-          duration={1200} 
+        <MultiStepLoader
+          loadingStates={calendarLoadingStates}
+          loading={isLoading}
+          duration={1200}
           loop={false}
         />
       </div>
@@ -370,35 +372,65 @@ export default function CalendarPage() {
   }
 
   return (
+
+
     <div className="min-h-screen bg-white">
       <CompleteNavbar navItems={navItems} userRole={userRole} />
-      
+
       {/* Loading Overlay */}
-      <MultiStepLoader 
-        loadingStates={calendarLoadingStates} 
-        loading={loading} 
-        duration={1000} 
+      <MultiStepLoader
+        loadingStates={calendarLoadingStates}
+        loading={loading}
+        duration={1000}
         loop={false}
       />
-      
+
       <div className="p-6 relative">
         <div className={`max-w-7xl mx-auto h-full transition-all duration-300 ${sidePanelOpen ? 'blur-sm' : ''}`}>
         {/* Header */}
+        <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="text-center mb-12">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="mx-auto mb-6 flex items-center justify-center"
+              >
+                <div className="p-6">
+                  <img
+                    src="/eventsLogo.png"
+                    className="w-[800px] h-auto max-h-[340px] object-contain mx-auto"
+                    alt="DSUTD events page logo"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const nextElement = target.nextElementSibling as HTMLElement;
+                      if (nextElement) {
+                        nextElement.style.display = 'block';
+                      }
+                    }}
+                  />
+                </div>
+              </motion.div>
+            </motion.div>
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-light text-gray-900 mb-2">
               {months[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h1>
             <p className="text-gray-600 font-medium">
-              {selectedDate ? selectedDate.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+              {selectedDate ? selectedDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
               }) : 'Select a date'}
             </p>
           </div>
-          
+
           <div className="flex items-center space-x-4">
             <button
               onClick={goToToday}
@@ -406,7 +438,7 @@ export default function CalendarPage() {
             >
               Today
             </button>
-            
+
             <div className="flex items-center space-x-2">
               <button
                 onClick={goToPreviousMonth}
@@ -416,7 +448,7 @@ export default function CalendarPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              
+
               <button
                 onClick={goToNextMonth}
                 className="p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200"
@@ -483,7 +515,7 @@ export default function CalendarPage() {
                       day.date.getDate()
                     )}
                   </div>
-                  
+
                   {/* Events */}
                   <div className="flex-1 overflow-hidden">
                     {renderEvents(day.events)}
@@ -522,15 +554,15 @@ export default function CalendarPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-semibold text-gray-900">
-                  {selectedDate?.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    month: 'long', 
-                    day: 'numeric' 
+                  {selectedDate?.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric'
                   })}
                 </h2>
                 <p className="text-gray-500 text-sm">
-                  {selectedDate?.toLocaleDateString('en-US', { 
-                    year: 'numeric' 
+                  {selectedDate?.toLocaleDateString('en-US', {
+                    year: 'numeric'
                   })}
                 </p>
               </div>
@@ -596,7 +628,7 @@ export default function CalendarPage() {
                         {event.type || 'regular'}
                       </span>
                     </div>
-                    
+
                     {/* Signup Button */}
                     {isAuthenticated && (
                       <div className="mt-3">
@@ -640,4 +672,4 @@ export default function CalendarPage() {
       )}
     </div>
   );
-} 
+}

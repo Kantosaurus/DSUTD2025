@@ -12,6 +12,7 @@ const navItems = [
   { name: 'Survival Kit', link: '/survival-kit' },
   { name: 'Admin Events', link: '/admin/events' },
   { name: 'Admin Logs', link: '/admin/logs' },
+  { name: 'Team', link: 'meet-the-team' }
 ]
 
 interface DashboardStats {
@@ -96,13 +97,13 @@ export default function AdminLogsPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  
+
   // Dashboard data
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null)
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([])
   const [userRegistrations, setUserRegistrations] = useState<UserRegistration[]>([])
   const [eventSignups, setEventSignups] = useState<EventSignup[]>([])
-  
+
   // UI state
   const [activeTab, setActiveTab] = useState('dashboard')
   const [loadingData, setLoadingData] = useState(false)
@@ -114,7 +115,7 @@ export default function AdminLogsPage() {
   useEffect(() => {
     const checkAuth = async () => {
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       const token = localStorage.getItem('token')
       if (!token) {
         router.push('/')
@@ -128,11 +129,11 @@ export default function AdminLogsPage() {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setIsAuthenticated(true);
-          
+
           if (data.user.role === 'admin') {
             setIsAdmin(true);
             loadDashboardData();
@@ -188,17 +189,17 @@ export default function AdminLogsPage() {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const token = localStorage.getItem('token');
-      
+
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '20'
       });
       if (type) params.append('type', type);
-      
+
       const response = await fetch(`${API_URL}/api/admin/activity-logs?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setActivityLogs(data.logs);
@@ -214,16 +215,16 @@ export default function AdminLogsPage() {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const token = localStorage.getItem('token');
-      
+
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '20'
       });
-      
+
       const response = await fetch(`${API_URL}/api/admin/user-registrations?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setUserRegistrations(data.users);
@@ -237,16 +238,16 @@ export default function AdminLogsPage() {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const token = localStorage.getItem('token');
-      
+
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '20'
       });
-      
+
       const response = await fetch(`${API_URL}/api/admin/event-signups?${params}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setEventSignups(data.signups);
@@ -289,10 +290,10 @@ export default function AdminLogsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <MultiStepLoader 
-          loadingStates={adminLogsLoadingStates} 
-          loading={isLoading} 
-          duration={1200} 
+        <MultiStepLoader
+          loadingStates={adminLogsLoadingStates}
+          loading={isLoading}
+          duration={1200}
           loop={false}
         />
       </div>
@@ -306,11 +307,11 @@ export default function AdminLogsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <CompleteNavbar navItems={navItems} userRole="admin" />
-      
+
       <div className="pt-20 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <motion.div 
+          <motion.div
             className="text-center py-12"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -325,7 +326,7 @@ export default function AdminLogsPage() {
           </motion.div>
 
           {/* Tab Navigation */}
-          <motion.div 
+          <motion.div
             className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-white/20 mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -370,7 +371,7 @@ export default function AdminLogsPage() {
                     className="space-y-8"
                   >
                     {loadingData ? (
-                      <motion.div 
+                      <motion.div
                         className="text-center py-16"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -381,7 +382,7 @@ export default function AdminLogsPage() {
                     ) : dashboardStats ? (
                       <>
                         {/* Stats Grid */}
-                        <motion.div 
+                        <motion.div
                           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                           variants={staggerContainer}
                           initial="initial"
@@ -415,7 +416,7 @@ export default function AdminLogsPage() {
                               key={stat.title}
                               className={`bg-gradient-to-r ${stat.color} rounded-2xl p-6 text-white shadow-lg`}
                               variants={fadeInUp}
-                              whileHover={{ 
+                              whileHover={{
                                 scale: 1.05,
                                 transition: { duration: 0.2 }
                               }}
@@ -429,7 +430,7 @@ export default function AdminLogsPage() {
                                 </div>
                                 <motion.div
                                   className="text-3xl"
-                                  animate={{ 
+                                  animate={{
                                     rotate: hoveredCard === stat.title ? 360 : 0,
                                     scale: hoveredCard === stat.title ? 1.2 : 1
                                   }}
@@ -443,13 +444,13 @@ export default function AdminLogsPage() {
                         </motion.div>
 
                         {/* Event Status Cards */}
-                        <motion.div 
+                        <motion.div
                           className="grid grid-cols-1 lg:grid-cols-3 gap-6"
                           variants={staggerContainer}
                           initial="initial"
                           animate="animate"
                         >
-                          <motion.div 
+                          <motion.div
                             className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
                             variants={fadeInUp}
                             whileHover={{ scale: 1.02 }}
@@ -461,7 +462,7 @@ export default function AdminLogsPage() {
                             { label: 'Ongoing', value: dashboardStats?.events?.ongoing || 0, color: 'bg-emerald-100 text-emerald-700' },
                             { label: 'Past', value: dashboardStats?.events?.past || 0, color: 'bg-gray-100 text-gray-700' }
                               ].map((item) => (
-                                <motion.div 
+                                <motion.div
                                   key={item.label}
                                   className="flex justify-between items-center"
                                   whileHover={{ x: 5 }}
@@ -476,7 +477,7 @@ export default function AdminLogsPage() {
                             </div>
                           </motion.div>
 
-                          <motion.div 
+                          <motion.div
                             className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
                             variants={fadeInUp}
                             whileHover={{ scale: 1.02 }}
@@ -487,7 +488,7 @@ export default function AdminLogsPage() {
                                                             { label: 'Admins', value: dashboardStats?.users?.byRole?.admin || 0, color: 'bg-red-100 text-red-700' },
                             { label: 'Students', value: dashboardStats?.users?.byRole?.student || 0, color: 'bg-emerald-100 text-emerald-700' }
                               ].map((item) => (
-                                <motion.div 
+                                <motion.div
                                   key={item.label}
                                   className="flex justify-between items-center"
                                   whileHover={{ x: 5 }}
@@ -502,7 +503,7 @@ export default function AdminLogsPage() {
                             </div>
                           </motion.div>
 
-                          <motion.div 
+                          <motion.div
                             className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
                             variants={fadeInUp}
                             whileHover={{ scale: 1.02 }}
@@ -513,7 +514,7 @@ export default function AdminLogsPage() {
                                                             { label: 'Failed Logins (24h)', value: dashboardStats?.activity?.failedLogins || 0, color: 'bg-red-100 text-red-700' },
                             { label: 'Total Signups', value: dashboardStats?.signups?.total || 0, color: 'bg-blue-100 text-blue-700' }
                               ].map((item) => (
-                                <motion.div 
+                                <motion.div
                                   key={item.label}
                                   className="flex justify-between items-center"
                                   whileHover={{ x: 5 }}
@@ -531,14 +532,14 @@ export default function AdminLogsPage() {
 
                         {/* Current & Next Events */}
                                                   {(dashboardStats?.currentEvent || dashboardStats?.nextEvent) && (
-                          <motion.div 
+                          <motion.div
                             className="grid grid-cols-1 lg:grid-cols-2 gap-6"
                             variants={staggerContainer}
                             initial="initial"
                             animate="animate"
                           >
                             {dashboardStats?.currentEvent && (
-                              <motion.div 
+                              <motion.div
                                 className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg"
                                 variants={fadeInUp}
                                 whileHover={{ scale: 1.02 }}
@@ -553,7 +554,7 @@ export default function AdminLogsPage() {
                             )}
 
                             {dashboardStats?.nextEvent && (
-                              <motion.div 
+                              <motion.div
                                 className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg"
                                 variants={fadeInUp}
                                 whileHover={{ scale: 1.02 }}
@@ -570,7 +571,7 @@ export default function AdminLogsPage() {
                         )}
                       </>
                     ) : (
-                      <motion.div 
+                      <motion.div
                         className="text-center py-16"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -591,7 +592,7 @@ export default function AdminLogsPage() {
                     className="space-y-6"
                   >
                     {/* Filter */}
-                    <motion.div 
+                    <motion.div
                       className="flex items-center space-x-4"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -615,7 +616,7 @@ export default function AdminLogsPage() {
                     </motion.div>
 
                     {/* Activity Logs */}
-                    <motion.div 
+                    <motion.div
                       className="bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -626,8 +627,8 @@ export default function AdminLogsPage() {
                       <div className="divide-y divide-gray-100">
                         <AnimatePresence>
                           {activityLogs.map((log, index) => (
-                            <motion.div 
-                              key={log.id} 
+                            <motion.div
+                              key={log.id}
                               className="px-6 py-4 hover:bg-gray-50/50 transition-colors duration-200"
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
@@ -659,7 +660,7 @@ export default function AdminLogsPage() {
 
                     {/* Pagination */}
                     {totalPages > 1 && (
-                      <motion.div 
+                      <motion.div
                         className="flex justify-center space-x-2"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -699,7 +700,7 @@ export default function AdminLogsPage() {
                     transition={{ duration: 0.3 }}
                     className="space-y-6"
                   >
-                    <motion.div 
+                    <motion.div
                       className="bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -723,8 +724,8 @@ export default function AdminLogsPage() {
                           <tbody className="bg-white/30 divide-y divide-gray-100">
                             <AnimatePresence>
                               {userRegistrations.map((user, index) => (
-                                <motion.tr 
-                                  key={user.id} 
+                                <motion.tr
+                                  key={user.id}
                                   className="hover:bg-gray-50/50 transition-colors duration-200"
                                   initial={{ opacity: 0, y: 20 }}
                                   animate={{ opacity: 1, y: 0 }}
@@ -774,7 +775,7 @@ export default function AdminLogsPage() {
                     transition={{ duration: 0.3 }}
                     className="space-y-6"
                   >
-                    <motion.div 
+                    <motion.div
                       className="bg-white/60 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -797,8 +798,8 @@ export default function AdminLogsPage() {
                           <tbody className="bg-white/30 divide-y divide-gray-100">
                             <AnimatePresence>
                               {eventSignups.map((signup, index) => (
-                                <motion.tr 
-                                  key={signup.id} 
+                                <motion.tr
+                                  key={signup.id}
                                   className="hover:bg-gray-50/50 transition-colors duration-200"
                                   initial={{ opacity: 0, y: 20 }}
                                   animate={{ opacity: 1, y: 0 }}
@@ -837,4 +838,4 @@ export default function AdminLogsPage() {
       </div>
     </div>
   )
-} 
+}

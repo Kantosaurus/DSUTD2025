@@ -11,6 +11,7 @@ const navItems = [
   { name: 'Survival Kit', link: '/survival-kit' },
   { name: 'Admin Events', link: '/admin/events' },
   { name: 'Admin Logs', link: '/admin/logs' },
+  { name: 'Team', link: 'meet-the-team' }
 ]
 
 interface Event {
@@ -79,7 +80,7 @@ export default function AdminEventsPage() {
     const checkAuth = async () => {
       // Add a small delay to ensure localStorage is updated after login/signup
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       const token = localStorage.getItem('token')
       if (!token) {
         // Redirect to login if no token
@@ -95,11 +96,11 @@ export default function AdminEventsPage() {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setIsAuthenticated(true);
-          
+
           // Check if user is admin
           if (data.user.role === 'admin') {
             setIsAdmin(true);
@@ -135,11 +136,11 @@ export default function AdminEventsPage() {
   const fetchEvents = async () => {
     setIsLoadingEvents(true);
     setError('');
-    
+
     try {
       const token = localStorage.getItem('token');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      
+
       const response = await fetch(`${API_URL}/api/admin/calendar/events`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -303,7 +304,7 @@ export default function AdminEventsPage() {
     try {
       const token = localStorage.getItem('token');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      
+
       const response = await fetch(`${API_URL}/api/calendar/events/${eventId}`, {
         method: 'DELETE',
         headers: {
@@ -374,10 +375,10 @@ export default function AdminEventsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        <MultiStepLoader 
-          loadingStates={adminEventsLoadingStates} 
-          loading={isLoading} 
-          duration={1200} 
+        <MultiStepLoader
+          loadingStates={adminEventsLoadingStates}
+          loading={isLoading}
+          duration={1200}
           loop={false}
         />
       </div>
@@ -391,7 +392,7 @@ export default function AdminEventsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <CompleteNavbar navItems={navItems} userRole="admin" />
-      
+
       <div className="pt-20 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -423,7 +424,7 @@ export default function AdminEventsPage() {
               </svg>
               Add New Event
             </button>
-            
+
             <button
               onClick={fetchEvents}
               disabled={isLoadingEvents}
@@ -441,7 +442,7 @@ export default function AdminEventsPage() {
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">All Events ({events?.length || 0})</h2>
             </div>
-            
+
             {isLoadingEvents ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -498,10 +499,10 @@ export default function AdminEventsPage() {
                           </div>
                         </td>
                                                  <td className="px-6 py-4 whitespace-nowrap">
-                           <span 
+                           <span
                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                             style={{ 
-                               backgroundColor: `${event.color}20`, 
+                             style={{
+                               backgroundColor: `${event.color}20`,
                                color: event.color,
                                border: `1px solid ${event.color}40`
                              }}
@@ -559,7 +560,7 @@ export default function AdminEventsPage() {
                   </svg>
                 </button>
               </div>
-              
+
               <form onSubmit={handleAddEvent}>
                 <div className="space-y-4">
                   <div>
@@ -573,7 +574,7 @@ export default function AdminEventsPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea
@@ -584,7 +585,7 @@ export default function AdminEventsPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
                     <input
@@ -596,7 +597,7 @@ export default function AdminEventsPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
@@ -608,7 +609,7 @@ export default function AdminEventsPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
                       <input
@@ -620,7 +621,7 @@ export default function AdminEventsPage() {
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
                     <input
@@ -632,7 +633,7 @@ export default function AdminEventsPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Event Type</label>
                     <select
@@ -646,7 +647,7 @@ export default function AdminEventsPage() {
                       ))}
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Max Participants</label>
                     <input
@@ -660,7 +661,7 @@ export default function AdminEventsPage() {
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end space-x-3 mt-6">
                   <button
                     type="button"
@@ -699,7 +700,7 @@ export default function AdminEventsPage() {
                   </svg>
                 </button>
               </div>
-              
+
               <form onSubmit={handleEditEvent}>
                 <div className="space-y-4">
                   <div>
@@ -713,7 +714,7 @@ export default function AdminEventsPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea
@@ -724,7 +725,7 @@ export default function AdminEventsPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
                     <input
@@ -736,7 +737,7 @@ export default function AdminEventsPage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
@@ -748,7 +749,7 @@ export default function AdminEventsPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
                       <input
@@ -760,7 +761,7 @@ export default function AdminEventsPage() {
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Event Type</label>
                     <select
@@ -774,7 +775,7 @@ export default function AdminEventsPage() {
                       ))}
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Max Participants</label>
                     <input
@@ -788,7 +789,7 @@ export default function AdminEventsPage() {
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end space-x-3 mt-6">
                   <button
                     type="button"
@@ -812,4 +813,4 @@ export default function AdminEventsPage() {
       )}
     </div>
   )
-} 
+}

@@ -12,6 +12,7 @@ const navItems = [
   { name: 'Survival Kit', link: '/survival-kit' },
   { name: 'Admin Events', link: '/admin/events' },
   { name: 'Admin Logs', link: '/admin/logs' },
+  { name: 'Team', link: 'meet-the-team' }
 ];
 
 const teamMembers = [
@@ -109,7 +110,7 @@ export default function MeetTheTeamPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <CompleteNavbar navItems={navItems} userRole={userRole} />
-      
+
       <div className="pt-20 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -121,7 +122,7 @@ export default function MeetTheTeamPage() {
           {/* Team Section */}
           <div className="bg-white rounded-2xl p-8 shadow-lg mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Our Team</h2>
-            
+
             <div className="flex flex-wrap justify-center gap-8 mb-8">
               <AnimatedTooltip items={teamMembers} />
             </div>
@@ -187,4 +188,4 @@ export default function MeetTheTeamPage() {
       </div>
     </div>
   );
-} 
+}
