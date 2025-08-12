@@ -44,9 +44,9 @@ export default function CalendarPage() {
     { name: 'Home', link: '/home' },
     { name: 'Events', link: '/calendar' },
     { name: 'Survival Kit', link: '/survival-kit' },
+    { name: 'Team', link: 'meet-the-team' },
     { name: 'Admin Events', link: '/admin/events' },
-    { name: 'Admin Logs', link: '/admin/logs' },
-    { name: 'Team', link: 'meet-the-team' }
+    { name: 'Admin Logs', link: '/admin/logs' }
   ];
 
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
