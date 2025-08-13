@@ -342,7 +342,11 @@ export default function ProfilePage() {
             <div className="bg-white rounded-2xl p-8 shadow-lg">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">My Events</h2>
 
-              {signedUpEvents.length === 0 ? (
+              {signedUpEvents.filter(event => {
+                const eventDate = new Date(`${event.date}T${event.time}`);
+                const now = new Date();
+                return !event.isOver && eventDate >= now;
+              }).length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -350,7 +354,7 @@ export default function ProfilePage() {
                     </svg>
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No Events</h3>
-                  <p className="text-gray-500">You haven't signed up for any events yet.</p>
+                  <p className="text-gray-500">You haven't signed up for any upcoming events.</p>
                   <a
                     href="/calendar"
                     className="inline-block mt-4 text-blue-600 hover:text-blue-700 font-medium"
@@ -359,8 +363,12 @@ export default function ProfilePage() {
                   </a>
                 </div>
               ) : (
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {signedUpEvents.map((event) => {
+                <div className="space-y-4 overflow-y-auto" style={{maxHeight: 'calc(100% - 3rem)'}}>
+                  {signedUpEvents.filter(event => {
+                    const eventDate = new Date(`${event.date}T${event.time}`);
+                    const now = new Date();
+                    return !event.isOver && eventDate >= now;
+                  }).map((event) => {
                     const status = getEventStatus(event);
                     return (
                       <div

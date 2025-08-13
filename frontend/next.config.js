@@ -3,6 +3,11 @@ const nextConfig = {
   experimental: {
     //appDir: true,
   },
+  images: {
+    domains: [
+      "api.microlink.io", // Microlink Image Preview
+    ],
+  },
   async rewrites() {
     return [
       {
@@ -12,5 +17,3 @@ const nextConfig = {
     ];
   },
 };
-
-module.exports = nextConfig;

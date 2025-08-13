@@ -11,10 +11,22 @@
     "migrate": "docker exec -i webapp-postgres psql -U webapp_user -d webapp_db < backend/migrate.sql",
     "clean": "docker-compose down -v && docker system prune -f"
   },
-  "keywords": ["dsutd", "webapp", "fullstack", "docker"],
+  "keywords": [
+    "dsutd",
+    "webapp",
+    "fullstack",
+    "docker"
+  ],
   "author": "DiscoverSUTD",
   "license": "MIT",
   "devDependencies": {
     "node-fetch": "^2.7.0"
+  },
+  "dependencies": {
+    "@radix-ui/react-hover-card": "^1.1.14",
+    "clsx": "^2.1.1",
+    "motion": "^12.23.12",
+    "qss": "^3.0.0",
+    "tailwind-merge": "^3.3.1"
   }
-} 
+}

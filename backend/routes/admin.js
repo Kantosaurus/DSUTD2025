@@ -304,4 +304,167 @@ router.get('/dashboard-stats', authenticateToken, requireAdmin, async (req, res)
   }
 });
 
+// Get activity logs (admin only) - combines security events and login attempts
+router.get('/activity-logs', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
+    const type = req.query.type || '';
+
+    let query = `
+      SELECT 
+        id,
+        event_type,
+        event_description,
+        created_at,
+        user_id,
+        ip_address,
+        user_agent,
+        metadata
+      FROM security_events
+    `;
+    
+    let params = [];
+    let paramIndex = 1;
+
+    if (type) {
+      query += ` WHERE event_type = $${paramIndex}`;
+      params.push(type);
+      paramIndex++;
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    params.push(limit, offset);
+
+    const result = await pool.query(query, params);
+
+    // Get user details for each log entry
+    const logsWithUserDetails = await Promise.all(
+      result.rows.map(async (log) => {
+        if (log.user_id) {
+          try {
+            const userResult = await pool.query(
+              'SELECT student_id, email FROM users WHERE id = $1',
+              [log.user_id]
+            );
+            if (userResult.rows.length > 0) {
+              log.student_id = userResult.rows[0].student_id;
+              log.email = userResult.rows[0].email;
+            }
+          } catch (err) {
+            console.error('Error fetching user details for log:', err);
+          }
+        }
+        return log;
+      })
+    );
+
+    // Get total count for pagination
+    let countQuery = 'SELECT COUNT(*) as total FROM security_events';
+    let countParams = [];
+    if (type) {
+      countQuery += ' WHERE event_type = $1';
+      countParams.push(type);
+    }
+
+    const countResult = await pool.query(countQuery, countParams);
+    const totalRecords = parseInt(countResult.rows[0].total);
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    res.json({
+      logs: logsWithUserDetails,
+      page,
+      totalPages,
+      totalRecords
+    });
+  } catch (err) {
+    console.error('Error fetching activity logs:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get user registrations (admin only)
+router.get('/user-registrations', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
+
+    const result = await pool.query(`
+      SELECT 
+        u.id,
+        u.student_id,
+        u.email,
+        u.role,
+        u.created_at,
+        u.last_login,
+        u.is_active,
+        COUNT(es.id) as total_signups
+      FROM users u
+      LEFT JOIN event_signups es ON u.id = es.user_id
+      GROUP BY u.id, u.student_id, u.email, u.role, u.created_at, u.last_login, u.is_active
+      ORDER BY u.created_at DESC
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
+
+    // Get total count for pagination
+    const countResult = await pool.query('SELECT COUNT(*) as total FROM users');
+    const totalRecords = parseInt(countResult.rows[0].total);
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    res.json({
+      users: result.rows,
+      page,
+      totalPages,
+      totalRecords
+    });
+  } catch (err) {
+    console.error('Error fetching user registrations:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get event signups (admin only)
+router.get('/event-signups', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
+
+    const result = await pool.query(`
+      SELECT 
+        es.id,
+        es.user_id,
+        es.event_id,
+        es.signup_date,
+        u.student_id,
+        u.email,
+        ce.title as event_title,
+        ce.event_date,
+        ce.event_type
+      FROM event_signups es
+      JOIN users u ON es.user_id = u.id
+      JOIN calendar_events ce ON es.event_id = ce.id
+      ORDER BY es.signup_date DESC
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
+
+    // Get total count for pagination
+    const countResult = await pool.query('SELECT COUNT(*) as total FROM event_signups');
+    const totalRecords = parseInt(countResult.rows[0].total);
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    res.json({
+      signups: result.rows,
+      page,
+      totalPages,
+      totalRecords
+    });
+  } catch (err) {
+    console.error('Error fetching event signups:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

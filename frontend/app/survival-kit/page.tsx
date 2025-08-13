@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CompleteNavbar } from '../../components/ui/resizable-navbar'
 import { MultiStepLoader } from '../../components/ui/multi-step-loader'
+import { LinkPreview } from '../../components/ui/link-preview'
 const navItems = [
   { name: 'Home', link: '/home' },
   { name: 'Events', link: '/calendar' },
@@ -19,6 +20,25 @@ export default function SurvivalKitPage() {
   const [userRole, setUserRole] = useState<'admin' | 'student'>('student')
   const [isLoading, setIsLoading] = useState(true)
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
+
+  // Helper function to render text with clickable links
+  const renderTextWithLinks = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    
+    return parts.map((part, index) => {
+      if (part.match(urlRegex)) {
+        return (
+          <LinkPreview key={index} url={part} className="font-bold cursor-pointer text-[#631D35]">
+            <a href={part} target="_blank" rel="noopener noreferrer" className="font-bold text-[#631D35]">
+              {part}
+            </a>
+          </LinkPreview>
+        );
+      }
+      return part;
+    });
+  };
   useEffect(() => {
     const checkAuth = async () => {
       // Add a small delay to ensure localStorage is updated after login/signup
@@ -507,7 +527,9 @@ export default function SurvivalKitPage() {
                       {menuItems[expandedIndex].quickResources.map((resource, resourceIndex) => (
                         <div key={resourceIndex} className="bg-white/50 rounded-xl p-4">
                           <h4 style={{ color: '#631D35' }} className="font-semibold mb-2">{resource.title}</h4>
-                          <p style={{ color: '#631D35' }} className="whitespace-pre-line 70 text-sm">{resource.description}</p>
+                          <div style={{ color: '#631D35' }} className="whitespace-pre-line text-sm">
+                            {renderTextWithLinks(resource.description)}
+                          </div>
                         </div>
                       ))}
                     </div>

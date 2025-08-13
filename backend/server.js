@@ -208,78 +208,7 @@ app.get('/api/profile/events', authenticateToken, async (req, res) => {
   }
 });
 
-// Legacy admin routes for compatibility
-app.get('/api/admin/user-registrations', authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 50;
-    const offset = (page - 1) * limit;
-
-    const result = await pool.query(`
-      SELECT id, student_id, email, role, created_at, last_login, email_verified, is_active
-      FROM users
-      ORDER BY created_at DESC
-      LIMIT $1 OFFSET $2
-    `, [limit, offset]);
-    
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Error fetching user registrations:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.get('/api/admin/event-signups', authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 50;
-    const offset = (page - 1) * limit;
-
-    const result = await pool.query(`
-      SELECT 
-        es.*,
-        u.student_id,
-        u.email,
-        ce.title as event_title,
-        ce.event_date
-      FROM event_signups es
-      JOIN users u ON es.user_id = u.id
-      JOIN calendar_events ce ON es.event_id = ce.id
-      ORDER BY es.signup_date DESC
-      LIMIT $1 OFFSET $2
-    `, [limit, offset]);
-    
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Error fetching event signups:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.get('/api/admin/activity-logs', authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 50;
-    const offset = (page - 1) * limit;
-
-    const result = await pool.query(`
-      SELECT 
-        se.*,
-        u.student_id,
-        u.email
-      FROM security_events se
-      LEFT JOIN users u ON se.user_id = u.id
-      WHERE se.event_type IN ('USER_LOGIN', 'USER_LOGOUT', 'EVENT_SIGNUP', 'EVENT_SIGNUP_CANCELLED', 'PASSWORD_CHANGED')
-      ORDER BY se.created_at DESC
-      LIMIT $1 OFFSET $2
-    `, [limit, offset]);
-    
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Error fetching activity logs:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+// Legacy admin routes removed - now handled by admin.js routes
 
 // Logout all sessions
 app.post('/api/auth/logout-all', authenticateToken, async (req, res) => {

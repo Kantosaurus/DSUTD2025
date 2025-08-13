@@ -203,9 +203,9 @@ export default function AdminLogsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setActivityLogs(data.logs);
-        setTotalPages(data.totalPages);
-        setCurrentPage(data.page);
+        setActivityLogs(data.logs || []);
+        setTotalPages(data.totalPages || 1);
+        setCurrentPage(data.page || 1);
       }
     } catch (error) {
       console.error('Error loading activity logs:', error);
@@ -228,7 +228,7 @@ export default function AdminLogsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setUserRegistrations(data.users);
+        setUserRegistrations(data.users || []);
       }
     } catch (error) {
       console.error('Error loading user registrations:', error);
@@ -251,7 +251,7 @@ export default function AdminLogsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setEventSignups(data.signups);
+        setEventSignups(data.signups || []);
       }
     } catch (error) {
       console.error('Error loading event signups:', error);
@@ -627,7 +627,7 @@ export default function AdminLogsPage() {
                       </div>
                       <div className="divide-y divide-gray-100">
                         <AnimatePresence>
-                          {activityLogs.map((log, index) => (
+                          {activityLogs && activityLogs.length > 0 ? activityLogs.map((log, index) => (
                             <motion.div
                               key={log.id}
                               className="px-6 py-4 hover:bg-gray-50/50 transition-colors duration-200"
@@ -654,7 +654,11 @@ export default function AdminLogsPage() {
                                 </div>
                               </div>
                             </motion.div>
-                          ))}
+                          )) : (
+                            <div className="px-6 py-8 text-center text-gray-500">
+                              No activity logs found
+                            </div>
+                          )}
                         </AnimatePresence>
                       </div>
                     </motion.div>
@@ -724,7 +728,7 @@ export default function AdminLogsPage() {
                           </thead>
                           <tbody className="bg-white/30 divide-y divide-gray-100">
                             <AnimatePresence>
-                              {userRegistrations.map((user, index) => (
+                              {userRegistrations && userRegistrations.length > 0 ? userRegistrations.map((user, index) => (
                                 <motion.tr
                                   key={user.id}
                                   className="hover:bg-gray-50/50 transition-colors duration-200"
@@ -758,7 +762,13 @@ export default function AdminLogsPage() {
                                     </span>
                                   </td>
                                 </motion.tr>
-                              ))}
+                              )) : (
+                                <tr>
+                                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                                    No user registrations found
+                                  </td>
+                                </tr>
+                              )}
                             </AnimatePresence>
                           </tbody>
                         </table>
@@ -798,7 +808,7 @@ export default function AdminLogsPage() {
                           </thead>
                           <tbody className="bg-white/30 divide-y divide-gray-100">
                             <AnimatePresence>
-                              {eventSignups.map((signup, index) => (
+                              {eventSignups && eventSignups.length > 0 ? eventSignups.map((signup, index) => (
                                 <motion.tr
                                   key={signup.id}
                                   className="hover:bg-gray-50/50 transition-colors duration-200"
@@ -824,7 +834,13 @@ export default function AdminLogsPage() {
                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-light">{signup.event_date}</td>
 
                                 </motion.tr>
-                              ))}
+                              )) : (
+                                <tr>
+                                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                                    No event signups found
+                                  </td>
+                                </tr>
+                              )}
                             </AnimatePresence>
                           </tbody>
                         </table>
