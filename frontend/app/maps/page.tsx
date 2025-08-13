@@ -112,17 +112,17 @@ const SUTDMap = () => {
           {
             name: "Library",
             coords: [1.340197, 103.962836],
-            description: "SUTD Library @ B1 (approx. entrance area)."
+            description: "SUTD Library @ L1 (approximately entrance area)."
           },
           {
             name: "Gomgom (B2 #01-202A)",
             coords: [1.340784, 103.962542],
-            description: "Ground-floor retail at B2 (uses B2 centroid)."
+            description: "Halal customizable sandwiches and rice bowls."
           },
           {
             name: "Cheers (B2 #01-201)",
             coords: [1.340784, 103.962542],
-            description: "Convenience store at B2 facing d’Star (B1)."
+            description: "Convenience store at L1 facing D’Star and next to Gomgom."
           },
           {
             name: "Mala (Canteen stall)",
@@ -130,9 +130,9 @@ const SUTDMap = () => {
             description: "Canteen L2; vendor lineup can change."
           },
           {
-            name: "d’Star Bistro (B1 #01-102)",
+            name: "D’Star Bistro (B1 #01-102)",
             coords: [1.34043, 103.96257],
-            description: "Bistro at B1 ground floor facing Campus Centre."
+            description: "Bistro facing Campus Centre and next to Albert hong."
           },
           {
             name: "Hostel Buildings (Student Housing)",
@@ -169,11 +169,11 @@ const SUTDMap = () => {
 
       // Add correct campus boundary based on actual SUTD layout
       const campusBoundary = [
-        [1.3425, 103.9628], // North-west corner
-        [1.3425, 103.9648], // North-east corner
-        [1.3400, 103.9648], // South-east corner
-        [1.3400, 103.9628], // South-west corner
-        [1.3425, 103.9628]  // Close the polygon
+        [1.344, 103.9628], // North-west corner
+        [1.3435, 103.965], // North-east corner
+        [1.3398, 103.9648], // South-east corner
+        [1.34, 103.9615], // South-west corner
+        [1.3425, 103.9620]  // Close the polygon
       ]
 
       window.L.polygon(campusBoundary, {
@@ -195,7 +195,7 @@ const SUTDMap = () => {
             padding: 16px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-            border: 1px solid #e0e0e0;
+            border: 1pvx solid #e0e0e0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           ">
             <h4 style="
