@@ -21,6 +21,7 @@ const calendarRoutes = require('./routes/calendar');
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/user');
 const eventRoutes = require('./routes/events');
+const survivalKitRoutes = require('./routes/survival-kit');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -81,6 +82,7 @@ app.use('/api/calendar', calendarRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/survival-kit', survivalKitRoutes);
 
 // Additional legacy routes that need to be preserved
 const { authenticateToken, requireAdmin } = require('./middleware/auth');

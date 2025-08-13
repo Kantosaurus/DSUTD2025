@@ -94,6 +94,28 @@ CREATE TABLE IF NOT EXISTS event_signups (
     UNIQUE(user_id, event_id)
 );
 
+-- Create survival kit tables
+CREATE TABLE IF NOT EXISTS survival_kit_items (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    image_url VARCHAR(500),
+    content TEXT NOT NULL,
+    order_index INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS survival_kit_resources (
+    id SERIAL PRIMARY KEY,
+    survival_kit_item_id INTEGER REFERENCES survival_kit_items(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    order_index INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Add unique constraint for ON CONFLICT clause
 ALTER TABLE calendar_events ADD CONSTRAINT unique_event_schedule 
 UNIQUE (title, event_date, start_time);
@@ -108,6 +130,8 @@ CREATE INDEX IF NOT EXISTS idx_users_password_reset_token ON users(password_rese
 CREATE INDEX IF NOT EXISTS idx_event_signups_user_id ON event_signups(user_id);
 CREATE INDEX IF NOT EXISTS idx_event_signups_event_id ON event_signups(event_id);
 CREATE INDEX IF NOT EXISTS idx_event_signups_signup_date ON event_signups(signup_date);
+CREATE INDEX IF NOT EXISTS idx_survival_kit_items_order ON survival_kit_items(order_index, is_active);
+CREATE INDEX IF NOT EXISTS idx_survival_kit_resources_item_order ON survival_kit_resources(survival_kit_item_id, order_index);
 
 -- Function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -131,6 +155,16 @@ CREATE TRIGGER update_calendar_events_updated_at
 
 CREATE TRIGGER update_users_updated_at 
     BEFORE UPDATE ON users 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_survival_kit_items_updated_at 
+    BEFORE UPDATE ON survival_kit_items 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_survival_kit_resources_updated_at 
+    BEFORE UPDATE ON survival_kit_resources 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
@@ -393,3 +427,138 @@ SET current_participants = (
   WHERE es.event_id = calendar_events.id
 )
 WHERE event_type IN ('Mandatory', 'mandatory') AND is_active = true;
+
+-- Insert survival kit data
+INSERT INTO survival_kit_items (title, image_url, content, order_index) VALUES
+('Connectivity &
+Navigation', '/images/connectivity-navigation.png', 'SUTD provides multiple ways for students to connect to campus networks, access resources remotely, and find their way around.', 1),
+('Academic &
+Career Tools', '/images/academic-career.png', 'Access essential academic resources including course registration, grade portals, library services, and career development tools. Your one-stop guide for academic success at SUTD.', 2),
+('Booking & Using
+Campus Facilities', '/images/campus-facilities.png', 'Learn how to book and utilize campus facilities including study rooms, sports facilities, maker spaces, and event venues. Maximize your use of SUTD''s world-class facilities.', 3),
+('Hostel Life', '/images/hostel-life.png', 'SUTD''s hostels provide on-campus living with communal spaces, events, and amenities. Staying connected with your floor community is essential for updates and meeting residency requirements.', 4),
+('ROOT &
+Student Services', '/images/root-student-services.png', 'ROOT is SUTD''s student government, supporting events, Fifth Row activities, student welfare, and community engagement. It also provides resources for organising events, managing finances, and connecting with fellow students.', 5),
+('Health &
+Safety', '/images/health-safety.png', 'Stay safe and healthy on campus with information about medical services, emergency procedures, mental health resources, and safety protocols. Your wellbeing is our priority.', 6),
+('Food &
+Supper Hacks', '/images/food.png', 'Discover the best food options on and around campus, late-night supper spots, food delivery hacks, and budget-friendly meal solutions. Never go hungry at SUTD!', 7),
+('Finance &
+Claims', '/images/finance-claims.png', 'Understand financial procedures, claim processes, scholarship information, and budget management tips. Make your money work smarter during your SUTD journey.', 8),
+('Contacts &
+Hotlines', '/images/contacts-hotlines.png', 'Essential contact information for all SUTD services, emergency hotlines, department contacts, and who to call when you need help. Keep these numbers handy!', 9),
+('Extras &
+Perks', '/images/extras-perks.png', 'Unlock hidden perks, student discounts, special programs, and lesser-known benefits available to SUTD students. Make the most of your student status!', 10)
+ON CONFLICT DO NOTHING;
+
+-- Insert survival kit resources for Connectivity & Navigation
+INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
+(1, 'WiFi Setup Guide', 'Log into SUTD_Wifi using your MyPortal credentials:
+- Username: 100XXXX (Student ID)
+- Password: (Network ID password)
+
+Guides & Links:
+- Eduroam setup PDF: https://www.sutd.edu.sg/cmsresource/it/eduroam_setup.pdf
+- IT Service Desk Eduroam page: https://itservicedesk.sutd.edu.sg/index.php/2023/04/27/wireless-eduroam/', 1),
+(1, 'VPN', 'Required to access certain SUTD resources when off-campus.
+Steps:
+1. Go to http://itservicedesk.sutd.edu.sg
+2. Quick Links → Students → Student Downloads → ''2. General'' → ''8. Ivanti Secure Access''
+3. Download and install Ivanti Secure Access for your device
+4. Add connection:
+   - Name: SUTD VPN connection
+   - Server: https://sutdvpn.sutd.edu.sg/remote
+5. Login with MyPortal credentials + Google Authenticator code
+
+Guide: https://itservicedesk.sutd.edu.sg/index.php/2023/04/17/vpn-ivantisecureaccess-installation-guide/', 2),
+(1, 'Campus Navigation', 'Tools:
+- @SUTDMapBot on Telegram → Find any room by number
+- 3D Campus Map (by students) → https://jingkai27.github.io/insight/#features', 3),
+(1, 'Room Number Format', 'How to read:
+- First digit = Building
+- Second digit = Level
+- Last digits = Room number
+Example: 1.308 → Building 1, Level 3, Room 8', 4);
+
+-- Insert survival kit resources for Academic & Career Tools
+INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
+(2, 'MyPortal', 'Official school portal for administrative matters including timetable, fee payment, and academic transcripts. Login: https://myportal.sutd.edu.sg/', 1),
+(2, 'eDimension', 'Primary academic platform for lecture slides, homework submissions, quizzes, and online assessments. Login: https://edimension.sutd.edu.sg/', 2),
+(2, 'SUTD Career Portal (GEMS)', 'One-stop career services system to apply for jobs, book career advisory appointments, and sign up for workshops or recruitment events. Login: https://sutd-csm.symplicity.com/', 3),
+(2, 'Outlook Email', 'Official communication channel between students and the school. Email format: 100XXXX@mymail.sutd.edu.sg. Login: https://outlook.office.com/', 4),
+(2, 'LockDown Browser', 'Secure browser used for accessing certain quizzes and exams on eDimension. Download: https://download.respondus.com/lockdown/download.php?id=935444133', 5),
+(2, 'Other Academic Platforms', 'Additional tools used in some courses: Learning Catalytics, Ed Discussion, Piazza, Classpoint, and Gradescope.', 6);
+
+-- Insert survival kit resources for Booking & Using Campus Facilities
+INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
+(3, 'FabLab Booking Portal', 'Book fabrication facilities like laser cutters and 3D printers after completing required training. Access via SUTD ED Booking Systems: https://edbooking.sutd.edu.sg/fablabbooking/Web/schedule.php?&sid=52', 1),
+(3, 'Library Resources & Room Booking', 'Access electronic resources and book discussion rooms. Portal: https://mylibrary.sutd.edu.sg/', 2),
+(3, 'IBMS Sports Booking', 'Book sports and recreation facilities. Email help-facilities@sutd.edu.sg for an account.', 3),
+(3, 'Other Booking Platforms', 'Research Seating Management System and Academic Media Studio (training required) are also available for specific needs.', 4),
+(3, 'Printing Facilities', 'Available at Hostel Quiet Rooms, Library, Pi Lab, and Plotter Room. Includes 2D/3D scanning and photocopying.', 5),
+(3, 'Think Tanks & Study Spaces', 'Late Night Think Tank 21 (2.310) open daily 6:00 pm – 2:00 am.', 6),
+(3, 'Sports & Recreation Centre', 'Includes swimming pool, gym, indoor and outdoor courts. Opening hours vary; check official schedules.', 7),
+(3, 'Places to Chill', 'ROOT Cove (Building 2 Level 3) and Student Activity Centre (Building 5 Level 4) with board games, consoles, and lounge seating.', 8),
+(3, 'Scrapyard', 'Student-initiated recycling space for unwanted but useful materials. Managed by Greenprint Club.', 9);
+
+-- Insert survival kit resources for Hostel Life
+INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
+(4, 'Floor Chats & House Guardians', 'Join your floor''s chat group to receive updates on admin matters and events. Contact your floor''s House Guardian if you are not in the group.', 1),
+(4, 'Housing Portal', 'Manage housing applications, request maintenance, and make housing payments: https://hms.sutd.edu.sg/studentportal/Default.aspx', 2),
+(4, 'Aircon Credits', 'Top up and check aircon credits using credentials on your room access card. Telegram Bot: @evs_notification_bot', 3),
+(4, 'Door Knob Battery', 'If the door knob light blinks faint blue, request a battery change via the Housing Portal to prevent lockouts.', 4),
+(4, 'Board Games Bot', 'Rent board games from the hostel lounge. Weekdays: 7:30pm–11:30pm, Weekends: 10am–10pm. Telegram Bot: @SUTDbg_bot', 5),
+(4, 'Visitor Registration', 'Register visitors (including SUTD students not staying in hostel) before bringing them in during hostel visiting hours.', 6);
+
+-- Insert survival kit resources for ROOT & Student Services
+INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
+(5, 'ROOT Website', 'Find resources and guidelines for starting events, publicising activities, and managing Fifth Row clubs. Access: https://root.sutd.edu.sg/', 1),
+(5, 'Fifth Row Directory', 'Explore all available Fifth Row clubs and communities: https://root.sutd.edu.sg/student-life/fifth-row-directory', 2),
+(5, 'Event & Finance Resources', 'Download documents for events, finance, IT help, and other guidelines: https://root.sutd.edu.sg/resources', 3),
+(5, 'Locker Booking', 'Book lockers for storing your items: https://root.sutd.edu.sg/locker-booking', 4),
+(5, 'Community Platforms', 'SUTD Family Telegram group, Facebook group, Reddit, Discord, and niche interest groups (e.g., vegetarian/vegan chat, international students, HASS minor discussions).', 5),
+(5, 'ROOT Feedback Bot', 'Voice your feedback and suggestions directly to ROOT via Telegram: @SUTD_ROOT_bot', 6),
+(5, 'ROOT Announcements Channel', 'Receive important admin details and event updates from ROOT.', 7),
+(5, 'ROOT Social Media', 'Instagram: https://www.instagram.com/sutdlife/ | YouTube: https://www.youtube.com/channel/UCWQAI3RDoz_-cPHHr_4thcQ', 8);
+
+-- Insert survival kit resources for Health & Safety
+INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
+(6, 'Medical Coverage', 'All students are covered under the GroupCare Lite @Income insurance scheme. Sign up with your SUTD email (format: 100XXXX@mymail.sutd.edu.sg) and student ID.', 1),
+(6, 'Nearest Clinics', 'Fullerton Health @ Watsons (Changi City Point) is closest; Central 24-HR Clinic (Tampines) for 24-hour service.', 2),
+(6, 'Telemedicine Booth', 'Available 24/7 on campus near Albert Hong benches or next to Building 1 Lift.', 3),
+(6, 'Leave of Absence (LOA)', 'For medical or approved personal reasons, inform your instructors and submit LOA via MyPortal > Self Service > Leave of Absence Application. Medical certificate required.', 4),
+(6, 'Lost Student Card', 'Email help-facilities@sutd.edu.sg for a temporary access card ($10). FM Office is at Building 5 Level 1.', 5),
+(6, 'Emergency Contacts', 'Campus Security (24/7): 6303 6666 | Hostel Security (24/7): 6499 4071', 6);
+
+-- Insert survival kit resources for Food & Supper Hacks
+INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
+(7, 'Hungrysia Group', 'Telegram group for group-buy food orders and bulk delivery coordination. Current Boss: @S_jean', 1),
+(7, 'Vegetarian/Vegan Chat', 'Telegram group for vegetarians and vegans to share meal options and food tips.', 2),
+(7, 'Nearby Eats', 'Ananda Bhavan (vegetarian), Domino''s, Gomgom sandwiches, and the Indian stall (when open) are common go-tos.', 3),
+(7, 'Late Night Snacks', 'Coordinate with peers for food runs or use group-buy chats to get deliveries during study sessions.', 4);
+
+-- Insert survival kit resources for Finance & Claims
+INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
+(8, 'Grants, Bursaries & Scholarships', 'For enquiries, contact studentfinance@sutd.edu.sg or call 6303 6888.', 1),
+(8, 'Student Claims (Clubs, Events, Projects)', 'Submit claims through Concur at https://www.concursolutions.com/nui/signin using your 100XXXX@mymail.sutd.edu.sg and EASE credentials.', 2),
+(8, 'Finance Guidelines', 'Download the latest finance guidelines from ROOT''s resources page before making purchases: https://root.sutd.edu.sg/resources', 3),
+(8, 'Approval & Clarifications', 'Seek confirmation from your StuOrg Treasurer before committing to any expenses to ensure they meet reimbursement requirements.', 4);
+
+-- Insert survival kit resources for Contacts & Hotlines
+INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
+(9, 'IT Service Desk', 'Email help-it@sutd.edu.sg (24h) or call 6499 4500 (Mon–Fri: 8am–10pm, Sat: 8:30am–1pm). Walk-in: IT Care @ 2.204 (Building 2 Level 4).', 1),
+(9, 'Educational Technology', 'Support for eDimension, online exams, course evaluation, Academic Media Studio, and more. Email edi_admin@sutd.edu.sg (Mon–Fri: 8:30am–5:30pm).', 2),
+(9, 'Finance Enquiries', 'Email studentfinance@sutd.edu.sg or call 6303 6888.', 3),
+(9, 'Campus Facilities', 'Call 6303 6699.', 4),
+(9, 'Campus Security (24/7)', 'Call 6303 6666.', 5),
+(9, 'Hostel Security (24/7)', 'Call 6499 4071.', 6),
+(9, 'Hostel Communal Facilities', 'For issues like dryers, call 6434 8225.', 7);
+
+-- Insert survival kit resources for Extras & Perks
+INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
+(10, 'Economist Subscription', 'Free access to The Economist app and newsletter using your SUTD email. Sign up: https://myaccount.economist.com/s/login/SelfRegister', 1),
+(10, 'Self-Service Recording Studio', 'Located at SUTD Library Level 3. Book via https://mylibrary.sutd.edu.sg/bookable-room-dr-l3-32 or use Outlook links for video/audio studios.', 2),
+(10, 'Word of Mouth Lobangs', 'polymate.tech for filament, fasteners, electronics, wires, and after-hours printing & laser services.', 3),
+(10, 'Interesting 3D Prints', 'Download hostel wallet and card holder model by Joel, Class of 2025: https://www.printables.com/model/1009157-sutd-hostel-wallet-and-card-holder', 4),
+(10, 'Study Tips', 'Write notes to improve retention, type notes to organise thoughts. Recommended apps: GoodNotes, Notability, OneNote, Notion (free education account).', 5),
+(10, 'GitHub Education', 'Free suite of developer tools including GitHub Copilot. Remember to disable code-sharing permissions if required by your course.', 6);
