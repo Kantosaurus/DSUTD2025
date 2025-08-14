@@ -43,7 +43,7 @@ router.get('/events', optionalAuth, async (req, res) => {
         CASE WHEN es.user_id IS NOT NULL THEN true ELSE false END as is_registered
        FROM calendar_events ce
        LEFT JOIN event_signups es ON ce.id = es.event_id AND es.user_id = $3
-       WHERE ce.event_date >= $1 AND ce.event_date <= $2 AND ce.is_active = true
+       WHERE ce.event_date >= $1 AND ce.event_date <= $2 AND ce.is_active = true AND ce.status = 'approved'
        ORDER BY ce.event_date, ce.start_time`,
       [startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0], req.user?.userId || null]
     );

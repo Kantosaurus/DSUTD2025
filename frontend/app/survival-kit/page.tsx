@@ -257,24 +257,6 @@ export default function SurvivalKitPage() {
                       ))}
                     </div>
                   </div>
-                  <div className="flex gap-4">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      style={{ backgroundColor: '#631D35' }}
-                      className="px-6 py-3 text-white rounded-xl font-medium transition-all duration-200 hover:brightness-110"
-                    >
-                      Access Resources
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      style={{ color: '#631D35', borderColor: '#631D35' }}
-                      className="px-6 py-3 border-2 rounded-xl font-medium transition-all duration-200 hover:bg-black hover:bg-opacity-10"
-                    >
-                      View Guides
-                    </motion.button>
-                  </div>
                 </motion.div>
               </motion.div>
             ) : (

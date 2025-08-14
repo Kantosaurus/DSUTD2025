@@ -29,8 +29,47 @@ const generalRateLimit = rateLimit({
   legacyHeaders: false
 });
 
+// Password reset rate limiting
+const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3, // 3 password reset attempts per window per IP
+  message: {
+    error: 'Too many password reset attempts, please try again later.',
+    retryAfter: '15 minutes'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Search rate limiting to prevent abuse
+const searchLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 30, // 30 search requests per minute per IP
+  message: {
+    error: 'Too many search requests, please slow down.',
+    retryAfter: '1 minute'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// API endpoint rate limiting for sensitive operations
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests per window per IP
+  message: {
+    error: 'Too many API requests, please try again later.',
+    retryAfter: '15 minutes'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 module.exports = {
   loginRateLimit,
   loginSlowDown,
-  generalRateLimit
+  generalRateLimit,
+  passwordResetLimiter,
+  searchLimiter,
+  apiLimiter
 };

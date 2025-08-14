@@ -50,6 +50,27 @@ interface MobileNavMenuProps {
   onClose: () => void;
 }
 
+interface SearchResult {
+  type: 'event' | 'survival_kit' | 'survival_resource';
+  id: number;
+  title: string;
+  description?: string;
+  event_date?: string;
+  start_time?: string;
+  end_time?: string;
+  event_type?: string;
+  location?: string;
+  color?: string;
+  image_url?: string;
+  parent_title?: string;
+  parent_id?: number;
+  resources?: Array<{
+    id: number;
+    title: string;
+    description: string;
+  }>;
+}
+
 export const Navbar = ({ children, className }: NavbarProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll({
@@ -270,28 +291,224 @@ export const NavbarLogo = () => {
 };
 
 export const SearchBar = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchInputRef = useRef<HTMLDivElement | null>(null);
+
+  const performSearch = async (query: string) => {
+    if (!query.trim() || query.length < 2) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data.results || []);
+        setShowResults(true);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(query);
+    }, 300);
+  };
+
+  const formatEventDate = (dateStr: string) => {
+    try {
+      return new Date(dateStr).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const getResultIcon = (type: SearchResult['type']) => {
+    switch (type) {
+      case 'event':
+        return (
+          <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        );
+      case 'survival_kit':
+        return (
+          <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        );
+      case 'survival_resource':
+        return (
+          <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        );
+      default:
+        return (
+          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+          </svg>
+        );
+    }
+  };
+
+  const handleResultClick = (result: SearchResult) => {
+    setShowResults(false);
+    setSearchQuery("");
+    
+    switch (result.type) {
+      case 'event':
+        window.location.href = '/calendar';
+        break;
+      case 'survival_kit':
+      case 'survival_resource':
+        window.location.href = '/survival-kit';
+        break;
+      default:
+        break;
+    }
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: Event) => {
+      if (searchInputRef.current && !searchInputRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <div className="relative group">
+    <div className="relative group" ref={searchInputRef}>
       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-        <svg
-          className="h-4 w-4 text-white"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
+        {isSearching ? (
+          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+        ) : (
+          <svg
+            className="h-4 w-4 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        )}
       </div>
       <input
         type="text"
-        placeholder="Search..."
+        placeholder="Search events, survival kit..."
+        value={searchQuery}
+        onChange={handleSearchChange}
+        onFocus={() => {
+          if (searchResults.length > 0) {
+            setShowResults(true);
+          }
+        }}
         className="w-8 h-8 bg-white/30 text-white border border-white/40 rounded-full focus:outline-none focus:ring-2 focus:ring-white/60 focus:border-white/60 placeholder-gray-200 pl-3 pr-10 transition-all duration-300 group-hover:w-64 group-hover:rounded-lg group-focus-within:w-64 group-focus-within:rounded-lg shadow-lg"
       />
+      
+      {showResults && searchResults.length > 0 && (
+        <div className="absolute top-full right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
+          <div className="p-2">
+            <div className="text-xs text-gray-500 px-3 py-2 border-b">
+              Found {searchResults.length} results for "{searchQuery}"
+            </div>
+            {searchResults.map((result, index) => (
+              <div
+                key={`${result.type}-${result.id}-${index}`}
+                onClick={() => handleResultClick(result)}
+                className="flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer rounded-lg transition-colors"
+              >
+                <div className="flex-shrink-0 mt-0.5">
+                  {getResultIcon(result.type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="text-sm font-medium text-gray-900 truncate">
+                      {result.title}
+                    </h4>
+                    {result.type === 'event' && result.event_date && (
+                      <span className="text-xs text-gray-500 flex-shrink-0">
+                        {formatEventDate(result.event_date)}
+                      </span>
+                    )}
+                  </div>
+                  {result.description && (
+                    <p className="text-xs text-gray-600 line-clamp-2">
+                      {result.description.length > 80
+                        ? `${result.description.substring(0, 80)}...`
+                        : result.description}
+                    </p>
+                  )}
+                  {result.parent_title && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      in {result.parent_title}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-gray-400 capitalize">
+                      {result.type === 'survival_resource' ? 'survival kit resource' : result.type}
+                    </span>
+                    {result.type === 'event' && result.event_type && (
+                      <>
+                        <span className="text-xs text-gray-300">•</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          result.event_type === 'Mandatory' 
+                            ? 'bg-red-100 text-red-700' 
+                            : 'bg-orange-100 text-orange-700'
+                        }`}>
+                          {result.event_type}
+                        </span>
+                      </>
+                    )}
+                    {result.type === 'event' && result.location && (
+                      <>
+                        <span className="text-xs text-gray-300">•</span>
+                        <span className="text-xs text-gray-500">{result.location}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -465,6 +682,231 @@ export const AvatarDropdown = () => {
   );
 };
 
+export const MobileSearchBar = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mobileSearchRef = useRef<HTMLDivElement | null>(null);
+
+  const performSearch = async (query: string) => {
+    if (!query.trim() || query.length < 2) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data.results || []);
+        setShowResults(true);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(query);
+    }, 300);
+  };
+
+  const formatEventDate = (dateStr: string) => {
+    try {
+      return new Date(dateStr).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const getResultIcon = (type: SearchResult['type']) => {
+    switch (type) {
+      case 'event':
+        return (
+          <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        );
+      case 'survival_kit':
+        return (
+          <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        );
+      case 'survival_resource':
+        return (
+          <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        );
+      default:
+        return (
+          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+          </svg>
+        );
+    }
+  };
+
+  const handleResultClick = (result: SearchResult) => {
+    setShowResults(false);
+    setSearchQuery("");
+    
+    switch (result.type) {
+      case 'event':
+        window.location.href = '/calendar';
+        break;
+      case 'survival_kit':
+      case 'survival_resource':
+        window.location.href = '/survival-kit';
+        break;
+      default:
+        break;
+    }
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: Event) => {
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div className="relative mb-4" ref={mobileSearchRef}>
+      <div className="relative group">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          {isSearching ? (
+            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+          ) : (
+            <svg
+              className="h-4 w-4 text-white drop-shadow-sm"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          )}
+        </div>
+        <input
+          type="text"
+          placeholder="Search events, survival kit..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          onFocus={() => {
+            if (searchResults.length > 0) {
+              setShowResults(true);
+            }
+          }}
+          className="w-full px-4 py-3 pl-10 bg-white/30 text-white border border-white/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/60 focus:border-white/60 placeholder-gray-200 shadow-lg backdrop-blur-sm"
+        />
+      </div>
+      
+      {showResults && searchResults.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-80 overflow-y-auto">
+          <div className="p-2">
+            <div className="text-xs text-gray-500 px-3 py-2 border-b">
+              Found {searchResults.length} results for "{searchQuery}"
+            </div>
+            {searchResults.map((result, index) => (
+              <div
+                key={`mobile-${result.type}-${result.id}-${index}`}
+                onClick={() => handleResultClick(result)}
+                className="flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer rounded-lg transition-colors"
+              >
+                <div className="flex-shrink-0 mt-0.5">
+                  {getResultIcon(result.type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="text-sm font-medium text-gray-900 truncate">
+                      {result.title}
+                    </h4>
+                    {result.type === 'event' && result.event_date && (
+                      <span className="text-xs text-gray-500 flex-shrink-0">
+                        {formatEventDate(result.event_date)}
+                      </span>
+                    )}
+                  </div>
+                  {result.description && (
+                    <p className="text-xs text-gray-600 line-clamp-2">
+                      {result.description.length > 60
+                        ? `${result.description.substring(0, 60)}...`
+                        : result.description}
+                    </p>
+                  )}
+                  {result.parent_title && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      in {result.parent_title}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <span className="text-xs text-gray-400 capitalize">
+                      {result.type === 'survival_resource' ? 'survival kit resource' : result.type}
+                    </span>
+                    {result.type === 'event' && result.event_type && (
+                      <>
+                        <span className="text-xs text-gray-300">•</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          result.event_type === 'Mandatory' 
+                            ? 'bg-red-100 text-red-700' 
+                            : 'bg-orange-100 text-orange-700'
+                        }`}>
+                          {result.event_type}
+                        </span>
+                      </>
+                    )}
+                    {result.type === 'event' && result.location && (
+                      <>
+                        <span className="text-xs text-gray-300">•</span>
+                        <span className="text-xs text-gray-500 truncate">{result.location}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const RightSection = () => {
   return (
     <div className="flex items-center space-x-4">
@@ -479,7 +921,7 @@ export const CompleteNavbar = ({
   userRole = 'student'
 }: {
   navItems: Array<{ name: string; link: string }>;
-  userRole?: 'admin' | 'student';
+  userRole?: 'admin' | 'student' | 'club';
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -489,8 +931,15 @@ export const CompleteNavbar = ({
     if (userRole === 'admin') {
       return true;
     }
-    // For regular users, hide admin-specific items
-    return !item.name.toLowerCase().includes('admin');
+    
+    // For club users, show club items and hide admin items
+    if (userRole === 'club') {
+      // Hide admin items but show club-specific items
+      return !item.name.toLowerCase().includes('admin') || item.name.toLowerCase().includes('my events');
+    }
+    
+    // For regular students, hide admin and club-specific items
+    return !item.name.toLowerCase().includes('admin') && !item.name.toLowerCase().includes('my events');
   });
 
   return (
@@ -524,30 +973,7 @@ export const CompleteNavbar = ({
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
         >
-          <div className="mb-4">
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg
-                                     className="h-4 w-4 text-white drop-shadow-sm"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Search..."
-                                 className="w-full px-4 py-3 pl-10 bg-white/30 text-white border border-white/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/60 focus:border-white/60 placeholder-gray-200 shadow-lg backdrop-blur-sm"
-              />
-            </div>
-          </div>
+          <MobileSearchBar />
           {filteredNavItems.map((item, idx) => (
             <a
               key={`mobile-link-${idx}`}

@@ -2,7 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { pool } = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
-const { loginRateLimit, loginSlowDown } = require('../middleware/rateLimiting');
+const { loginRateLimit, loginSlowDown, passwordResetLimiter } = require('../middleware/rateLimiting');
 const { logSecurityEvent, logLoginAttempt, checkAccountLockout, incrementFailedLoginAttempts, resetFailedLoginAttempts } = require('../utils/security');
 const { generateSecureToken, validatePasswordStrength, generateVerificationCode, generateSecureRandomToken, createUserSession, hashPassword, comparePassword } = require('../utils/auth');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
@@ -238,7 +238,7 @@ router.post('/resend-verification', [
 });
 
 // Forgot password endpoint
-router.post('/forgot-password', [
+router.post('/forgot-password', passwordResetLimiter, [
   body('studentId')
     .isLength({ min: 1 })
     .withMessage('Student ID is required')
@@ -428,7 +428,7 @@ router.post('/logout', authenticateToken, async (req, res) => {
 });
 
 // Reset password endpoint
-router.post('/reset-password', [
+router.post('/reset-password', passwordResetLimiter, [
   body('token').notEmpty().withMessage('Reset token is required'),
   body('newPassword')
     .isLength({ min: 12 })
@@ -500,6 +500,8 @@ router.post('/validate-reset-token', [
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      // Consistent timing for invalid input
+      await new Promise(resolve => setTimeout(resolve, 100));
       return res.status(400).json({ 
         error: 'Validation failed', 
         details: errors.array() 
@@ -513,14 +515,18 @@ router.post('/validate-reset-token', [
       [token]
     );
 
+    // Add consistent timing to prevent timing attacks
+    const processingTime = 100 + Math.random() * 50; // 100-150ms
+    await new Promise(resolve => setTimeout(resolve, processingTime));
+
     if (result.rows.length === 0) {
-      return res.status(400).json({ error: 'Invalid reset token', valid: false });
+      return res.status(400).json({ error: 'Invalid or expired reset token', valid: false });
     }
 
     const user = result.rows[0];
 
     if (new Date() > user.password_reset_expires) {
-      return res.status(400).json({ error: 'Reset token has expired', valid: false });
+      return res.status(400).json({ error: 'Invalid or expired reset token', valid: false });
     }
 
     res.json({ valid: true, message: 'Reset token is valid' });

@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const csrf = require('csrf');
 require('dotenv').config();
 
 // Import configurations
@@ -13,7 +14,7 @@ const SECURITY_CONFIG = require('./config/security');
 const EMAIL_CONFIG = require('./config/email');
 
 // Import middleware
-const { generalRateLimit } = require('./middleware/rateLimiting');
+const { generalRateLimit, searchLimiter, passwordResetLimiter, apiLimiter } = require('./middleware/rateLimiting');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -26,16 +27,46 @@ const survivalKitRoutes = require('./routes/survival-kit');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Initialize CSRF protection
+const csrfTokens = csrf();
+
+// CSRF middleware
+const csrfProtection = (req, res, next) => {
+  // Skip CSRF for GET requests and authentication endpoints
+  if (req.method === 'GET' || req.path.startsWith('/api/auth/login') || req.path.startsWith('/api/auth/signup')) {
+    return next();
+  }
+
+  const token = req.headers['x-csrf-token'] || req.body._csrf;
+  const secret = req.session?.csrfSecret;
+
+  if (!secret || !token || !csrfTokens.verify(secret, token)) {
+    return res.status(403).json({ error: 'Invalid CSRF token' });
+  }
+
+  next();
+};
+
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"], // Specific hash for inline styles
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", process.env.FRONTEND_URL || 'http://localhost:3000'],
+      fontSrc: ["'self'", "https:", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
     },
   },
+  crossOriginOpenerPolicy: { policy: "same-origin" },
+  crossOriginResourcePolicy: { policy: "same-origin" },
+  referrerPolicy: { policy: "no-referrer" },
   hsts: {
     maxAge: 31536000,
     includeSubDomains: true,
@@ -57,8 +88,24 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Configure Multer for temporary file storage
-const upload = multer({ dest: 'uploads/' }); 
+// Configure Multer for secure file storage
+const upload = multer({
+  dest: 'uploads/',
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+    files: 1 // Only allow 1 file per request
+  },
+  fileFilter: (req, file, cb) => {
+    // Only allow CSV files for admin uploads
+    const allowedTypes = ['text/csv', 'application/csv'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV files are allowed'), false);
+    }
+  }
+}); 
+
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)){
     fs.mkdirSync(uploadsDir, { recursive: true });
@@ -207,6 +254,134 @@ app.get('/api/profile/events', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Error fetching user events:', err);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Search endpoint
+app.get('/api/search', authenticateToken, searchLimiter, async (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q || q.trim().length < 2) {
+      return res.json({ results: [] });
+    }
+
+    // Sanitize search input to prevent SQL injection
+    const sanitizedQuery = q.trim().toLowerCase().replace(/[%_\\]/g, '\\$&');
+    const searchTerm = `%${sanitizedQuery}%`;
+    
+    // Search calendar events
+    const eventsQuery = `
+      SELECT 
+        'event' as type,
+        id,
+        title,
+        description,
+        event_date,
+        start_time,
+        end_time,
+        event_type,
+        location,
+        color
+      FROM calendar_events
+      WHERE is_active = true AND (
+        LOWER(title) LIKE $1 OR 
+        LOWER(description) LIKE $1 OR 
+        LOWER(event_type) LIKE $1 OR 
+        LOWER(location) LIKE $1
+      )
+      ORDER BY 
+        CASE 
+          WHEN LOWER(title) LIKE $1 THEN 1
+          WHEN LOWER(description) LIKE $1 THEN 2
+          ELSE 3
+        END,
+        event_date ASC
+      LIMIT 10
+    `;
+
+    // Search survival kit items
+    const survivalKitQuery = `
+      SELECT 
+        'survival_kit' as type,
+        sk.id,
+        sk.title,
+        sk.content as description,
+        sk.image_url,
+        COALESCE(
+          JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', skr.id,
+              'title', skr.title,
+              'description', skr.description
+            ) ORDER BY skr.order_index
+          ) FILTER (WHERE skr.id IS NOT NULL), 
+          '[]'::json
+        ) as resources
+      FROM survival_kit_items sk
+      LEFT JOIN survival_kit_resources skr ON sk.id = skr.survival_kit_item_id
+      WHERE sk.is_active = true AND (
+        LOWER(sk.title) LIKE $1 OR 
+        LOWER(sk.content) LIKE $1
+      )
+      GROUP BY sk.id, sk.title, sk.content, sk.image_url, sk.order_index
+      ORDER BY 
+        CASE 
+          WHEN LOWER(sk.title) LIKE $1 THEN 1
+          ELSE 2
+        END,
+        sk.order_index ASC
+      LIMIT 10
+    `;
+
+    // Search survival kit resources
+    const resourcesQuery = `
+      SELECT 
+        'survival_resource' as type,
+        skr.id,
+        skr.title,
+        skr.description,
+        sk.title as parent_title,
+        sk.id as parent_id
+      FROM survival_kit_resources skr
+      JOIN survival_kit_items sk ON skr.survival_kit_item_id = sk.id
+      WHERE sk.is_active = true AND (
+        LOWER(skr.title) LIKE $1 OR 
+        LOWER(skr.description) LIKE $1
+      )
+      ORDER BY 
+        CASE 
+          WHEN LOWER(skr.title) LIKE $1 THEN 1
+          ELSE 2
+        END,
+        skr.order_index ASC
+      LIMIT 10
+    `;
+
+    const [eventsResult, survivalKitResult, resourcesResult] = await Promise.all([
+      pool.query(eventsQuery, [searchTerm]),
+      pool.query(survivalKitQuery, [searchTerm]),
+      pool.query(resourcesQuery, [searchTerm])
+    ]);
+
+    const results = [
+      ...eventsResult.rows,
+      ...survivalKitResult.rows,
+      ...resourcesResult.rows
+    ];
+
+    res.json({ 
+      results,
+      query: q,
+      totalFound: results.length
+    });
+  } catch (err) {
+    console.error('Error during search:', err);
+    // Don't leak error details in production
+    const errorMessage = process.env.NODE_ENV === 'production' 
+      ? 'Search service temporarily unavailable' 
+      : 'Internal server error';
+    res.status(500).json({ error: errorMessage });
   }
 });
 

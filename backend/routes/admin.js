@@ -467,4 +467,302 @@ router.get('/event-signups', authenticateToken, requireAdmin, async (req, res) =
   }
 });
 
+// Get pending events for approval (admin only)
+router.get('/events/pending', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const result = await pool.query(`
+      SELECT 
+        ce.*,
+        u.student_id as creator_student_id,
+        u.email as creator_email,
+        u.role as creator_role,
+        COALESCE(signup_count.count, 0) as current_signups
+      FROM calendar_events ce
+      JOIN users u ON ce.user_id = u.id
+      LEFT JOIN (
+        SELECT event_id, COUNT(*) as count 
+        FROM event_signups 
+        GROUP BY event_id
+      ) signup_count ON ce.id = signup_count.event_id
+      WHERE ce.status = 'pending'
+      ORDER BY ce.created_at DESC
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
+
+    // Get total count for pagination
+    const countResult = await pool.query(
+      'SELECT COUNT(*) as total FROM calendar_events WHERE status = $1',
+      ['pending']
+    );
+    const totalRecords = parseInt(countResult.rows[0].total);
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    res.json({
+      events: result.rows,
+      page: parseInt(page),
+      totalPages,
+      totalRecords
+    });
+  } catch (err) {
+    console.error('Error fetching pending events:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Approve an event (admin only)
+router.post('/events/:eventId/approve', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    const adminId = req.user.currentUser.id;
+
+    // Check if event exists and is pending
+    const eventResult = await pool.query(
+      'SELECT * FROM calendar_events WHERE id = $1 AND status = $2',
+      [eventId, 'pending']
+    );
+
+    if (eventResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Pending event not found' });
+    }
+
+    const event = eventResult.rows[0];
+
+    // Update event status to approved
+    const result = await pool.query(`
+      UPDATE calendar_events 
+      SET status = 'approved', 
+          approval_date = CURRENT_TIMESTAMP, 
+          approved_by = $2,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 
+      RETURNING *
+    `, [eventId, adminId]);
+
+    await logSecurityEvent('EVENT_APPROVED', `Admin approved event: ${event.title}`, adminId, {
+      eventId: eventId,
+      eventTitle: event.title,
+      eventCreatorId: event.user_id,
+      studentId: req.user.currentUser.student_id
+    }, req);
+
+    res.json({
+      message: 'Event approved successfully',
+      event: result.rows[0]
+    });
+  } catch (err) {
+    console.error('Error approving event:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Reject an event (admin only)
+router.post('/events/:eventId/reject', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    const adminId = req.user.currentUser.id;
+    const { rejection_reason } = req.body;
+
+    if (!rejection_reason || rejection_reason.trim().length === 0) {
+      return res.status(400).json({ error: 'Rejection reason is required' });
+    }
+
+    // Check if event exists and is pending
+    const eventResult = await pool.query(
+      'SELECT * FROM calendar_events WHERE id = $1 AND status = $2',
+      [eventId, 'pending']
+    );
+
+    if (eventResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Pending event not found' });
+    }
+
+    const event = eventResult.rows[0];
+
+    // Update event status to rejected
+    const result = await pool.query(`
+      UPDATE calendar_events 
+      SET status = 'rejected', 
+          approval_date = CURRENT_TIMESTAMP, 
+          approved_by = $2,
+          rejection_reason = $3,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 
+      RETURNING *
+    `, [eventId, adminId, rejection_reason.trim()]);
+
+    await logSecurityEvent('EVENT_REJECTED', `Admin rejected event: ${event.title}`, adminId, {
+      eventId: eventId,
+      eventTitle: event.title,
+      eventCreatorId: event.user_id,
+      rejectionReason: rejection_reason.trim(),
+      studentId: req.user.currentUser.student_id
+    }, req);
+
+    res.json({
+      message: 'Event rejected successfully',
+      event: result.rows[0]
+    });
+  } catch (err) {
+    console.error('Error rejecting event:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get all events with advanced filtering (admin only)
+router.get('/events/all', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 20, 
+      status, 
+      event_type, 
+      creator_role,
+      date_from,
+      date_to 
+    } = req.query;
+    const offset = (page - 1) * limit;
+
+    let whereConditions = [];
+    let params = [];
+    let paramCount = 1;
+
+    if (status && ['pending', 'approved', 'rejected'].includes(status)) {
+      whereConditions.push(`ce.status = $${paramCount}`);
+      params.push(status);
+      paramCount++;
+    }
+
+    if (event_type && ['Mandatory', 'Optional'].includes(event_type)) {
+      whereConditions.push(`ce.event_type = $${paramCount}`);
+      params.push(event_type);
+      paramCount++;
+    }
+
+    if (creator_role && ['admin', 'club', 'student'].includes(creator_role)) {
+      whereConditions.push(`u.role = $${paramCount}`);
+      params.push(creator_role);
+      paramCount++;
+    }
+
+    if (date_from) {
+      whereConditions.push(`ce.event_date >= $${paramCount}`);
+      params.push(date_from);
+      paramCount++;
+    }
+
+    if (date_to) {
+      whereConditions.push(`ce.event_date <= $${paramCount}`);
+      params.push(date_to);
+      paramCount++;
+    }
+
+    const whereClause = whereConditions.length > 0 ? 'WHERE ' + whereConditions.join(' AND ') : '';
+
+    const result = await pool.query(`
+      SELECT 
+        ce.*,
+        u.student_id as creator_student_id,
+        u.email as creator_email,
+        u.role as creator_role,
+        approver.student_id as approver_student_id,
+        COALESCE(signup_count.count, 0) as current_signups
+      FROM calendar_events ce
+      JOIN users u ON ce.user_id = u.id
+      LEFT JOIN users approver ON ce.approved_by = approver.id
+      LEFT JOIN (
+        SELECT event_id, COUNT(*) as count 
+        FROM event_signups 
+        GROUP BY event_id
+      ) signup_count ON ce.id = signup_count.event_id
+      ${whereClause}
+      ORDER BY ce.created_at DESC
+      LIMIT $${paramCount} OFFSET $${paramCount + 1}
+    `, [...params, limit, offset]);
+
+    // Get total count with same filters
+    const countResult = await pool.query(`
+      SELECT COUNT(*) as total 
+      FROM calendar_events ce
+      JOIN users u ON ce.user_id = u.id
+      ${whereClause}
+    `, params);
+
+    const totalRecords = parseInt(countResult.rows[0].total);
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    res.json({
+      events: result.rows,
+      page: parseInt(page),
+      totalPages,
+      totalRecords,
+      filters: {
+        status,
+        event_type,
+        creator_role,
+        date_from,
+        date_to
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching all events:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get event approval statistics (admin only)
+router.get('/events/approval-stats', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const statsResult = await pool.query(`
+      SELECT 
+        ce.status,
+        u.role as creator_role,
+        COUNT(*) as count
+      FROM calendar_events ce
+      JOIN users u ON ce.user_id = u.id
+      GROUP BY ce.status, u.role
+      ORDER BY ce.status, u.role
+    `);
+
+    const totalEventsResult = await pool.query('SELECT COUNT(*) as total FROM calendar_events');
+    const totalEvents = parseInt(totalEventsResult.rows[0].total);
+
+    // Get pending events by creator role
+    const pendingByRoleResult = await pool.query(`
+      SELECT 
+        u.role as creator_role,
+        COUNT(*) as pending_count
+      FROM calendar_events ce
+      JOIN users u ON ce.user_id = u.id
+      WHERE ce.status = 'pending'
+      GROUP BY u.role
+    `);
+
+    // Get approval activity (last 30 days)
+    const recentActivityResult = await pool.query(`
+      SELECT 
+        DATE(ce.approval_date) as approval_date,
+        ce.status,
+        COUNT(*) as count
+      FROM calendar_events ce
+      WHERE ce.approval_date >= CURRENT_DATE - INTERVAL '30 days'
+        AND ce.status IN ('approved', 'rejected')
+      GROUP BY DATE(ce.approval_date), ce.status
+      ORDER BY approval_date DESC
+    `);
+
+    res.json({
+      totalEvents,
+      statusBreakdown: statsResult.rows,
+      pendingByRole: pendingByRoleResult.rows,
+      recentActivity: recentActivityResult.rows
+    });
+  } catch (err) {
+    console.error('Error fetching approval statistics:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

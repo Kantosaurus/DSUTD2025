@@ -37,7 +37,7 @@ const sendVerificationEmail = async (email, verificationCode, studentId) => {
     };
     
     await transporter.sendMail(mailOptions);
-    console.log(`Verification email sent to ${email}`);
+    console.log(`Verification email sent to user: ${email.substring(0, 3)}***@${email.split('@')[1]}`);
   } catch (error) {
     console.error('Error sending verification email:', error);
     throw error;
@@ -70,7 +70,7 @@ const sendPasswordResetEmail = async (email, resetToken, studentId) => {
     };
     
     await transporter.sendMail(mailOptions);
-    console.log(`Password reset email sent to ${email}`);
+    console.log(`Password reset email sent to user: ${email.substring(0, 3)}***@${email.split('@')[1]}`);
   } catch (error) {
     console.error('Error sending password reset email:', error);
     throw error;

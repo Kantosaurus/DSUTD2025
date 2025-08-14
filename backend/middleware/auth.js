@@ -96,7 +96,31 @@ const requireAdmin = async (req, res, next) => {
   next();
 };
 
+// Middleware to check if user is club or admin (for event management)
+const requireClubOrAdmin = async (req, res, next) => {
+  if (!req.user || !['admin', 'club'].includes(req.user.role)) {
+    return res.status(403).json({ 
+      error: 'Club or admin access required',
+      requiredRoles: ['admin', 'club'],
+      userRole: req.user?.role || 'none'
+    });
+  }
+  next();
+};
+
+// Middleware to check if user is admin or club admin (higher permissions)
+const requireAdminOrClubAdmin = async (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
+    // For now, only admin can approve/reject events
+    // Later we can add club admin role if needed
+    return res.status(403).json({ error: 'Admin access required for this action' });
+  }
+  next();
+};
+
 module.exports = {
   authenticateToken,
-  requireAdmin
+  requireAdmin,
+  requireClubOrAdmin,
+  requireAdminOrClubAdmin
 };
