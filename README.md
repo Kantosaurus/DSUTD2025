@@ -1,6 +1,6 @@
-# Full-Stack Web Application
+# DSUTD2025 - Student Portal
 
-A modern full-stack web application built with Next.js, React, Tailwind CSS, Node.js, and PostgreSQL, all orchestrated with Docker.
+A modern full-stack web application built with Next.js, React, Tailwind CSS, Node.js, and PostgreSQL, all orchestrated with Docker. Features enterprise-grade security for authentication and user management.
 
 ## 🚀 Features
 
@@ -11,6 +11,7 @@ A modern full-stack web application built with Next.js, React, Tailwind CSS, Nod
 - **Containerization**: Docker and Docker Compose for easy deployment
 - **Real-time**: RESTful API with JSON responses
 - **Modern UI**: Beautiful, responsive interface with loading states and error handling
+- **🔐 Enterprise Security**: Multi-layer authentication security with rate limiting, account lockout, session management, and comprehensive monitoring
 
 ## 🏗️ Architecture
 
@@ -44,6 +45,8 @@ A modern full-stack web application built with Next.js, React, Tailwind CSS, Nod
 
 2. **Start all services with Docker Compose**
    ```bash
+   npm start
+   # or
    docker-compose up --build
    ```
 
@@ -52,6 +55,37 @@ A modern full-stack web application built with Next.js, React, Tailwind CSS, Nod
    - Backend API: http://localhost:3001
    - Database: localhost:5432
 
+## 📋 Available Scripts
+
+The project includes convenient npm scripts for common tasks:
+
+```bash
+# Start the application
+npm start
+
+# Start in development mode
+npm run dev
+
+# Stop all services
+npm run stop
+
+# Restart services
+npm run restart
+
+# View logs
+npm run logs
+
+# Run database migration (fixes schema issues)
+npm run migrate
+
+# Note: Database migrations now run automatically when the backend starts
+
+
+
+# Clean up Docker resources
+npm run clean
+```
+
 ## 📦 Services
 
 ### Frontend (Port 3000)
@@ -59,12 +93,21 @@ A modern full-stack web application built with Next.js, React, Tailwind CSS, Nod
 - Tailwind CSS for styling
 - Axios for API communication
 - Modern, responsive UI
+- API request proxying via Next.js rewrites
 
 ### Backend (Port 3001)
 - Express.js server with middleware
 - PostgreSQL database connection
 - RESTful API endpoints
+- **🔐 Advanced Security Features**:
+  - Rate limiting and DDoS protection
+  - Account lockout after failed attempts
+  - Session management with token versioning
+  - Comprehensive security logging and monitoring
+  - Password expiry and change enforcement
+  - Secure JWT tokens with issuer/audience validation
 - CORS enabled for frontend communication
+- **Automatic database migrations** on startup
 
 ### Database (Port 5432)
 - PostgreSQL 15 with Alpine Linux
@@ -96,21 +139,59 @@ A modern full-stack web application built with Next.js, React, Tailwind CSS, Nod
 
 ### Environment Variables
 
-Create `.env` files in both frontend and backend directories:
+1. **Copy the example environment file:**
+   ```bash
+   cp env.example .env
+   ```
 
-**Backend (.env)**
-```
-DATABASE_URL=postgresql://webapp_user:webapp_password@localhost:5432/webapp_db
-PORT=3001
-NODE_ENV=development
-```
+2. **Edit the `.env` file with your configuration:**
+   ```env
+   # JWT Configuration
+   JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+   
+   # Gmail Email Configuration (for email verification)
+   EMAIL_USER=your-gmail@gmail.com
+   EMAIL_PASSWORD=your-16-character-app-password
+   EMAIL_FROM=your-gmail@gmail.com
+   
+   # Optional: Frontend URL (for CORS)
+   FRONTEND_URL=http://localhost:3000
+   ```
 
-**Frontend (.env.local)**
-```
-NEXT_PUBLIC_API_URL=http://localhost:3001
-```
+3. **For local development without Docker, create `.env` files in both directories:**
+
+   **Backend (.env)**
+   ```env
+   DATABASE_URL=postgresql://webapp_user:webapp_password@localhost:5432/webapp_db
+   PORT=3001
+   NODE_ENV=development
+   JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+   EMAIL_USER=your-gmail@gmail.com
+   EMAIL_PASSWORD=your-16-character-app-password
+   EMAIL_FROM=your-gmail@gmail.com
+   ```
+
+   **Frontend (.env.local)**
+   ```env
+   NEXT_PUBLIC_API_URL=http://localhost:3001
+   ```
+
+**Note:** See [Gmail Setup Guide](GMAIL_SETUP.md) for detailed email configuration instructions.
+
+The frontend uses Next.js rewrites to proxy API requests, allowing seamless API communication without CORS issues.
 
 ## 📚 API Endpoints
+
+### Authentication
+- `POST /api/auth/signup` - User registration with validation
+- `POST /api/auth/login` - Secure login with rate limiting and account protection
+- `POST /api/auth/logout` - Secure logout with session invalidation
+- `POST /api/auth/logout-all` - Logout from all devices
+- `GET /api/auth/me` - Get current user profile
+
+### Security Monitoring (Protected)
+- `GET /api/admin/security-events` - View security events
+- `GET /api/admin/login-attempts` - View login attempts
 
 ### Items
 - `GET /api/items` - Get all items
@@ -126,6 +207,16 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 - **Error Handling**: User-friendly error messages
 - **Form Validation**: Client-side validation
 - **Real-time Updates**: Items list updates immediately after creation
+
+## 🐳 Container Setup
+
+The application is containerized using Docker and orchestrated with Docker Compose. The setup includes:
+
+- **Frontend Container**: Next.js application with hot-reloading
+- **Backend Container**: Node.js Express API with live-reloading
+- **Database Container**: PostgreSQL with persistent volume
+
+All services are connected via a dedicated Docker network for secure communication.
 
 ## 🐳 Docker Commands
 
@@ -165,6 +256,21 @@ cd frontend
 npm run lint
 ```
 
+## 📖 Documentation
+
+Comprehensive documentation is available in the `/docs` directory:
+
+- **[📚 Complete Documentation](docs/README.md)** - Full documentation index
+- **[🚀 Quick Start Guide](docs/quick-start.md)** - Get up and running in 5 minutes
+- **[🏗️ Architecture Guide](docs/architecture.md)** - System design and structure
+- **[🔌 API Documentation](docs/api.md)** - Complete REST API reference
+- **[🔐 Security Features](docs/security.md)** - Security implementation details
+- **[💾 Database Guide](docs/database.md)** - Database schema and management
+- **[💻 Development Guide](docs/development.md)** - Local development setup
+- **[🚀 Deployment Guide](docs/deployment.md)** - Production deployment
+- **[🔧 Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
+- **[❓ FAQ](docs/faq.md)** - Frequently asked questions
+
 ## 📝 Database Schema
 
 ### Items Table
@@ -192,11 +298,40 @@ CREATE TABLE users (
 
 ## 🔒 Security Features
 
+### Authentication Security
+- **Strong Password Requirements**: Minimum 8 characters with uppercase, lowercase, number, and special character
+- **Secure Password Hashing**: bcryptjs with salt rounds
+- **Password Expiry**: 90-day password expiration
+- **Account Lockout**: 5 failed attempts trigger 15-minute lockout
+- **Rate Limiting**: Login attempts limited to 5 per 15-minute window
+- **Progressive Delays**: Increasing response times for repeated attempts
+
+### Session Management
+- **Secure JWT Tokens**: Tokens with issuer, audience, and algorithm validation
+- **Session Tracking**: Database-backed session management
+- **Token Versioning**: Session invalidation through token version increments
+- **Session Expiry**: 2-hour session duration with automatic cleanup
+- **Multi-device Logout**: Ability to logout from all devices
+
+### Security Monitoring
+- **Comprehensive Logging**: All login attempts and security events logged
+- **IP Address Tracking**: Client IP address and user agent logging
+- **Real-time Monitoring**: Admin endpoints for security event monitoring
+- **Audit Trail**: Complete security event history with metadata
+
+### Attack Prevention
+- **Brute Force Protection**: Account lockout and rate limiting
+- **Session Hijacking Prevention**: Secure cookies and token validation
+- **CSRF Protection**: SameSite cookies and origin validation
+- **User Enumeration Prevention**: Consistent response times
+
+### Technical Security
 - Helmet.js for security headers
-- CORS configuration
-- Input validation
+- CORS configuration with specific origins
+- Input validation and sanitization
 - SQL injection prevention with parameterized queries
 - Environment variable management
+- Request size limits (10MB max)
 
 ## 🚀 Deployment
 

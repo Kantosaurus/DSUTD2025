@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    appDir: true,
+    //appDir: true,
+  },
+  images: {
+    domains: [
+      "api.microlink.io", // Microlink Image Preview
+    ],
   },
   async rewrites() {
     return [
@@ -12,5 +17,3 @@ const nextConfig = {
     ];
   },
 };
-
-module.exports = nextConfig; 

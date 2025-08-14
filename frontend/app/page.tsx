@@ -1,165 +1,181 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import axios from 'axios'
-
-interface Item {
-  id: number
-  title: string
-  description: string
-  created_at: string
-}
+import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import LoginCard from '../components/ui/login-card'
+import SignUpModal from '../components/ui/signup-modal'
+import { ForgotPasswordModal } from '../components/ui/forgot-password-modal'
+import EmailVerificationModal from '../components/ui/email-verification-modal'
 
 export default function Home() {
-  const [items, setItems] = useState<Item[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [newItem, setNewItem] = useState({ title: '', description: '' })
-  const [submitting, setSubmitting] = useState(false)
+  const router = useRouter()
+  const [showSignUpModal, setShowSignUpModal] = useState(false)
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
+  const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false)
+  const [pendingVerification, setPendingVerification] = useState<{
+    studentId: string;
+    email: string;
+  } | null>(null)
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-
-  useEffect(() => {
-    fetchItems()
-  }, [])
-
-  const fetchItems = async () => {
+  const handleLogin = async (studentId: string, password: string) => {
     try {
-      setLoading(true)
-      const response = await axios.get(`${API_URL}/api/items`)
-      setItems(response.data)
-      setError('')
-    } catch (err) {
-      setError('Failed to fetch items')
-      console.error('Error fetching items:', err)
-    } finally {
-      setLoading(false)
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          studentId,
+          password
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.requiresVerification) {
+          // Show email verification modal for unverified users
+          setPendingVerification({
+            studentId: data.studentId,
+            email: `${data.studentId}@mymail.sutd.edu.sg`
+          });
+          setShowEmailVerificationModal(true);
+          throw new Error('Please verify your email address before logging in');
+        }
+        throw new Error(data.error || 'Login failed');
+      }
+
+      console.log('Login successful:', data);
+
+      // Store the token in localStorage
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      // Redirect to home page after successful login
+      router.push('/home');
+
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error; // Re-throw the error so the login card can handle it
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newItem.title.trim()) return
-
+  const handleSignUp = async (studentId: string, password: string) => {
     try {
-      setSubmitting(true)
-      const response = await axios.post(`${API_URL}/api/items`, newItem)
-      setItems([response.data, ...items])
-      setNewItem({ title: '', description: '' })
-      setError('')
-    } catch (err) {
-      setError('Failed to create item')
-      console.error('Error creating item:', err)
-    } finally {
-      setSubmitting(false)
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          studentId,
+          password
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Sign up failed');
+      }
+
+      console.log('Sign up successful:', data);
+
+      if (data.requiresVerification) {
+        // Show email verification modal
+        setPendingVerification({
+          studentId: data.user.studentId,
+          email: data.user.email
+        });
+        setShowEmailVerificationModal(true);
+        setShowSignUpModal(false);
+      } else {
+        // Store the token in localStorage
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        // Redirect to home page after successful signup
+        router.push('/home');
+      }
+
+    } catch (error) {
+      console.error('Sign up error:', error);
+      throw error; // Re-throw the error so the signup modal can handle it
     }
+  }
+
+  const handleForgotPassword = () => {
+    // This function is called when the forgot password modal is successfully closed
+    // The actual password reset logic is handled within the ForgotPasswordModal component
+    console.log('Forgot password flow completed')
+  }
+
+  const handleSwitchToSignUp = () => {
+    setShowSignUpModal(true)
+  }
+
+  const handleSwitchToForgotPassword = () => {
+    setShowForgotPasswordModal(true)
+  }
+
+  const handleVerificationSuccess = (token: string) => {
+    // Redirect to home page after successful verification
+    router.push('/home');
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            WebApp Dashboard
-          </h1>
-          <p className="text-xl text-gray-600">
-            A modern full-stack application with Next.js, React, and Node.js
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-3xl"></div>
+      </div>
 
-        {/* Add New Item Form */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            Add New Item
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                value={newItem.title}
-                onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter item title"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                id="description"
-                value={newItem.description}
-                onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter item description"
-                rows={3}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {submitting ? 'Adding...' : 'Add Item'}
-            </button>
-          </form>
-        </div>
+      {/* Main content */}
+      <div className="relative z-10 w-full max-w-md">
+        <LoginCard
+          onSubmit={handleLogin}
+          onSwitchToSignUp={handleSwitchToSignUp}
+          onForgotPassword={handleSwitchToForgotPassword}
+        />
+      </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-            {error}
-          </div>
-        )}
+      {/* Sign Up Modal */}
+      <SignUpModal
+        isOpen={showSignUpModal}
+        onClose={() => setShowSignUpModal(false)}
+        onSubmit={handleSignUp}
+      />
 
-        {/* Items List */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-            Items ({items.length})
-          </h2>
-          
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading items...</p>
-            </div>
-          ) : items.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600">No items found. Add your first item above!</p>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                >
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                    {item.title}
-                  </h3>
-                  {item.description && (
-                    <p className="text-gray-600 mb-3">{item.description}</p>
-                  )}
-                  <p className="text-sm text-gray-500">
-                    Created: {new Date(item.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotPasswordModal}
+        onClose={() => setShowForgotPasswordModal(false)}
+        onSuccess={handleForgotPassword}
+      />
 
-        {/* Footer */}
-        <div className="text-center mt-12 text-gray-600">
-          <p>Built with Next.js, React, Tailwind CSS, Node.js, and PostgreSQL</p>
-        </div>
+      {/* Email Verification Modal */}
+      {pendingVerification && (
+        <EmailVerificationModal
+          isOpen={showEmailVerificationModal}
+          onClose={() => {
+            setShowEmailVerificationModal(false);
+            setPendingVerification(null);
+          }}
+          studentId={pendingVerification.studentId}
+          email={pendingVerification.email}
+          onVerificationSuccess={handleVerificationSuccess}
+        />
+      )}
+
+      {/* Optional: Add a subtle pattern overlay */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }}></div>
       </div>
     </div>
   )
-} 
+}

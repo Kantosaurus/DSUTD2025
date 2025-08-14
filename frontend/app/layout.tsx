@@ -6,8 +6,13 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'WebApp - Full Stack Application',
-  description: 'A modern full-stack web application built with Next.js, React, and Node.js',
+  title: 'DiscoverSUTD 2025',
+  description: 'DiscoverSUTD 2025 - A comprehensive platform for SUTD students',
+  icons: {
+    icon: '/dsutd.png',
+    shortcut: '/dsutd.png',
+    apple: '/dsutd.png',
+  },
 }
 
 export default function RootLayout({
@@ -17,7 +22,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        {children}
+      </body>
     </html>
   )
 } 
