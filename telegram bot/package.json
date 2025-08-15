@@ -1,0 +1,30 @@
+{
+  "name": "dsutd-reminder-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot that sends event reminders to users 30 minutes before their events start",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "nodemon bot.js",
+    "docker": "node scripts/docker-init.js"
+  },
+  "dependencies": {
+    "node-telegram-bot-api": "^0.66.0",
+    "pg": "^8.11.3",
+    "dotenv": "^16.4.5",
+    "node-cron": "^3.0.3",
+    "moment": "^2.30.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "reminder",
+    "event",
+    "notification"
+  ],
+  "author": "DSUTD 2025",
+  "license": "MIT"
+}

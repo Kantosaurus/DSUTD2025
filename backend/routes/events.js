@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const { pool } = require('../config/database');
 const { authenticateToken, requireClubOrAdmin, requireAdmin } = require('../middleware/auth');
 const { logSecurityEvent } = require('../utils/security');
+const telegramNotificationService = require('../services/telegramNotificationService');
 
 const router = express.Router();
 
@@ -12,9 +13,9 @@ router.post('/:eventId/signup', authenticateToken, async (req, res) => {
     const eventId = req.params.eventId;
     const userId = req.user.currentUser.id;
 
-    // Check if event exists
+    // Check if event exists and get full event details for notification
     const eventResult = await pool.query(
-      'SELECT id, title FROM calendar_events WHERE id = $1',
+      'SELECT id, title, description, event_date, start_time, end_time, event_type, location FROM calendar_events WHERE id = $1 AND is_active = true',
       [eventId]
     );
 
@@ -46,6 +47,13 @@ router.post('/:eventId/signup', authenticateToken, async (req, res) => {
       studentId: req.user.currentUser.student_id
     }, req);
 
+    // Send telegram notification (non-blocking)
+    telegramNotificationService.sendEventSignupConfirmation(userId, event)
+      .catch(error => {
+        console.error('Failed to send signup confirmation telegram:', error);
+        // Don't fail the API call if telegram notification fails
+      });
+
     res.json({ message: 'Successfully signed up for event' });
   } catch (err) {
     console.error('Error signing up for event:', err);
@@ -59,9 +67,9 @@ router.delete('/:eventId/signup', authenticateToken, async (req, res) => {
     const eventId = req.params.eventId;
     const userId = req.user.currentUser.id;
 
-    // Check if user is signed up for the event and get event details
+    // Check if user is signed up for the event and get full event details
     const signupResult = await pool.query(
-      `SELECT es.id, ce.title, ce.event_type 
+      `SELECT es.id, ce.title, ce.description, ce.event_date, ce.start_time, ce.end_time, ce.event_type, ce.location
        FROM event_signups es 
        JOIN calendar_events ce ON es.event_id = ce.id 
        WHERE es.user_id = $1 AND es.event_id = $2`,
@@ -94,6 +102,13 @@ router.delete('/:eventId/signup', authenticateToken, async (req, res) => {
       eventType: signup.event_type,
       studentId: req.user.currentUser.student_id
     }, req);
+
+    // Send telegram notification (non-blocking)
+    telegramNotificationService.sendEventCancellationNotification(userId, signup)
+      .catch(error => {
+        console.error('Failed to send cancellation notification telegram:', error);
+        // Don't fail the API call if telegram notification fails
+      });
 
     res.json({ message: 'Successfully cancelled event signup' });
   } catch (err) {

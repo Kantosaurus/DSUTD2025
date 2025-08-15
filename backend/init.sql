@@ -606,3 +606,32 @@ INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, or
 (10, 'Interesting 3D Prints', 'Download hostel wallet and card holder model by Joel, Class of 2025: https://www.printables.com/model/1009157-sutd-hostel-wallet-and-card-holder', 4),
 (10, 'Study Tips', 'Write notes to improve retention, type notes to organise thoughts. Recommended apps: GoodNotes, Notability, OneNote, Notion (free education account).', 5),
 (10, 'GitHub Education', 'Free suite of developer tools including GitHub Copilot. Remember to disable code-sharing permissions if required by your course.', 6);
+
+-- Telegram Bot Tables and Schema
+-- Add telegram_chat_id column to users table for telegram bot functionality
+ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_chat_id BIGINT;
+
+-- Add index for better performance when querying by telegram_chat_id
+CREATE INDEX IF NOT EXISTS idx_users_telegram_chat_id ON users(telegram_chat_id);
+
+-- Create table to track reminder notifications sent
+CREATE TABLE IF NOT EXISTS reminder_notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    event_id INTEGER REFERENCES calendar_events(id) ON DELETE CASCADE,
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reminder_type VARCHAR(50) DEFAULT '30_min_before',
+    UNIQUE(user_id, event_id, reminder_type)
+);
+
+-- Add indexes for better performance on reminder_notifications
+CREATE INDEX IF NOT EXISTS idx_reminder_notifications_user_event ON reminder_notifications(user_id, event_id);
+CREATE INDEX IF NOT EXISTS idx_reminder_notifications_sent_at ON reminder_notifications(sent_at);
+CREATE INDEX IF NOT EXISTS idx_reminder_notifications_type ON reminder_notifications(reminder_type);
+
+-- Comments for telegram bot tables
+COMMENT ON COLUMN users.telegram_chat_id IS 'Telegram chat ID for sending bot notifications to users';
+COMMENT ON TABLE reminder_notifications IS 'Tracks sent reminder notifications to prevent duplicates';
+COMMENT ON COLUMN reminder_notifications.reminder_type IS 'Type of reminder sent (e.g., 30_min_before, 1_hour_before)';
+
+-- Telegram bot functionality is now ready for use
