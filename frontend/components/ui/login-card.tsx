@@ -7,7 +7,8 @@ import { IconUser, IconLock, IconEye, IconEyeOff} from '@tabler/icons-react'
 
 interface LoginCardProps {
   onSubmit?: (studentId: string, password: string) => void
-  onSwitchToSignUp?: () => void
+  onSwitchToUserSignUp?: () => void
+  onSwitchToClubSignUp?: () => void
   onForgotPassword?: () => void
 }
 
@@ -19,7 +20,7 @@ interface LoginError {
   remainingMinutes?: number
 }
 
-export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword }: LoginCardProps) {
+export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToClubSignUp, onForgotPassword }: LoginCardProps) {
   const [studentId, setStudentId] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -374,18 +375,29 @@ export default function LoginCard({ onSubmit, onSwitchToSignUp, onForgotPassword
           transition={{ delay: 0.8, duration: 0.5 }}
           className="mt-6 text-center"
         >
-          <p className="text-sm text-gray-500">
-            Don't have an account?{' '}
+          <p className="text-sm text-gray-500 mb-4">
+            Don't have an account?
+          </p>
+          <div className="space-y-3">
             <motion.button
-              onClick={onSwitchToSignUp}
-              className="text-[#FF6B9D] hover:text-[#e35b89] font-medium transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              onClick={onSwitchToUserSignUp}
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2.5 px-4 rounded-xl font-medium transition-all duration-200 hover:shadow-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.1 }}
             >
-              Sign up here
+              Sign up as Student
             </motion.button>
-          </p>
+            <motion.button
+              onClick={onSwitchToClubSignUp}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2.5 px-4 rounded-xl font-medium transition-all duration-200 hover:shadow-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.1 }}
+            >
+              Sign up as Club
+            </motion.button>
+          </div>
         </motion.div>
       </div>
     </motion.div>

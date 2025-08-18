@@ -8,7 +8,8 @@ import { MultiStepLoader } from './multi-step-loader'
 interface SignUpModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit?: (studentId: string, password: string) => void
+  onSubmit?: (studentId: string, password: string, telegramHandle?: string) => void
+  type: 'user' | 'club'
 }
 
 interface PasswordStrength {
@@ -17,10 +18,11 @@ interface PasswordStrength {
   color: string
 }
 
-export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalProps) {
-  const [studentId, setStudentId] = useState('')
+export default function SignUpModal({ isOpen, onClose, onSubmit, type }: SignUpModalProps) {
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [telegramHandle, setTelegramHandle] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -90,15 +92,17 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!studentId || !password || !confirmPassword) return
+    if (!identifier || !password || !confirmPassword) return
     if (password !== confirmPassword) return
     if (passwordStrength.score < 5) return
+    if (type === 'user' && !isValidStudentId) return
+    if (type === 'club' && !isValidEmail) return
 
     setIsLoading(true)
     
     try {
       // Call the onSubmit function which will handle the API call
-      await onSubmit?.(studentId, password)
+      await onSubmit?.(identifier, password, telegramHandle || undefined)
       onClose()
     } catch (error) {
       console.error('Signup error:', error)
@@ -107,13 +111,14 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
     }
   }
 
-  // Student ID validation
-  const isValidStudentId = /^100[1-9]\d{3}$/.test(studentId)
+  // Validation
+  const isValidStudentId = type === 'user' ? /^100[1-9]\d{3}$/.test(identifier) : true
+  const isValidEmail = type === 'club' ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier) : true
 
-  const isFormValid = studentId && password && confirmPassword && 
+  const isFormValid = identifier && password && confirmPassword && 
                      password === confirmPassword && 
                      passwordStrength.score >= 5 &&
-                     isValidStudentId
+                     (type === 'user' ? isValidStudentId : isValidEmail)
 
   const signupLoadingStates = [
     { text: "Creating your account..." },
@@ -149,8 +154,12 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Create Account</h2>
-                <p className="text-sm text-gray-600 mt-1">Join us today</p>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {type === 'user' ? 'Create Student Account' : 'Create Club Account'}
+                </h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  {type === 'user' ? 'Join us as a student' : 'Register your club'}
+                </p>
               </div>
               <button
                 onClick={onClose}
@@ -162,7 +171,7 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-6 text-gray-900">
-              {/* Student ID Input */}
+              {/* Identifier Input */}
               <motion.div 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -170,15 +179,15 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
                 className="space-y-2"
               >
                 <motion.label 
-                  htmlFor="signup-studentId" 
+                  htmlFor="signup-identifier" 
                   className="text-sm font-medium text-gray-700 block"
                   animate={{ 
-                    color: focusedField === 'studentId' ? '#3b82f6' : '#374151',
-                    scale: focusedField === 'studentId' ? 1.02 : 1
+                    color: focusedField === 'identifier' ? '#3b82f6' : '#374151',
+                    scale: focusedField === 'identifier' ? 1.02 : 1
                   }}
                   transition={{ duration: 0.2 }}
                 >
-                  Student ID
+                  {type === 'user' ? 'Student ID' : 'Email'}
                 </motion.label>
                 <motion.div 
                   className="relative"
@@ -188,25 +197,25 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
                   <motion.div 
                     className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
                     animate={{ 
-                      color: focusedField === 'studentId' ? '#3b82f6' : '#9ca3af'
+                      color: focusedField === 'identifier' ? '#3b82f6' : '#9ca3af'
                     }}
                     transition={{ duration: 0.2 }}
                   >
                     <IconUser className="h-5 w-5" />
                   </motion.div>
                   <motion.input
-                    id="signup-studentId"
-                    type="text"
-                    value={studentId}
-                    onChange={(e) => setStudentId(e.target.value)}
-                    onFocus={() => setFocusedField('studentId')}
+                    id="signup-identifier"
+                    type={type === 'user' ? 'text' : 'email'}
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    onFocus={() => setFocusedField('identifier')}
                     onBlur={() => setFocusedField(null)}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white text-gray-900 placeholder-gray-500 ${
-                      studentId && !isValidStudentId 
+                      identifier && (type === 'user' ? !isValidStudentId : !isValidEmail)
                         ? 'border-red-300 focus:ring-red-500' 
                         : 'border-gray-200 focus:ring-blue-500'
                     }`}
-                    placeholder="Enter your student ID (e.g., 1001234)"
+                    placeholder={type === 'user' ? 'Enter your student ID (e.g., 1001234)' : 'Enter your club email'}
                     required
                     whileFocus={{ scale: 1.02 }}
                     transition={{ duration: 0.2 }}
@@ -214,23 +223,23 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
                   <motion.div
                     className="absolute inset-0 rounded-xl border-2 border-transparent pointer-events-none"
                     animate={{
-                      borderColor: focusedField === 'studentId' ? '#3b82f6' : 'transparent',
-                      scale: focusedField === 'studentId' ? 1.02 : 1
+                      borderColor: focusedField === 'identifier' ? '#3b82f6' : 'transparent',
+                      scale: focusedField === 'identifier' ? 1.02 : 1
                     }}
                     transition={{ duration: 0.2 }}
                   />
                 </motion.div>
                 
-                {/* Student ID Validation */}
+                {/* Identifier Validation */}
                 <AnimatePresence>
-                  {studentId && (
+                  {identifier && (
                     <motion.div 
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       className="flex items-center space-x-2"
                     >
-                      {isValidStudentId ? (
+                      {(type === 'user' ? isValidStudentId : isValidEmail) ? (
                         <>
                           <motion.div
                             initial={{ scale: 0 }}
@@ -239,7 +248,9 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
                           >
                             <IconCheck className="w-4 h-4 text-green-500" />
                           </motion.div>
-                          <span className="text-xs text-green-600">Valid student ID format</span>
+                          <span className="text-xs text-green-600">
+                            {type === 'user' ? 'Valid student ID format' : 'Valid email format'}
+                          </span>
                         </>
                       ) : (
                         <>
@@ -250,7 +261,12 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
                           >
                             <IconAlertCircle className="w-4 h-4 text-red-500" />
                           </motion.div>
-                          <span className="text-xs text-red-600">Must be in format 100XXXX (X = 1-9)</span>
+                          <span className="text-xs text-red-600">
+                            {type === 'user' 
+                              ? 'Must be in format 100XXXX (X = 1-9)' 
+                              : 'Please enter a valid email address'
+                            }
+                          </span>
                         </>
                       )}
                     </motion.div>
@@ -575,11 +591,66 @@ export default function SignUpModal({ isOpen, onClose, onSubmit }: SignUpModalPr
                 </AnimatePresence>
               </motion.div>
 
+              {/* Telegram Handle Input */}
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+                className="space-y-2"
+              >
+                <motion.label 
+                  htmlFor="signup-telegram" 
+                  className="text-sm font-medium text-gray-700 block"
+                  animate={{ 
+                    color: focusedField === 'telegram' ? '#3b82f6' : '#374151',
+                    scale: focusedField === 'telegram' ? 1.02 : 1
+                  }}
+                  transition={{ duration: 0.2 }}
+                >
+                  Telegram Handle <span className="text-gray-400">(Optional)</span>
+                </motion.label>
+                <motion.div 
+                  className="relative"
+                  whileHover={{ scale: 1.01 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <motion.div 
+                    className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                    animate={{ 
+                      color: focusedField === 'telegram' ? '#3b82f6' : '#9ca3af'
+                    }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <span className="text-gray-500">@</span>
+                  </motion.div>
+                  <motion.input
+                    id="signup-telegram"
+                    type="text"
+                    value={telegramHandle}
+                    onChange={(e) => setTelegramHandle(e.target.value)}
+                    onFocus={() => setFocusedField('telegram')}
+                    onBlur={() => setFocusedField(null)}
+                    className="block w-full pl-8 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white text-gray-900 placeholder-gray-500"
+                    placeholder="your_username"
+                    whileFocus={{ scale: 1.02 }}
+                    transition={{ duration: 0.2 }}
+                  />
+                  <motion.div
+                    className="absolute inset-0 rounded-xl border-2 border-transparent pointer-events-none"
+                    animate={{
+                      borderColor: focusedField === 'telegram' ? '#3b82f6' : 'transparent',
+                      scale: focusedField === 'telegram' ? 1.02 : 1
+                    }}
+                    transition={{ duration: 0.2 }}
+                  />
+                </motion.div>
+              </motion.div>
+
               {/* Submit Button */}
               <motion.button
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"

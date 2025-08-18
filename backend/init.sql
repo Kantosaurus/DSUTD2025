@@ -20,7 +20,9 @@ CREATE TABLE IF NOT EXISTS users (
     email_verification_code VARCHAR(6),
     email_verification_expires TIMESTAMP,
     password_reset_token VARCHAR(255),
-    password_reset_expires TIMESTAMP
+    password_reset_expires TIMESTAMP,
+    telegram_handle VARCHAR(255),
+    telegram_chat_id BIGINT
 );
 
 -- Create calendar_events table
@@ -131,6 +133,8 @@ CREATE INDEX IF NOT EXISTS idx_users_student_id ON users(student_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_password_reset_token ON users(password_reset_token);
+CREATE INDEX IF NOT EXISTS idx_users_telegram_handle ON users(telegram_handle);
+CREATE INDEX IF NOT EXISTS idx_users_telegram_chat_id ON users(telegram_chat_id);
 CREATE INDEX IF NOT EXISTS idx_event_signups_user_id ON event_signups(user_id);
 CREATE INDEX IF NOT EXISTS idx_event_signups_event_id ON event_signups(event_id);
 CREATE INDEX IF NOT EXISTS idx_event_signups_signup_date ON event_signups(signup_date);
@@ -608,11 +612,6 @@ INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, or
 (10, 'GitHub Education', 'Free suite of developer tools including GitHub Copilot. Remember to disable code-sharing permissions if required by your course.', 6);
 
 -- Telegram Bot Tables and Schema
--- Add telegram_chat_id column to users table for telegram bot functionality
-ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_chat_id BIGINT;
-
--- Add index for better performance when querying by telegram_chat_id
-CREATE INDEX IF NOT EXISTS idx_users_telegram_chat_id ON users(telegram_chat_id);
 
 -- Create table to track reminder notifications sent
 CREATE TABLE IF NOT EXISTS reminder_notifications (
@@ -630,6 +629,7 @@ CREATE INDEX IF NOT EXISTS idx_reminder_notifications_sent_at ON reminder_notifi
 CREATE INDEX IF NOT EXISTS idx_reminder_notifications_type ON reminder_notifications(reminder_type);
 
 -- Comments for telegram bot tables
+COMMENT ON COLUMN users.telegram_handle IS 'Optional Telegram handle for the user (without @)';
 COMMENT ON COLUMN users.telegram_chat_id IS 'Telegram chat ID for sending bot notifications to users';
 COMMENT ON TABLE reminder_notifications IS 'Tracks sent reminder notifications to prevent duplicates';
 COMMENT ON COLUMN reminder_notifications.reminder_type IS 'Type of reminder sent (e.g., 30_min_before, 1_hour_before)';
