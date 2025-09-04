@@ -444,7 +444,37 @@ INSERT INTO calendar_events (title, description, event_date, start_time, end_tim
 -- What the Hack 2025 (3-day hackathon)
 ('What the Hack 2025', 'SUTD''s signature hackathon 2025 - Day 1', '2025-09-19', '08:00:00', '23:59:00', 'Optional', 'Campus-wide', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
 ('What the Hack 2025', 'SUTD''s signature hackathon 2025 - Day 2', '2025-09-20', '08:00:00', '23:59:00', 'Optional', 'Campus-wide', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
-('What the Hack 2025', 'SUTD''s signature hackathon 2025 - Day 3', '2025-09-21', '08:00:00', '18:00:00', 'Optional', 'Campus-wide', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1)
+('What the Hack 2025', 'SUTD''s signature hackathon 2025 - Day 3', '2025-09-21', '08:00:00', '18:00:00', 'Optional', 'Campus-wide', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+
+-- Freshmore Orientation 2025 Events
+('Airport pickup & early check-in for International Students', 'Early check-in assistance for international students arriving at the airport', '2025-09-08', '00:00:00', '23:59:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Hostel check-in for Local Students', 'Check-in process for local students moving into hostels', '2025-09-09', '00:00:00', '23:59:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Hostel Briefing & Floor Gatherings', 'Mandatory briefing for hostel residents with floor gathering sessions', '2025-09-09', '19:00:00', '21:00:00', 'Mandatory', 'Lecture Theatre 1', '#C60003', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Welcome Briefing', 'Mandatory welcome briefing for all new students', '2025-09-10', '10:00:00', '12:00:00', 'Mandatory', 'Auditorium', '#C60003', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('DIVE Briefing', 'Mandatory DIVE program briefing session', '2025-09-10', '13:00:00', '14:30:00', 'Mandatory', 'Auditorium', '#C60003', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Student Organisations Showcase', 'Mandatory showcase of student organizations and clubs', '2025-09-10', '14:30:00', '17:30:00', 'Mandatory', 'Indoor Sports Halls, Maker Breaker Space', '#C60003', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Drug Awareness & Prevention Talk', 'Mandatory drug awareness and prevention educational talk', '2025-09-10', '19:00:00', '21:00:00', 'Mandatory', 'Auditorium', '#C60003', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Academic Briefing', 'Mandatory academic briefing for all new students', '2025-09-15', '14:00:00', '16:00:00', 'Mandatory', 'Auditorium', '#C60003', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Hostel Floor Gatherings with Pillar Year Residents', 'Floor gatherings between new students and pillar year residents', '2025-09-15', '18:00:00', '20:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('English Proficiency Test (EWET)', 'English Proficiency Test for applicable students', '2025-09-16', '09:00:00', '17:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Library Day', 'Library orientation and familiarization day', '2025-09-17', '11:00:00', '16:30:00', 'Optional', 'Library', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Freshmen Inauguration Ceremony', 'Mandatory formal inauguration ceremony for all freshmen', '2025-09-17', '16:30:00', '18:00:00', 'Mandatory', 'Auditorium', '#C60003', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Freshmore-Faculty Networking Nite', 'Mandatory networking event between freshmen and faculty', '2025-09-17', '18:00:00', '21:00:00', 'Mandatory', 'Indoor Sports Halls', '#C60003', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Design Your Future: Discover ASD', 'Information session about Architecture and Sustainable Design pillar', '2025-09-19', '14:00:00', '16:00:00', 'Optional', 'ASD Studio 2 (1.617)', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Library & Digital Competencies Workshop', 'Online workshop on library resources and digital competencies', '2025-09-23', '15:30:00', '17:30:00', 'Optional', 'Online Webinar', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('Internship Poster Showcase', 'Showcase of internship experiences and opportunities', '2025-09-26', '14:00:00', '17:00:00', 'Optional', 'Campus Centre Level 2 & Library', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('StartSomething Day 1', 'StartSomething entrepreneurship program - Day 1', '2025-09-27', '08:00:00', '18:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('StartSomething Day 2', 'StartSomething entrepreneurship program - Day 2', '2025-09-28', '08:00:00', '18:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('StartSomething Day 3', 'StartSomething entrepreneurship program - Day 3', '2025-09-29', '08:00:00', '18:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('StartSomething Day 4', 'StartSomething entrepreneurship program - Day 4', '2025-09-30', '08:00:00', '18:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('StartSomething Day 5', 'StartSomething entrepreneurship program - Day 5', '2025-10-01', '08:00:00', '18:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('StartSomething Day 6', 'StartSomething entrepreneurship program - Day 6', '2025-10-02', '08:00:00', '18:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('StartSomething Day 7', 'StartSomething entrepreneurship program - Day 7', '2025-10-03', '08:00:00', '18:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('StartSomething Day 8', 'StartSomething entrepreneurship program - Day 8', '2025-10-04', '08:00:00', '18:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('StartSomething Day 9', 'StartSomething entrepreneurship program - Day 9', '2025-10-05', '08:00:00', '18:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('StartSomething Day 10', 'StartSomething entrepreneurship program - Day 10', '2025-10-06', '08:00:00', '18:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('StartSomething Day 11', 'StartSomething entrepreneurship program - Day 11', '2025-10-07', '08:00:00', '18:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1),
+('StartSomething Day 12', 'StartSomething entrepreneurship program - Day 12', '2025-10-08', '08:00:00', '18:00:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE, 'approved', CURRENT_TIMESTAMP, 1)
 ON CONFLICT (title, event_date, start_time) DO NOTHING;
 
 -- Update colors for events that have NULL colors based on their event type
