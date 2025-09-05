@@ -561,5 +561,71 @@ router.get('/events/all', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
+// Fix missing mandatory event enrollments (admin only)
+router.post('/fix-mandatory-enrollments', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    // Get all verified and active users
+    const usersResult = await pool.query(
+      'SELECT id, student_id FROM users WHERE email_verified = true AND is_active = true'
+    );
+
+    // Get all active mandatory events
+    const eventsResult = await pool.query(
+      `SELECT id, title FROM calendar_events 
+       WHERE (event_type = 'Mandatory' OR event_type = 'mandatory') AND is_active = true`
+    );
+
+    let enrollmentCount = 0;
+    const enrollmentDetails = [];
+
+    // For each user, check if they're enrolled in each mandatory event
+    for (const user of usersResult.rows) {
+      for (const event of eventsResult.rows) {
+        // Check if user is already enrolled
+        const existingEnrollment = await pool.query(
+          'SELECT id FROM event_signups WHERE user_id = $1 AND event_id = $2',
+          [user.id, event.id]
+        );
+
+        // If not enrolled, enroll them
+        if (existingEnrollment.rows.length === 0) {
+          await pool.query(
+            'INSERT INTO event_signups (user_id, event_id) VALUES ($1, $2)',
+            [user.id, event.id]
+          );
+          enrollmentCount++;
+          enrollmentDetails.push({
+            studentId: user.student_id,
+            eventTitle: event.title,
+            eventId: event.id
+          });
+        }
+      }
+    }
+
+    await logSecurityEvent('MANDATORY_ENROLLMENTS_FIXED', 
+      `Fixed ${enrollmentCount} missing mandatory event enrollments for ${usersResult.rows.length} users`, 
+      req.user.currentUser.id, {
+        totalUsers: usersResult.rows.length,
+        totalMandatoryEvents: eventsResult.rows.length,
+        newEnrollments: enrollmentCount,
+        adminId: req.user.currentUser.id,
+        adminStudentId: req.user.currentUser.student_id
+      }, req);
+
+    res.json({
+      message: 'Successfully fixed mandatory event enrollments',
+      totalUsers: usersResult.rows.length,
+      totalMandatoryEvents: eventsResult.rows.length,
+      newEnrollments: enrollmentCount,
+      enrollmentDetails: enrollmentDetails.slice(0, 10) // Show first 10 for debugging
+    });
+
+  } catch (err) {
+    console.error('Error fixing mandatory enrollments:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 module.exports = router;
