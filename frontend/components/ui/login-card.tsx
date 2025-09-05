@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MultiStepLoader } from './multi-step-loader'
-import { IconUser, IconLock, IconEye, IconEyeOff} from '@tabler/icons-react'
+import { IconUser, IconLock, IconEye, IconEyeOff, IconAlertCircle } from '@tabler/icons-react'
 
 interface LoginCardProps {
   onSubmit?: (studentId: string, password: string) => void
@@ -13,7 +13,7 @@ interface LoginCardProps {
 }
 
 interface LoginError {
-  type: 'validation' | 'credentials' | 'locked' | 'deactivated' | 'password_change' | 'network'
+  type: 'validation' | 'credentials' | 'locked' | 'deactivated' | 'verification' | 'network'
   message: string
   remainingAttempts?: number
   lockedUntil?: string
@@ -27,36 +27,99 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
   const [isLoading, setIsLoading] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
   const [error, setError] = useState<LoginError | null>(null)
-  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!studentId || !password) return
+    if (!studentId.trim() || !password.trim()) {
+      setError({
+        type: 'validation',
+        message: 'Please enter both student ID and password'
+      })
+      return
+    }
 
     setIsLoading(true)
     setError(null)
-    setRemainingAttempts(null)
 
     try {
-      // Use the onSubmit prop from parent component
-      if (onSubmit) {
-        await onSubmit(studentId, password)
-      }
-    } catch (err: any) {
-      setError({
-        type: 'network',
-        message: err.message || 'Network error. Please check your connection and try again.'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+      
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          studentId: studentId.trim(),
+          password: password.trim()
+        }),
       })
+
+      if (!response.ok) {
+        const data = await response.json()
+        
+        if (response.status === 401) {
+          if (data.requiresVerification) {
+            setError({
+              type: 'verification',
+              message: 'Please verify your email before logging in'
+            })
+          } else {
+            setError({
+              type: 'credentials',
+              message: data.error || 'Invalid credentials',
+              remainingAttempts: data.remainingAttempts
+            })
+          }
+        } else if (response.status === 423) {
+          setError({
+            type: 'locked',
+            message: data.error || 'Account is locked',
+            lockedUntil: data.lockedUntil,
+            remainingMinutes: Math.ceil((new Date(data.lockedUntil).getTime() - new Date().getTime()) / 60000)
+          })
+        } else {
+          setError({
+            type: 'network',
+            message: data.error || 'Login failed. Please try again.'
+          })
+        }
+        return
+      }
+
+      const data = await response.json()
+      
+      // Call parent component's onSubmit handler
+      if (onSubmit) {
+        await onSubmit(studentId.trim(), password.trim())
+      }
+
+    } catch (err: any) {
+      console.error('Login error:', err)
+      if (err.name === 'TypeError' && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+        setError({
+          type: 'network',
+          message: 'Cannot connect to server. Please check if the backend is running and try again.'
+        })
+      } else {
+        setError({
+          type: 'network',
+          message: err.message || 'Network error. Please check your connection and try again.'
+        })
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
   const loginLoadingStates = [
+    { text: "Connecting to server..." },
     { text: "Verifying credentials..." },
     { text: "Checking account status..." },
     { text: "Signing you in..." }
-  ];
+  ]
 
   return (
     <motion.div
@@ -81,7 +144,7 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
             transition={{ delay: 0.2, duration: 0.5 }}
             className="mx-auto m-0 flex items-center justify-center"
           >
-            <img src="/dsutd 2025.svg" className="w-[280px] h-auto max-h-[200px] object-contain" />
+            <img src="/dsutd2025.svg" className="w-[280px] h-auto max-h-[200px] object-contain" />
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
@@ -119,7 +182,7 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
               }}
               transition={{ duration: 0.2 }}
             >
-              Student ID
+              Student ID or Email
             </motion.label>
             <motion.div
               className="relative"
@@ -143,8 +206,9 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
                 onFocus={() => setFocusedField('studentId')}
                 onBlur={() => setFocusedField(null)}
                 className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white text-gray-900 placeholder-gray-500"
-                placeholder="Enter your student ID"
+                placeholder="Enter your student ID or email"
                 required
+                disabled={isLoading}
                 whileFocus={{ scale: 1.02 }}
                 transition={{ duration: 0.2 }}
               />
@@ -186,6 +250,7 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   transition={{ duration: 0.1 }}
+                  disabled={isLoading}
                 >
                   Forgot password?
                 </motion.button>
@@ -215,6 +280,7 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
                 className="block w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white text-gray-900 placeholder-gray-500"
                 placeholder="Enter your password"
                 required
+                disabled={isLoading}
                 whileFocus={{ scale: 1.02 }}
                 transition={{ duration: 0.2 }}
               />
@@ -225,6 +291,7 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ duration: 0.1 }}
+                disabled={isLoading}
               >
                 <AnimatePresence mode="wait">
                   {showPassword ? (
@@ -269,8 +336,9 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
-            disabled={isLoading || !studentId || !password}
-            className="w-full bg-black text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg">
+            disabled={isLoading || !studentId.trim() || !password.trim()}
+            className="w-full bg-black hover:bg-gray-800 text-white py-3 px-4 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg disabled:hover:bg-black"
+          >
             <AnimatePresence mode="wait">
               {isLoading ? (
                 <motion.div
@@ -314,40 +382,22 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
                   ? 'bg-red-50 border-red-200 text-red-800'
                   : error.type === 'credentials'
                   ? 'bg-orange-50 border-orange-200 text-orange-800'
-                  : error.type === 'password_change'
+                  : error.type === 'verification'
                   ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
                   : 'bg-red-50 border-red-200 text-red-800'
               }`}
             >
               <div className="flex items-start">
                 <div className="flex-shrink-0">
-                  {error.type === 'locked' && (
-                    <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9zM5.5 8a4.5 4.5 0 119 0v1H5.5V8z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                  {error.type === 'credentials' && (
-                    <svg className="h-5 w-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                  {error.type === 'password_change' && (
-                    <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                  {error.type === 'network' && (
-                    <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                  )}
+                  <IconAlertCircle className="h-5 w-5" />
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium">
                     {error.type === 'locked' && 'Account Locked'}
                     {error.type === 'credentials' && 'Invalid Credentials'}
-                    {error.type === 'password_change' && 'Password Change Required'}
+                    {error.type === 'verification' && 'Email Verification Required'}
                     {error.type === 'network' && 'Connection Error'}
+                    {error.type === 'validation' && 'Validation Error'}
                   </h3>
                   <div className="mt-1 text-sm">
                     <p>{error.message}</p>
@@ -385,6 +435,7 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.1 }}
+              disabled={isLoading}
             >
               Sign up as Student
             </motion.button>
@@ -394,6 +445,7 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.1 }}
+              disabled={isLoading}
             >
               Sign up as Club
             </motion.button>

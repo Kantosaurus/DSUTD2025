@@ -438,7 +438,7 @@ INSERT INTO calendar_events (title, description, event_date, start_time, end_tim
 -- Freshmore Orientation 2025 Events
 ('Airport pickup & early check-in for International Students', 'Early check-in assistance for international students arriving at the airport', '2025-09-08', '00:00:00', '23:59:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE),
 ('Hostel check-in for Local Students', 'Check-in process for local students moving into hostels', '2025-09-09', '00:00:00', '23:59:00', 'Optional', '', '#EF5800', NULL, 0, 1, TRUE),
-('Hostel Briefing & Floor Gatherings', 'Mandatory briefing for hostel residents with floor gathering sessions', '2025-09-09', '19:00:00', '21:00:00', 'Mandatory', 'Lecture Theatre 1', '#C60003', NULL, 0, 1, TRUE),
+('Hostel Briefing & Floor Gatherings', 'Mandatory briefing for hostel residents with floor gathering sessions', '2025-09-09', '19:00:00', '22:00:00', 'Mandatory', 'Lecture Theatre 1', '#C60003', NULL, 0, 1, TRUE),
 ('Welcome Briefing', 'Mandatory welcome briefing for all new students', '2025-09-10', '10:00:00', '12:00:00', 'Mandatory', 'Auditorium', '#C60003', NULL, 0, 1, TRUE),
 ('DIVE Briefing', 'Mandatory DIVE program briefing session', '2025-09-10', '13:00:00', '14:30:00', 'Mandatory', 'Auditorium', '#C60003', NULL, 0, 1, TRUE),
 ('Student Organisations Showcase', 'Mandatory showcase of student organizations and clubs', '2025-09-10', '14:30:00', '17:30:00', 'Mandatory', 'Indoor Sports Halls, Maker Breaker Space', '#C60003', NULL, 0, 1, TRUE),

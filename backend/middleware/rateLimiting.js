@@ -16,8 +16,9 @@ const loginRateLimit = rateLimit({
 const loginSlowDown = slowDown({
   windowMs: 15 * 60 * 1000, // 15 minutes
   delayAfter: 2, // Allow 2 requests per 15 minutes without delay
-  delayMs: 1000, // Add 1 second delay per request after delayAfter
-  skipSuccessfulRequests: true
+  delayMs: () => 1000, // Add 1 second delay per request after delayAfter (updated for v2)
+  skipSuccessfulRequests: true,
+  validate: { delayMs: false } // Disable the warning
 });
 
 // General rate limiting
