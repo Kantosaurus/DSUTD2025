@@ -5,9 +5,11 @@ A Telegram bot that automatically sends reminders to users 30 minutes before the
 ## Features
 
 - 🔔 **Automatic Reminders**: Sends notifications 30 minutes before events
-- 👥 **User Registration**: Users can link their Telegram account to their SUTD student ID
+- 👥 **Account Verification**: Checks database to ensure user exists before linking
+- 🔐 **Secure Linking**: Users can only link existing SUTD student accounts
 - 📅 **Event Integration**: Works with existing event signup system
 - 🎯 **Smart Filtering**: Only sends reminders for events users have signed up for
+- ✅ **Account Management**: Proper signup, linking, and unlinking flow
 - 🧹 **Auto Cleanup**: Automatically cleans up old notification records
 - ⚡ **Real-time**: Checks for upcoming events every minute
 
@@ -71,9 +73,18 @@ npm start
 
 ### For Users
 
+**New Users (No SUTD Account Yet):**
+1. **Create SUTD Account**: First, sign up on the DSUTD website
+2. **Start the bot**: Search for your bot on Telegram and send `/start`  
+3. **Link your account**: Use `/register YOUR_STUDENT_ID` (e.g., `/register 1007667`)
+4. **Get reminders**: Bot will automatically send reminders 30 minutes before your events
+
+**Existing Users (Have SUTD Account):**
 1. **Start the bot**: Search for your bot on Telegram and send `/start`
-2. **Register**: Use `/register YOUR_STUDENT_ID` (e.g., `/register 1007667`)
-3. **Get reminders**: Bot will automatically send reminders 30 minutes before your events
+2. **Link your account**: Use `/register YOUR_STUDENT_ID` 
+3. **Get reminders**: Bot will automatically send reminders for your registered events
+
+**Important**: The bot will verify your Student ID exists in our database before linking. If not found, you need to create your SUTD account first on the website.
 
 ### Bot Commands
 
@@ -83,23 +94,49 @@ npm start
 - `/status` - Check registration status and upcoming events
 - `/help` - Show help message
 
-### Example Usage
+### Example Usage Flows
 
+**Successful Registration:**
 ```
 /register 1007667
-✅ Registration Successful!
-Welcome John! Your account has been linked successfully.
+✅ Account Successfully Linked!
 
-🔔 You will now receive reminders 30 minutes before your registered events start!
+Welcome John! Your Telegram account is now linked to your SUTD student account.
+
+Your Account Details:
+👤 Student ID: 1007667
+📧 Email: john.doe@mymail.sutd.edu.sg
+📲 Telegram Chat ID: 123456789
+
+🔔 You'll receive automatic reminders 30 minutes before events you've signed up for
+```
+
+**User Not Found:**
+```
+/register 9999999
+❌ Student ID Not Found
+
+Student ID "9999999" was not found in our system.
+
+Possible reasons:
+• You haven't created an account on the DSUTD website yet
+• Your account is inactive or pending verification  
+• You entered the wrong student ID
+
+What to do next:
+1. If you haven't signed up yet: Visit the DSUTD website to create your account first
+2. If you already have an account: Double-check your student ID and try again
 ```
 
 ## How It Works
 
-1. **Event Monitoring**: Bot checks every minute for events starting in 30 minutes
-2. **User Lookup**: Finds users who have signed up for those events AND have telegram_chat_id
-3. **Reminder Sending**: Sends formatted reminder messages via Telegram
-4. **Tracking**: Records sent reminders to avoid duplicates
-5. **Cleanup**: Daily cleanup of old reminder records
+1. **Database Verification**: Bot checks if Student ID exists in database before linking
+2. **Account Linking**: Links Telegram chat to existing student account  
+3. **Event Monitoring**: Bot checks every minute for events starting in 30 minutes
+4. **User Lookup**: Finds users who have signed up for those events AND have telegram_chat_id
+5. **Reminder Sending**: Sends formatted reminder messages via Telegram
+6. **Tracking**: Records sent reminders to avoid duplicates
+7. **Cleanup**: Daily cleanup of old reminder records
 
 ## Message Format
 

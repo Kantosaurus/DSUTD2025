@@ -72,22 +72,61 @@ class TelegramService {
   }
 
   async handleStartCommand(chatId, userId, user) {
+    // Check if this chat is already linked to a user account
+    try {
+      const existingUserQuery = `
+        SELECT student_id, email
+        FROM users 
+        WHERE telegram_chat_id = $1 AND is_active = true
+      `;
+      
+      const existingResult = await pool.query(existingUserQuery, [chatId]);
+      
+      if (existingResult.rows.length > 0) {
+        const linkedUser = existingResult.rows[0];
+        const welcomeMessage = `
+🎓 **Welcome back to DSUTD 2025 Event Reminder Bot!**
+
+Hi ${user.first_name}! You are already registered and linked to your SUTD account.
+
+**Your Account:**
+👤 Student ID: ${linkedUser.student_id}
+📧 Email: ${linkedUser.email}
+
+🔔 You will receive reminders 30 minutes before your registered events start.
+
+**Available commands:**
+/status - Check your registration status and upcoming events
+/unregister - Remove your Telegram registration  
+/help - Show available commands
+        `;
+        
+        await this.sendMessage(chatId, welcomeMessage);
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking existing user:', error);
+    }
+
     const welcomeMessage = `
 🎓 **Welcome to DSUTD 2025 Event Reminder Bot!**
 
-Hi ${user.first_name}! I'm here to send you reminders for your registered events.
+Hi ${user.first_name}! I help send you reminders for your registered events.
 
 **To get started:**
-1. Register with your student ID using: \`/register YOUR_STUDENT_ID\`
-2. I'll automatically send you reminders 30 minutes before your events start!
+You need to link your Telegram account to your SUTD student account.
+
+**If you already have a SUTD account:**
+Use: \`/register YOUR_STUDENT_ID\`
+Example: \`/register 1007667\`
+
+**If you don't have a SUTD account yet:**
+Please sign up first at the DSUTD website, then come back here to link your account.
 
 **Available commands:**
-/register [student_id] - Link your Telegram to your SUTD account
-/unregister - Remove your Telegram registration  
+/register [student_id] - Link your Telegram to your existing SUTD account
 /status - Check your registration status
 /help - Show this help message
-
-**Example:** \`/register 1007667\`
     `;
 
     await this.sendMessage(chatId, welcomeMessage);
@@ -95,7 +134,34 @@ Hi ${user.first_name}! I'm here to send you reminders for your registered events
 
   async handleRegisterCommand(chatId, studentId, user) {
     try {
-      // Check if student ID exists and is valid
+      console.log(`Registration attempt: Student ID ${studentId}, Chat ID ${chatId}, User: ${user.first_name}`);
+
+      // First, check if this chat is already linked to any account
+      const chatCheckQuery = `
+        SELECT student_id, email
+        FROM users 
+        WHERE telegram_chat_id = $1 AND is_active = true
+      `;
+      
+      const chatResult = await pool.query(chatCheckQuery, [chatId]);
+      
+      if (chatResult.rows.length > 0) {
+        const linkedUser = chatResult.rows[0];
+        await this.sendMessage(chatId, `
+❌ **Registration Failed**
+
+Your Telegram account is already linked to Student ID: ${linkedUser.student_id}
+
+If you want to link a different account:
+1. Use /unregister to unlink your current account
+2. Then use /register with your new student ID
+
+Current linked account: ${linkedUser.email}
+        `);
+        return;
+      }
+
+      // Check if student ID exists in database
       const userQuery = `
         SELECT id, student_id, email, telegram_chat_id 
         FROM users 
@@ -106,9 +172,19 @@ Hi ${user.first_name}! I'm here to send you reminders for your registered events
       
       if (userResult.rows.length === 0) {
         await this.sendMessage(chatId, `
-❌ **Registration Failed**
+❌ **Student ID Not Found**
 
-Student ID "${studentId}" not found or inactive. Please check your student ID and try again.
+Student ID "${studentId}" was not found in our system.
+
+**Possible reasons:**
+• You haven't created an account on the DSUTD website yet
+• Your account is inactive or pending verification
+• You entered the wrong student ID
+
+**What to do next:**
+1. **If you haven't signed up yet:** Visit the DSUTD website to create your account first
+2. **If you already have an account:** Double-check your student ID and try again
+3. **If you're sure it's correct:** Contact support for assistance
 
 **Format:** \`/register YOUR_STUDENT_ID\`
 **Example:** \`/register 1007667\`
@@ -118,17 +194,27 @@ Student ID "${studentId}" not found or inactive. Please check your student ID an
 
       const dbUser = userResult.rows[0];
 
-      // Check if this student ID is already registered to another chat
+      // Check if this student account is already linked to another Telegram chat
       if (dbUser.telegram_chat_id && dbUser.telegram_chat_id !== chatId) {
         await this.sendMessage(chatId, `
-❌ **Registration Failed**
+❌ **Account Already Linked**
 
-This student ID is already registered to another Telegram account. If this is your account, please /unregister from the other account first.
+Student ID "${studentId}" is already linked to another Telegram account.
+
+**If this is your account:**
+You need to unregister from the other Telegram account first, then register here.
+
+**If this is not your account:**
+Someone may have incorrectly linked your student ID. Please contact support.
+
+**Account details:**
+👤 Student ID: ${studentId}
+📧 Email: ${dbUser.email}
         `);
         return;
       }
 
-      // Update user's telegram_chat_id
+      // If we get here, we can safely link the accounts
       const updateQuery = `
         UPDATE users 
         SET telegram_chat_id = $1 
@@ -137,36 +223,77 @@ This student ID is already registered to another Telegram account. If this is yo
       
       await pool.query(updateQuery, [chatId, studentId]);
 
+      // Success message
       await this.sendMessage(chatId, `
-✅ **Registration Successful!**
+✅ **Account Successfully Linked!**
 
-Welcome ${user.first_name}! Your account has been linked successfully.
+Welcome ${user.first_name}! Your Telegram account is now linked to your SUTD student account.
 
-**Details:**
+**Your Account Details:**
 👤 Student ID: ${studentId}
 📧 Email: ${dbUser.email}
-📲 Chat ID: ${chatId}
+📲 Telegram Chat ID: ${chatId}
 
-🔔 You will now receive reminders 30 minutes before your registered events start!
+**What happens next:**
+🔔 You'll receive automatic reminders 30 minutes before events you've signed up for
+📅 Sign up for events through the DSUTD website
+📱 Use /status anytime to check your upcoming events
 
-Use /status to check your registration anytime.
+**Available commands:**
+/status - Check your registration and upcoming events
+/unregister - Remove Telegram registration
+/help - Show all available commands
       `);
 
-      console.log(`User ${studentId} registered telegram chat ${chatId}`);
+      console.log(`✅ User ${studentId} successfully registered telegram chat ${chatId}`);
 
     } catch (error) {
-      console.error('Error in register command:', error);
+      console.error('❌ Error in register command:', error);
       await this.sendMessage(chatId, `
-❌ **Registration Error**
+❌ **System Error**
 
-Sorry, there was an error processing your registration. Please try again later or contact support.
+Sorry, there was a technical error processing your registration. 
+
+**Please try again in a few minutes.**
+
+If the problem persists, please contact the DSUTD tech team.
+
+Error logged at: ${new Date().toISOString()}
       `);
     }
   }
 
   async handleUnregisterCommand(chatId, user) {
     try {
-      // Find and remove telegram_chat_id for this chat
+      console.log(`Unregistration attempt: Chat ID ${chatId}, User: ${user.first_name}`);
+
+      // First check what account is linked to this chat
+      const checkQuery = `
+        SELECT student_id, email
+        FROM users 
+        WHERE telegram_chat_id = $1 AND is_active = true
+      `;
+      
+      const checkResult = await pool.query(checkQuery, [chatId]);
+
+      if (checkResult.rows.length === 0) {
+        await this.sendMessage(chatId, `
+ℹ️ **No Account Linked**
+
+Your Telegram account is not currently linked to any SUTD student account.
+
+**Want to link an account?**
+Use: \`/register YOUR_STUDENT_ID\`
+Example: \`/register 1007667\`
+
+Use /help to see all available commands.
+        `);
+        return;
+      }
+
+      const linkedAccount = checkResult.rows[0];
+
+      // Remove the telegram_chat_id link
       const updateQuery = `
         UPDATE users 
         SET telegram_chat_id = NULL 
@@ -176,35 +303,48 @@ Sorry, there was an error processing your registration. Please try again later o
       
       const result = await pool.query(updateQuery, [chatId]);
 
-      if (result.rows.length === 0) {
+      if (result.rows.length > 0) {
         await this.sendMessage(chatId, `
-❌ **Not Registered**
+✅ **Account Unlinked Successfully**
 
-You are not currently registered for notifications. Use /register to get started!
+${user.first_name}, your Telegram account has been unlinked from your SUTD student account.
+
+**Unlinked Account:**
+👤 Student ID: ${linkedAccount.student_id}
+📧 Email: ${linkedAccount.email}
+
+**What this means:**
+• You will no longer receive event reminders via Telegram
+• Your student account on the website remains active
+• You can still sign up for events through the website
+
+**Want to re-enable Telegram reminders?**
+Use: \`/register ${linkedAccount.student_id}\`
         `);
-        return;
+
+        console.log(`✅ User ${linkedAccount.student_id} successfully unregistered from telegram chat ${chatId}`);
+      } else {
+        await this.sendMessage(chatId, `
+❌ **Unregistration Failed**
+
+There was an issue unlinking your account. Please try again.
+
+If the problem persists, contact support.
+        `);
       }
 
-      const studentId = result.rows[0].student_id;
-      
-      await this.sendMessage(chatId, `
-✅ **Unregistered Successfully**
-
-${user.first_name}, you have been unregistered from event notifications.
-
-Student ID ${studentId} is no longer linked to this Telegram account.
-
-Use /register to re-enable notifications anytime!
-      `);
-
-      console.log(`User ${studentId} unregistered from telegram chat ${chatId}`);
-
     } catch (error) {
-      console.error('Error in unregister command:', error);
+      console.error('❌ Error in unregister command:', error);
       await this.sendMessage(chatId, `
-❌ **Error**
+❌ **System Error**
 
-Sorry, there was an error processing your request. Please try again later.
+Sorry, there was a technical error processing your unregistration.
+
+**Please try again in a few minutes.**
+
+If the problem persists, please contact the DSUTD tech team.
+
+Error logged at: ${new Date().toISOString()}
       `);
     }
   }
@@ -296,26 +436,36 @@ Sorry, there was an error checking your status. Please try again later.
 
 **Available Commands:**
 
-/start - Welcome message and setup instructions
-/register [student_id] - Link your Telegram to your SUTD account
-/unregister - Remove your Telegram registration  
+/start - Welcome message and account linking status
+/register [student_id] - Link your Telegram to your existing SUTD account
+/unregister - Remove your Telegram account link
 /status - Check your registration status and upcoming events
 /help - Show this help message
 
 **How it works:**
-1. Register with your SUTD student ID
-2. Sign up for events through the DSUTD website
-3. Get automatic reminders 30 minutes before events start!
+1. **Create a SUTD account** on the DSUTD website (if you haven't already)
+2. **Link your Telegram** using \`/register YOUR_STUDENT_ID\`
+3. **Sign up for events** through the DSUTD website
+4. **Get automatic reminders** 30 minutes before events start!
+
+**Account Linking:**
+• The bot checks if your Student ID exists in our database
+• If not found, you need to sign up on the website first
+• If already linked elsewhere, you'll need to unregister first
+• Each Telegram account can only be linked to one Student ID
 
 **Examples:**
 \`/register 1007667\`
 \`/status\`
-
-**Need help?** Contact the DSUTD tech team through official channels.
+\`/unregister\`
 
 **Event Types:**
 🔴 Mandatory events (attendance required)
 🟠 Optional events
+
+**Need help?** Contact the DSUTD tech team through official channels.
+
+**Important:** This bot only works with existing SUTD student accounts. Create your account on the website first if you haven't already.
     `;
 
     await this.sendMessage(chatId, helpMessage);

@@ -40,7 +40,6 @@ class ReminderService {
         )
         WHERE 
           ce.is_active = true
-          AND ce.status = 'approved'
           AND u.is_active = true
           AND u.telegram_chat_id IS NOT NULL
           AND rn.id IS NULL
