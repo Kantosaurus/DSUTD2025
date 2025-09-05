@@ -223,7 +223,7 @@ export default function SignUpModal({ isOpen, onClose, onSubmit, type }: SignUpM
                   <motion.div
                     className="absolute inset-0 rounded-xl border-2 border-transparent pointer-events-none"
                     animate={{
-                      borderColor: focusedField === 'identifier' ? '#3b82f6' : 'transparent',
+                      borderColor: focusedField === 'identifier' ? '#3b82f6' : 'rgba(0, 0, 0, 0)',
                       scale: focusedField === 'identifier' ? 1.02 : 1
                     }}
                     transition={{ duration: 0.2 }}
@@ -354,7 +354,7 @@ export default function SignUpModal({ isOpen, onClose, onSubmit, type }: SignUpM
                   <motion.div
                     className="absolute inset-0 rounded-xl border-2 border-transparent pointer-events-none"
                     animate={{
-                      borderColor: focusedField === 'password' ? '#3b82f6' : 'transparent',
+                      borderColor: focusedField === 'password' ? '#3b82f6' : 'rgba(0, 0, 0, 0)',
                       scale: focusedField === 'password' ? 1.02 : 1
                     }}
                     transition={{ duration: 0.2 }}
@@ -547,7 +547,7 @@ export default function SignUpModal({ isOpen, onClose, onSubmit, type }: SignUpM
                   <motion.div
                     className="absolute inset-0 rounded-xl border-2 border-transparent pointer-events-none"
                     animate={{
-                      borderColor: focusedField === 'confirmPassword' ? '#3b82f6' : 'transparent',
+                      borderColor: focusedField === 'confirmPassword' ? '#3b82f6' : 'rgba(0, 0, 0, 0)',
                       scale: focusedField === 'confirmPassword' ? 1.02 : 1
                     }}
                     transition={{ duration: 0.2 }}
@@ -638,7 +638,7 @@ export default function SignUpModal({ isOpen, onClose, onSubmit, type }: SignUpM
                   <motion.div
                     className="absolute inset-0 rounded-xl border-2 border-transparent pointer-events-none"
                     animate={{
-                      borderColor: focusedField === 'telegram' ? '#3b82f6' : 'transparent',
+                      borderColor: focusedField === 'telegram' ? '#3b82f6' : 'rgba(0, 0, 0, 0)',
                       scale: focusedField === 'telegram' ? 1.02 : 1
                     }}
                     transition={{ duration: 0.2 }}

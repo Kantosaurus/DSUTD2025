@@ -30,11 +30,6 @@ interface Event {
   max_participants: number
   current_participants: number
   current_signups: number
-  status: 'pending' | 'approved' | 'rejected'
-  approval_date: string | null
-  approved_by: number | null
-  approver_student_id: string | null
-  rejection_reason: string | null
   created_at: string
   updated_at: string
 }
@@ -56,9 +51,6 @@ interface EventAnalytics {
   creatorId: number
   creatorStudentId: string
   creatorRole: string
-  approvalDate: string | null
-  approvedBy: number | null
-  approverStudentId: string | null
   signups: Array<{
     user_id: number
     student_id: string
@@ -80,7 +72,7 @@ export default function ClubEventsPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false)
   const [eventAnalytics, setEventAnalytics] = useState<EventAnalytics | null>(null)
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
+  const [activeTab, setActiveTab] = useState<'all'>('all')
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -138,7 +130,7 @@ export default function ClubEventsPage() {
 
   const loadEvents = async (token: string, status?: string) => {
     try {
-      const url = status ? `${API_URL}/api/events/my-events?status=${status}` : `${API_URL}/api/events/my-events`
+      const url = `${API_URL}/api/events/my-events`
       const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -157,11 +149,8 @@ export default function ClubEventsPage() {
       
       setShowCreateModal(false)
       await loadEvents(token!, activeTab === 'all' ? undefined : activeTab)
-      
       // Show success message
-      alert(response.data.requiresApproval 
-        ? 'Event created successfully and is pending approval!' 
-        : 'Event created and approved successfully!')
+      alert('Event created successfully!')
     } catch (error: any) {
       console.error('Error creating event:', error)
       alert('Error creating event: ' + (error.response?.data?.error || 'Unknown error'))
@@ -178,10 +167,7 @@ export default function ClubEventsPage() {
       setShowEditModal(false)
       setSelectedEvent(null)
       await loadEvents(token!, activeTab === 'all' ? undefined : activeTab)
-      
-      alert(response.data.requiresApproval 
-        ? 'Event updated successfully and requires re-approval!' 
-        : 'Event updated successfully!')
+      alert('Event updated successfully!')
     } catch (error: any) {
       console.error('Error updating event:', error)
       alert('Error updating event: ' + (error.response?.data?.error || 'Unknown error'))
@@ -219,7 +205,7 @@ export default function ClubEventsPage() {
     }
   }
 
-  const handleTabChange = async (tab: 'all' | 'pending' | 'approved' | 'rejected') => {
+  const handleTabChange = async (tab: 'all') => {
     setActiveTab(tab)
     const token = localStorage.getItem('token')
     if (token) {
@@ -227,14 +213,6 @@ export default function ClubEventsPage() {
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved': return 'text-green-600 bg-green-100'
-      case 'pending': return 'text-yellow-600 bg-yellow-100'
-      case 'rejected': return 'text-red-600 bg-red-100'
-      default: return 'text-gray-600 bg-gray-100'
-    }
-  }
 
   if (isLoading) {
     return (
@@ -265,7 +243,7 @@ export default function ClubEventsPage() {
               My Events {userRole === 'club' && '(Club Management)'}
             </h1>
             <p className="text-gray-600">
-              Create, manage, and track your events. {userRole === 'club' && 'Events require admin approval.'}
+              Create, manage, and track your events.
             </p>
           </div>
 
@@ -274,10 +252,7 @@ export default function ClubEventsPage() {
             <div className="border-b border-gray-200">
               <nav className="-mb-px flex space-x-8">
                 {[
-                  { key: 'all', label: 'All Events' },
-                  { key: 'pending', label: 'Pending' },
-                  { key: 'approved', label: 'Approved' },
-                  { key: 'rejected', label: 'Rejected' }
+                  { key: 'all', label: 'All Events' }
                 ].map((tab) => (
                   <button
                     key={tab.key}
@@ -325,9 +300,6 @@ export default function ClubEventsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-xl font-semibold text-gray-900">{event.title}</h3>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(event.status)}`}>
-                          {event.status.toUpperCase()}
-                        </span>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                           event.event_type === 'Mandatory' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
                         }`}>
@@ -352,20 +324,7 @@ export default function ClubEventsPage() {
                         </div>
                       </div>
 
-                      {event.status === 'rejected' && event.rejection_reason && (
-                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
-                          <p className="text-red-700 text-sm">
-                            <span className="font-medium">Rejection Reason:</span> {event.rejection_reason}
-                          </p>
-                        </div>
-                      )}
 
-                      {event.status === 'approved' && event.approval_date && (
-                        <div className="mt-3 text-sm text-green-600">
-                          Approved on {new Date(event.approval_date).toLocaleDateString()}
-                          {event.approver_student_id && ` by ${event.approver_student_id}`}
-                        </div>
-                      )}
                     </div>
 
                     <div className="flex flex-col gap-2 ml-4">

@@ -256,7 +256,7 @@ export default function EmailVerificationModal({
                     <motion.div
                       className="absolute inset-0 rounded-xl border-2 border-transparent pointer-events-none"
                       animate={{
-                        borderColor: focusedField === 'verificationCode' ? '#3b82f6' : 'transparent',
+                        borderColor: focusedField === 'verificationCode' ? '#3b82f6' : 'rgba(0, 0, 0, 0)',
                         scale: focusedField === 'verificationCode' ? 1.02 : 1
                       }}
                       transition={{ duration: 0.2 }}

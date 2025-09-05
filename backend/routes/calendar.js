@@ -27,35 +27,102 @@ router.get('/events', optionalAuth, async (req, res) => {
     const startDate = new Date(year, month - 1, 1); // month is 1-indexed from frontend
     const endDate = new Date(year, month, 0); // Last day of the month
     
+    // First, get all events with additional info for multi-day detection
     const result = await pool.query(
-      `SELECT 
-        ce.id,
-        ce.title,
-        ce.description,
-        ce.event_date,
-        to_char(ce.event_date, 'YYYY-MM-DD') as event_date_str,
-        ce.start_time,
-        ce.end_time,
-        ce.event_type,
-        ce.color,
-        ce.max_participants,
-        ce.current_participants,
-        CASE WHEN es.user_id IS NOT NULL THEN true ELSE false END as is_registered
-       FROM calendar_events ce
-       LEFT JOIN event_signups es ON ce.id = es.event_id AND es.user_id = $3
-       WHERE ce.event_date >= $1 AND ce.event_date <= $2 AND ce.is_active = true AND ce.status = 'approved'
-       ORDER BY ce.event_date, ce.start_time`,
+      `WITH event_groups AS (
+        SELECT 
+          ce.id,
+          ce.title,
+          ce.description,
+          ce.event_date,
+          to_char(ce.event_date, 'YYYY-MM-DD') as event_date_str,
+          ce.start_time,
+          ce.end_time,
+          ce.event_type,
+          ce.color,
+          ce.max_participants,
+          ce.current_participants,
+          CASE WHEN es.user_id IS NOT NULL THEN true ELSE false END as is_registered,
+          CASE WHEN ce.event_type IN ('Mandatory', 'mandatory') THEN 1 ELSE 2 END as priority_order,
+          -- Detect if this event is part of a multi-day series (same title, consecutive dates)
+          LAG(ce.event_date, 1) OVER (PARTITION BY ce.title ORDER BY ce.event_date) as prev_date,
+          LEAD(ce.event_date, 1) OVER (PARTITION BY ce.title ORDER BY ce.event_date) as next_date
+        FROM calendar_events ce
+        LEFT JOIN event_signups es ON ce.id = es.event_id AND es.user_id = $3
+        WHERE ce.event_date >= $1 AND ce.event_date <= $2 AND ce.is_active = true
+      )
+      SELECT *,
+        CASE 
+          WHEN (prev_date IS NOT NULL AND prev_date = event_date - INTERVAL '1 day') OR 
+               (next_date IS NOT NULL AND next_date = event_date + INTERVAL '1 day') 
+          THEN true ELSE false 
+        END as is_multi_day_event
+      FROM event_groups
+      ORDER BY event_date, priority_order, start_time`,
       [startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0], req.user?.userId || null]
     );
 
-    // Group events by date
+    // Group events by date with conflict resolution
     const eventsByDate = {};
+    const conflictTracker = {}; // Track time conflicts per date
+    
     result.rows.forEach(event => {
       // Use the date string directly from the database to avoid timezone issues
       const dateKey = event.event_date_str;
       
       if (!eventsByDate[dateKey]) {
         eventsByDate[dateKey] = [];
+        conflictTracker[dateKey] = [];
+      }
+      
+      // Check for time conflicts
+      const eventStartTime = event.start_time;
+      const eventEndTime = event.end_time;
+      const isMandatory = event.event_type === 'Mandatory' || event.event_type === 'mandatory';
+      
+      // Check if this event conflicts with existing events on the same date
+      let hasConflict = false;
+      if (eventStartTime && eventEndTime) {
+        for (let existingEvent of conflictTracker[dateKey]) {
+          if (existingEvent.start_time && existingEvent.end_time) {
+            // Check for time overlap
+            const existingStart = existingEvent.start_time;
+            const existingEnd = existingEvent.end_time;
+            
+            const overlap = (eventStartTime < existingEnd && eventEndTime > existingStart);
+            
+            if (overlap) {
+              hasConflict = true;
+              const existingIsMandatory = existingEvent.event_type === 'Mandatory' || existingEvent.event_type === 'mandatory';
+              
+              // If current event is mandatory and existing is optional, replace it
+              if (isMandatory && !existingIsMandatory) {
+                // Remove the existing optional event
+                const indexToRemove = eventsByDate[dateKey].findIndex(e => e.id === existingEvent.id);
+                if (indexToRemove !== -1) {
+                  eventsByDate[dateKey].splice(indexToRemove, 1);
+                  conflictTracker[dateKey] = conflictTracker[dateKey].filter(e => e.id !== existingEvent.id);
+                }
+                hasConflict = false; // Allow this mandatory event to be added
+              }
+              // If current event is optional and existing is mandatory, skip current
+              else if (!isMandatory && existingIsMandatory) {
+                hasConflict = true;
+                break;
+              }
+              // If both are same type, keep the first one (already in the array)
+              else {
+                hasConflict = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+      
+      // Add event if no unresolved conflicts
+      if (!hasConflict) {
+        conflictTracker[dateKey].push(event);
       }
       
       // Format time for display (12-hour format)
@@ -78,21 +145,26 @@ router.get('/events', optionalAuth, async (req, res) => {
         endTime = `${displayHour}:${minutes} ${ampm}`;
       }
 
-      eventsByDate[dateKey].push({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        date: event.event_date_str,
-        time: time,
-        endTime: endTime,
-        startTime: event.start_time,
-        endTimeRaw: event.end_time,
-        type: event.event_type,
-        color: event.color || '#3b82f6',
-        maxParticipants: event.max_participants,
-        currentParticipants: event.current_participants || 0,
-        isRegistered: event.is_registered
-      });
+        eventsByDate[dateKey].push({
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          date: event.event_date_str,
+          time: time,
+          endTime: endTime,
+          startTime: event.start_time,
+          endTimeRaw: event.end_time,
+          type: event.event_type,
+          color: event.color || (isMandatory ? '#C60003' : '#3b82f6'),
+          maxParticipants: event.max_participants,
+          currentParticipants: event.current_participants || 0,
+          isRegistered: event.is_registered,
+          priority: isMandatory ? 'high' : 'normal',
+          isMultiDay: event.is_multi_day_event || false,
+          prevDate: event.prev_date ? event.prev_date.toISOString().split('T')[0] : null,
+          nextDate: event.next_date ? event.next_date.toISOString().split('T')[0] : null
+        });
+      }
     });
 
     res.json(eventsByDate);

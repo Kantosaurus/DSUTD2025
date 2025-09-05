@@ -16,6 +16,10 @@ interface CalendarEvent {
   description?: string;
   location?: string;
   end_time?: string;
+  priority?: 'high' | 'normal';
+  isMultiDay?: boolean;
+  prevDate?: string | null;
+  nextDate?: string | null;
 }
 
 interface CalendarDay {
@@ -249,24 +253,59 @@ export default function CalendarPage() {
         {visibleEvents.map((event) => {
           const isMandatoryEvent = ['Mandatory', 'mandatory'].includes(event.type || '');
           const eventStyle = getEventTypeStyle(event);
+          const isMultiDay = event.isMultiDay;
+          const hasPrevDate = event.prevDate;
+          const hasNextDate = event.nextDate;
+          
+          // Determine multi-day styling
+          let multiDayClasses = '';
+          let borderStyle = {};
+          
+          if (isMultiDay) {
+            // Multi-day event styling
+            if (hasPrevDate && hasNextDate) {
+              // Middle day of multi-day event
+              multiDayClasses = 'rounded-none border-l-2 border-r-2';
+              borderStyle = { borderLeftColor: event.color, borderRightColor: event.color };
+            } else if (hasPrevDate && !hasNextDate) {
+              // Last day of multi-day event
+              multiDayClasses = 'rounded-l-none rounded-r-md border-l-2';
+              borderStyle = { borderLeftColor: event.color };
+            } else if (!hasPrevDate && hasNextDate) {
+              // First day of multi-day event
+              multiDayClasses = 'rounded-l-md rounded-r-none border-r-2';
+              borderStyle = { borderRightColor: event.color };
+            }
+          }
 
           return (
             <div
               key={event.id}
-              className={`text-xs leading-tight truncate ${eventStyle}`}
+              className={`text-xs leading-tight truncate px-1 py-0.5 text-white font-medium ${multiDayClasses} ${!isMultiDay ? 'rounded-md' : ''}`}
               style={{
-                backgroundColor: event.color || '#3B82F6', // Use database color or default to blue
+                backgroundColor: event.color || '#3B82F6',
+                opacity: isMandatoryEvent ? 1 : 0.9,
+                ...borderStyle
               }}
             >
-              <span>
-                {event.title}
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="truncate">
+                  {event.title}
+                  {isMandatoryEvent && <span className="ml-1 text-xs">*</span>}
+                </span>
+                {isMultiDay && (
+                  <div className="flex ml-1">
+                    {hasPrevDate && <span className="text-xs">←</span>}
+                    {hasNextDate && <span className="text-xs">→</span>}
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
         {remainingCount > 0 && (
-          <div className="text-xs text-gray-500 font-medium">
-            {remainingCount} more
+          <div className="text-xs text-gray-500 font-medium pl-1">
+            +{remainingCount} more
           </div>
         )}
       </div>
@@ -608,12 +647,34 @@ export default function CalendarPage() {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                          {event.title}
-                        </h3>
+                        <div className="flex items-center mb-1">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {event.title}
+                          </h3>
+                          {event.priority === 'high' && (
+                            <span className="ml-2 text-red-500 text-sm font-bold">★ PRIORITY</span>
+                          )}
+                        </div>
+                        
+                        {/* Multi-day event indicator */}
+                        {event.isMultiDay && (
+                          <div className="flex items-center text-sm text-purple-600 mb-2">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Multi-day event
+                            {event.prevDate && <span className="ml-2">← Continues from previous day</span>}
+                            {event.nextDate && <span className="ml-2">Continues to next day →</span>}
+                          </div>
+                        )}
+                        
                         {event.time && (
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="text-sm text-gray-600 mb-2 flex items-center">
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                             {formatTime(event.time)}
+                            {event.end_time && ` - ${formatTime(event.end_time)}`}
                           </p>
                         )}
                         {event.location && (

@@ -149,9 +149,9 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
                 transition={{ duration: 0.2 }}
               />
               <motion.div
-                className="absolute inset-0 rounded-xl border-2 border-transparent pointer-events-none"
+                className="absolute inset-0 rounded-xl border-2 pointer-events-none"
                 animate={{
-                  borderColor: focusedField === 'studentId' ? '#3b82f6' : 'transparent',
+                  borderColor: focusedField === 'studentId' ? '#3b82f6' : 'rgba(0, 0, 0, 0)',
                   scale: focusedField === 'studentId' ? 1.02 : 1
                 }}
                 transition={{ duration: 0.2 }}
@@ -251,9 +251,9 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
                 </AnimatePresence>
               </motion.button>
               <motion.div
-                className="absolute inset-0 rounded-xl border-2 border-transparent pointer-events-none"
+                className="absolute inset-0 rounded-xl border-2 pointer-events-none"
                 animate={{
-                  borderColor: focusedField === 'password' ? '#3b82f6' : 'transparent',
+                  borderColor: focusedField === 'password' ? '#3b82f6' : 'rgba(0, 0, 0, 0)',
                   scale: focusedField === 'password' ? 1.02 : 1
                 }}
                 transition={{ duration: 0.2 }}
