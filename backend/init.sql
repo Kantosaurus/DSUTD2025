@@ -220,7 +220,7 @@ INSERT INTO users (student_id, email, password_hash, role, email_verified, is_ac
 ('1007877', '1007877@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
 ('1009127', '1009127@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
 ('1008153', '1008153@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
-('1008148', '1008148@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
+('1008148', '1008148@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE)
 ON CONFLICT (student_id) DO NOTHING;
 
 -- Insert sample calendar events from seed-events.json (all pre-approved by admin)
@@ -469,7 +469,7 @@ INSERT INTO calendar_events (title, description, event_date, start_time, end_tim
 ('Tech Innovation Summit', 'Three-day technology and innovation summit covering AI, blockchain, and sustainability.', '2025-10-16', '09:00:00', '17:00:00', 'Optional', 'Campus-wide', '#8B5CF6', NULL, 0, 1, TRUE),
 ('Tech Innovation Summit', 'Three-day technology and innovation summit covering AI, blockchain, and sustainability.', '2025-10-17', '09:00:00', '17:00:00', 'Optional', 'Campus-wide', '#8B5CF6', NULL, 0, 1, TRUE),
 ('Design Thinking Bootcamp', 'Intensive 2-day design thinking workshop for students.', '2025-10-22', '10:00:00', '16:00:00', 'Mandatory', 'Design Studios', '#C60003', NULL, 0, 1, TRUE),
-('Design Thinking Bootcamp', 'Intensive 2-day design thinking workshop for students.', '2025-10-23', '10:00:00', '16:00:00', 'Mandatory', 'Design Studios', '#C60003', NULL, 0, 1, TRUE),
+('Design Thinking Bootcamp', 'Intensive 2-day design thinking workshop for students.', '2025-10-23', '10:00:00', '16:00:00', 'Mandatory', 'Design Studios', '#C60003', NULL, 0, 1, TRUE)
 ON CONFLICT (title, event_date, start_time) DO NOTHING;
 
 -- Update colors for events that have NULL colors based on their event type
