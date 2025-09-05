@@ -470,9 +470,6 @@ INSERT INTO calendar_events (title, description, event_date, start_time, end_tim
 ('Tech Innovation Summit', 'Three-day technology and innovation summit covering AI, blockchain, and sustainability.', '2025-10-17', '09:00:00', '17:00:00', 'Optional', 'Campus-wide', '#8B5CF6', NULL, 0, 1, TRUE),
 ('Design Thinking Bootcamp', 'Intensive 2-day design thinking workshop for students.', '2025-10-22', '10:00:00', '16:00:00', 'Mandatory', 'Design Studios', '#C60003', NULL, 0, 1, TRUE),
 ('Design Thinking Bootcamp', 'Intensive 2-day design thinking workshop for students.', '2025-10-23', '10:00:00', '16:00:00', 'Mandatory', 'Design Studios', '#C60003', NULL, 0, 1, TRUE),
--- These should conflict with the Design Thinking Bootcamp but be overridden since bootcamp is mandatory
-('Optional Workshop Series', 'Optional skill development workshop.', '2025-10-22', '11:00:00', '15:00:00', 'Optional', 'Workshop Room', '#3B82F6', NULL, 0, 1, TRUE),
-('Another Optional Event', 'This should not show because mandatory event takes priority.', '2025-10-22', '12:00:00', '14:00:00', 'Optional', 'Meeting Room', '#10B981', NULL, 0, 1, TRUE)
 ON CONFLICT (title, event_date, start_time) DO NOTHING;
 
 -- Update colors for events that have NULL colors based on their event type
