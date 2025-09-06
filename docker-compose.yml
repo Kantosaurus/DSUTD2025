@@ -30,14 +30,14 @@ services:
       NODE_ENV: development
       DATABASE_URL: postgresql://webapp_user:webapp_password@postgres:5432/webapp_db
       JWT_SECRET: ${JWT_SECRET}
-      PORT: 3001
+      PORT: 3002
       AUTO_MIGRATE: "true"
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       EMAIL_FROM: ${EMAIL_FROM}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
     expose:
-      - 3001
+      - 3002
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,10 +54,10 @@ services:
       dockerfile: Dockerfile
     container_name: webapp-frontend
     environment:
-      NEXT_PUBLIC_API_URL: http://backend:3001
+      NEXT_PUBLIC_API_URL: http://backend:3002
       CHOKIDAR_USEPOLLING: "true"
     expose:
-      - 3000
+      - 3001
     depends_on:
       - backend
     volumes:
