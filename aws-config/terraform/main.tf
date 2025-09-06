@@ -46,7 +46,7 @@ variable "db_password" {
 resource "aws_db_instance" "webapp_db" {
   identifier             = "${var.app_name}-database"
   engine                 = "postgres"
-  engine_version         = "15.3"
+  engine_version         = "17.6"
   instance_class         = "db.t3.micro"
   allocated_storage      = 20
   max_allocated_storage  = 100
