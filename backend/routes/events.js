@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const { pool } = require('../config/database');
 const { authenticateToken, requireClubOrAdmin, requireAdmin } = require('../middleware/auth');
 const { logSecurityEvent } = require('../utils/security');
+const telegramNotificationService = require('../services/telegramNotificationService');
 
 const router = express.Router();
 
@@ -12,9 +13,9 @@ router.post('/:eventId/signup', authenticateToken, async (req, res) => {
     const eventId = req.params.eventId;
     const userId = req.user.currentUser.id;
 
-    // Check if event exists
+    // Check if event exists and get full event details for notification
     const eventResult = await pool.query(
-      'SELECT id, title FROM calendar_events WHERE id = $1',
+      'SELECT id, title, description, event_date, start_time, end_time, event_type, location FROM calendar_events WHERE id = $1 AND is_active = true',
       [eventId]
     );
 
@@ -46,6 +47,13 @@ router.post('/:eventId/signup', authenticateToken, async (req, res) => {
       studentId: req.user.currentUser.student_id
     }, req);
 
+    // Send telegram notification (non-blocking)
+    telegramNotificationService.sendEventSignupConfirmation(userId, event)
+      .catch(error => {
+        console.error('Failed to send signup confirmation telegram:', error);
+        // Don't fail the API call if telegram notification fails
+      });
+
     res.json({ message: 'Successfully signed up for event' });
   } catch (err) {
     console.error('Error signing up for event:', err);
@@ -59,9 +67,9 @@ router.delete('/:eventId/signup', authenticateToken, async (req, res) => {
     const eventId = req.params.eventId;
     const userId = req.user.currentUser.id;
 
-    // Check if user is signed up for the event and get event details
+    // Check if user is signed up for the event and get full event details
     const signupResult = await pool.query(
-      `SELECT es.id, ce.title, ce.event_type 
+      `SELECT es.id, ce.title, ce.description, ce.event_date, ce.start_time, ce.end_time, ce.event_type, ce.location
        FROM event_signups es 
        JOIN calendar_events ce ON es.event_id = ce.id 
        WHERE es.user_id = $1 AND es.event_id = $2`,
@@ -94,6 +102,13 @@ router.delete('/:eventId/signup', authenticateToken, async (req, res) => {
       eventType: signup.event_type,
       studentId: req.user.currentUser.student_id
     }, req);
+
+    // Send telegram notification (non-blocking)
+    telegramNotificationService.sendEventCancellationNotification(userId, signup)
+      .catch(error => {
+        console.error('Failed to send cancellation notification telegram:', error);
+        // Don't fail the API call if telegram notification fails
+      });
 
     res.json({ message: 'Successfully cancelled event signup' });
   } catch (err) {
@@ -159,17 +174,6 @@ router.post('/', requireClubOrAdmin, [
     const userId = req.user.currentUser.id;
     const userRole = req.user.role;
 
-    // Determine event status based on user role
-    let status = 'pending';
-    let approval_date = null;
-    let approved_by = null;
-
-    // Admins can create pre-approved events
-    if (userRole === 'admin') {
-      status = 'approved';
-      approval_date = new Date();
-      approved_by = userId;
-    }
 
     // Set default color based on event type if not provided
     const eventColor = color || (event_type === 'Mandatory' ? '#C60003' : '#EF5800');
@@ -177,28 +181,24 @@ router.post('/', requireClubOrAdmin, [
     const result = await pool.query(`
       INSERT INTO calendar_events (
         title, description, event_date, start_time, end_time, 
-        event_type, location, color, max_participants, user_id,
-        status, approval_date, approved_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        event_type, location, color, max_participants, user_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `, [
       title, description, event_date, start_time, end_time,
-      event_type, location, eventColor, max_participants, userId,
-      status, approval_date, approved_by
+      event_type, location, eventColor, max_participants, userId
     ]);
 
     await logSecurityEvent('EVENT_CREATED', `User created event: ${title}`, userId, {
       eventId: result.rows[0].id,
       eventTitle: title,
-      eventStatus: status,
       studentId: req.user.currentUser.student_id,
       userRole: userRole
     }, req);
 
     res.status(201).json({
-      message: userRole === 'admin' ? 'Event created and approved' : 'Event created and pending approval',
-      event: result.rows[0],
-      requiresApproval: status === 'pending'
+      message: 'Event created successfully',
+      event: result.rows[0]
     });
   } catch (err) {
     console.error('Error creating event:', err);
@@ -222,16 +222,11 @@ router.get('/my-events', requireClubOrAdmin, async (req, res) => {
         FROM event_signups 
         GROUP BY event_id
       ) signup_count ON ce.id = signup_count.event_id
-      LEFT JOIN users approver ON ce.approved_by = approver.id
       WHERE ce.user_id = $1
     `;
     
     const params = [userId];
     
-    if (status && ['pending', 'approved', 'rejected'].includes(status)) {
-      query += ` AND ce.status = $2`;
-      params.push(status);
-    }
     
     query += ` ORDER BY ce.created_at DESC LIMIT $${params.length + 1}`;
     params.push(parseInt(limit));
@@ -318,9 +313,6 @@ router.get('/:eventId/analytics', authenticateToken, async (req, res) => {
       creatorId: analytics.creator_id,
       creatorStudentId: analytics.creator_student_id,
       creatorRole: analytics.creator_role,
-      approvalDate: analytics.approval_date,
-      approvedBy: analytics.approved_by,
-      approverStudentId: analytics.approver_student_id,
       signups: analytics.signups || [],
       createdAt: analytics.created_at,
       updatedAt: analytics.updated_at
@@ -393,16 +385,11 @@ router.put('/:eventId', requireClubOrAdmin, [
       return res.status(400).json({ error: 'No fields to update' });
     }
 
-    // For club users, set status back to pending for approval
-    let statusUpdate = '';
-    if (userRole === 'club' && event.status === 'approved') {
-      statusUpdate = `, status = 'pending', approval_date = NULL, approved_by = NULL`;
-    }
 
     values.push(eventId);
     const query = `
       UPDATE calendar_events 
-      SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP${statusUpdate}
+      SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP
       WHERE id = $${paramCount}
       RETURNING *
     `;
@@ -414,15 +401,11 @@ router.put('/:eventId', requireClubOrAdmin, [
       eventTitle: result.rows[0].title,
       studentId: req.user.currentUser.student_id,
       userRole: userRole,
-      requiresReapproval: userRole === 'club' && event.status === 'approved'
     }, req);
 
     res.json({
-      message: userRole === 'club' && event.status === 'approved' 
-        ? 'Event updated and requires re-approval' 
-        : 'Event updated successfully',
-      event: result.rows[0],
-      requiresApproval: result.rows[0].status === 'pending'
+      message: 'Event updated successfully',
+      event: result.rows[0]
     });
   } catch (err) {
     console.error('Error updating event:', err);

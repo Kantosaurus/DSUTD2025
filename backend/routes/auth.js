@@ -14,8 +14,21 @@ const router = express.Router();
 // Sign up endpoint
 router.post('/signup', [
   body('studentId')
-    .matches(/^100[1-9]\d{3}$/)
-    .withMessage('Student ID must be in format 100XXXX where X is a digit from 1-9'),
+    .custom((value, { req }) => {
+      // For user type, validate student ID format
+      if (!req.body.email) {
+        // This is a student signup
+        if (!/^100[1-9]\d{3}$/.test(value)) {
+          throw new Error('Student ID must be in format 100XXXX where X is a digit from 1-9');
+        }
+      } else {
+        // This is a club signup, studentId should be email
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          throw new Error('Email must be a valid email address');
+        }
+      }
+      return true;
+    }),
   body('password')
     .isLength({ min: 12 })
     .withMessage('Password must be at least 12 characters long')
@@ -30,7 +43,13 @@ router.post('/signup', [
     .matches(/^(?!.*(.)\1{2,}).*$/)
     .withMessage('Password cannot contain repeated characters more than twice')
     .matches(/^(?!.*(123|abc|qwe|password|admin|user)).*$/i)
-    .withMessage('Password cannot contain common patterns or words')
+    .withMessage('Password cannot contain common patterns or words'),
+  body('telegramHandle')
+    .optional()
+    .isLength({ max: 32 })
+    .withMessage('Telegram handle must be 32 characters or less')
+    .matches(/^[a-zA-Z0-9_]+$/)
+    .withMessage('Telegram handle can only contain letters, numbers, and underscores')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -42,20 +61,33 @@ router.post('/signup', [
       });
     }
 
-    const { studentId, password } = req.body;
+    const { studentId, password, telegramHandle } = req.body;
     
-    // Generate email from student ID
-    const email = `${studentId}@mymail.sutd.edu.sg`;
+    // Determine if this is a club or student signup
+    const isClubSignup = req.body.email || studentId.includes('@');
+    let email, role, identifier;
+    
+    if (isClubSignup) {
+      // Club signup - studentId is actually the email
+      email = studentId;
+      role = 'club';
+      identifier = email; // Use email as the identifier for clubs
+    } else {
+      // Student signup
+      email = `${studentId}@mymail.sutd.edu.sg`;
+      role = 'student';
+      identifier = studentId; // Use student ID as the identifier for students
+    }
 
     // Check if user already exists
     const existingUser = await pool.query(
       'SELECT id FROM users WHERE student_id = $1 OR email = $2',
-      [studentId, email]
+      [identifier, email]
     );
 
     if (existingUser.rows.length > 0) {
       return res.status(409).json({ 
-        error: 'User with this student ID or email already exists' 
+        error: `${isClubSignup ? 'Club' : 'User'} with this ${isClubSignup ? 'email' : 'student ID'} already exists` 
       });
     }
 
@@ -68,24 +100,24 @@ router.post('/signup', [
 
     // Create new user (unverified)
     const result = await pool.query(
-      `INSERT INTO users (student_id, email, password_hash, email_verification_code, email_verification_expires) 
-       VALUES ($1, $2, $3, $4, $5) 
-       RETURNING id, student_id, email, created_at`,
-      [studentId, email, passwordHash, verificationCode, verificationExpires]
+      `INSERT INTO users (student_id, email, password_hash, role, telegram_handle, email_verification_code, email_verification_expires) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7) 
+       RETURNING id, student_id, email, role, created_at`,
+      [identifier, email, passwordHash, role, telegramHandle || null, verificationCode, verificationExpires]
     );
 
     const newUser = result.rows[0];
 
     // Log user registration
-    await logSecurityEvent('user_registration', `New user registered: ${studentId}`, newUser.id, { studentId, email }, req);
+    await logSecurityEvent('user_registration', `New ${role} registered: ${identifier}`, newUser.id, { identifier, email, role }, req);
 
     // Send verification email
     try {
-      await sendVerificationEmail(email, verificationCode, studentId);
+      await sendVerificationEmail(email, verificationCode, identifier);
     } catch (emailError) {
       // If email fails, delete the user and return error
       await pool.query('DELETE FROM users WHERE id = $1', [newUser.id]);
-      await logSecurityEvent('registration_failed', `Email verification failed for: ${studentId}`, newUser.id, { studentId, email }, req);
+      await logSecurityEvent('registration_failed', `Email verification failed for: ${identifier}`, newUser.id, { identifier, email, role }, req);
       return res.status(500).json({ 
         error: 'Failed to send verification email. Please try again.' 
       });
@@ -97,6 +129,7 @@ router.post('/signup', [
         id: newUser.id,
         studentId: newUser.student_id,
         email: newUser.email,
+        role: newUser.role,
         createdAt: newUser.created_at
       },
       requiresVerification: true
@@ -290,7 +323,7 @@ router.post('/forgot-password', passwordResetLimiter, [
 
 // Login endpoint
 router.post('/login', loginRateLimit, loginSlowDown, [
-  body('studentId').notEmpty().withMessage('Student ID is required'),
+  body('studentId').notEmpty().withMessage('Identifier is required'),
   body('password').notEmpty().withMessage('Password is required')
 ], async (req, res) => {
   try {
@@ -314,9 +347,9 @@ router.post('/login', loginRateLimit, loginSlowDown, [
       });
     }
 
-    // Find user
+    // Find user (support both student ID and email login)
     const userResult = await pool.query(
-      'SELECT id, student_id, email, password_hash, role, is_active, email_verified, session_token_version FROM users WHERE student_id = $1',
+      'SELECT id, student_id, email, password_hash, role, is_active, email_verified, session_token_version FROM users WHERE student_id = $1 OR email = $1',
       [studentId]
     );
 
@@ -540,7 +573,7 @@ router.post('/validate-reset-token', [
 router.get('/me', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, student_id, email, role, created_at, last_login, email_verified FROM users WHERE id = $1',
+      'SELECT id, student_id, email, role, telegram_handle, created_at, last_login, email_verified FROM users WHERE id = $1',
       [req.user.currentUser.id]
     );
 

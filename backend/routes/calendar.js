@@ -27,56 +27,75 @@ router.get('/events', optionalAuth, async (req, res) => {
     const startDate = new Date(year, month - 1, 1); // month is 1-indexed from frontend
     const endDate = new Date(year, month, 0); // Last day of the month
     
+    // First, get all events with additional info for multi-day detection
     const result = await pool.query(
-      `SELECT 
-        ce.id,
-        ce.title,
-        ce.description,
-        ce.event_date,
-        to_char(ce.event_date, 'YYYY-MM-DD') as event_date_str,
-        ce.start_time,
-        ce.end_time,
-        ce.event_type,
-        ce.color,
-        ce.max_participants,
-        ce.current_participants,
-        CASE WHEN es.user_id IS NOT NULL THEN true ELSE false END as is_registered
-       FROM calendar_events ce
-       LEFT JOIN event_signups es ON ce.id = es.event_id AND es.user_id = $3
-       WHERE ce.event_date >= $1 AND ce.event_date <= $2 AND ce.is_active = true AND ce.status = 'approved'
-       ORDER BY ce.event_date, ce.start_time`,
+      `WITH event_groups AS (
+        SELECT 
+          ce.id,
+          ce.title,
+          ce.description,
+          ce.event_date,
+          to_char(ce.event_date, 'YYYY-MM-DD') as event_date_str,
+          ce.start_time,
+          ce.end_time,
+          ce.event_type,
+          ce.color,
+          ce.max_participants,
+          ce.current_participants,
+          CASE WHEN es.user_id IS NOT NULL THEN true ELSE false END as is_registered,
+          CASE WHEN ce.event_type IN ('Mandatory', 'mandatory') THEN 1 ELSE 2 END as priority_order,
+          -- For now, disable multi-day event detection to show each event separately
+          NULL as prev_date,
+          NULL as next_date
+        FROM calendar_events ce
+        LEFT JOIN event_signups es ON ce.id = es.event_id AND es.user_id = $3
+        WHERE ce.event_date >= $1 AND ce.event_date <= $2 AND ce.is_active = true
+      )
+      SELECT *,
+        -- All events are treated as single-day events
+        false as is_multi_day_event
+      FROM event_groups
+      ORDER BY event_date, priority_order, start_time`,
       [startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0], req.user?.userId || null]
     );
 
-    // Group events by date
+    // Group events by date with conflict resolution
     const eventsByDate = {};
+    const conflictTracker = {}; // Track time conflicts per date
+    
     result.rows.forEach(event => {
       // Use the date string directly from the database to avoid timezone issues
       const dateKey = event.event_date_str;
       
       if (!eventsByDate[dateKey]) {
         eventsByDate[dateKey] = [];
+        conflictTracker[dateKey] = [];
       }
       
-      // Format time for display (12-hour format)
-      let time = '';
-      if (event.start_time) {
-        const [hours, minutes] = event.start_time.split(':');
-        const hour = parseInt(hours, 10);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const displayHour = hour % 12 || 12;
-        time = `${displayHour}:${minutes} ${ampm}`;
-      }
+      const isMandatory = event.event_type === 'Mandatory' || event.event_type === 'mandatory';
+      
+      // Always add all events - no conflict resolution
+      // Users should see all available events and make their own choices
+        
+        // Format time for display (12-hour format)
+        let time = '';
+        if (event.start_time) {
+          const [hours, minutes] = event.start_time.split(':');
+          const hour = parseInt(hours, 10);
+          const ampm = hour >= 12 ? 'PM' : 'AM';
+          const displayHour = hour % 12 || 12;
+          time = `${displayHour}:${minutes} ${ampm}`;
+        }
 
-      // Format end time for display (12-hour format)
-      let endTime = '';
-      if (event.end_time) {
-        const [hours, minutes] = event.end_time.split(':');
-        const hour = parseInt(hours, 10);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const displayHour = hour % 12 || 12;
-        endTime = `${displayHour}:${minutes} ${ampm}`;
-      }
+        // Format end time for display (12-hour format)
+        let endTime = '';
+        if (event.end_time) {
+          const [hours, minutes] = event.end_time.split(':');
+          const hour = parseInt(hours, 10);
+          const ampm = hour >= 12 ? 'PM' : 'AM';
+          const displayHour = hour % 12 || 12;
+          endTime = `${displayHour}:${minutes} ${ampm}`;
+        }
 
       eventsByDate[dateKey].push({
         id: event.id,
@@ -88,10 +107,14 @@ router.get('/events', optionalAuth, async (req, res) => {
         startTime: event.start_time,
         endTimeRaw: event.end_time,
         type: event.event_type,
-        color: event.color || '#3b82f6',
+        color: event.color || (isMandatory ? '#C60003' : '#3b82f6'),
         maxParticipants: event.max_participants,
         currentParticipants: event.current_participants || 0,
-        isRegistered: event.is_registered
+        isRegistered: event.is_registered,
+        priority: isMandatory ? 'high' : 'normal',
+        isMultiDay: event.is_multi_day_event || false,
+        prevDate: event.prev_date ? event.prev_date.toISOString().split('T')[0] : null,
+        nextDate: event.next_date ? event.next_date.toISOString().split('T')[0] : null
       });
     });
 

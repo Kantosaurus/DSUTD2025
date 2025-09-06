@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
@@ -52,10 +51,10 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"], // Specific hash for inline styles
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", process.env.FRONTEND_URL || 'http://localhost:3000'],
+      styleSrc: ["'self'", "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='", "'unsafe-inline'"], // Allow inline styles for React
+      scriptSrc: ["'self'", "'unsafe-eval'"], // Allow eval for development
+      imgSrc: ["'self'", "data:", "https:", "http://localhost:3000", "http://localhost:3001"],
+      connectSrc: ["'self'", "http://localhost:3000", "http://localhost:3001", process.env.FRONTEND_URL || 'http://localhost:3000'],
       fontSrc: ["'self'", "https:", "data:"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -64,8 +63,8 @@ app.use(helmet({
       formAction: ["'self'"],
     },
   },
-  crossOriginOpenerPolicy: { policy: "same-origin" },
-  crossOriginResourcePolicy: { policy: "same-origin" },
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: false,
   referrerPolicy: { policy: "no-referrer" },
   hsts: {
     maxAge: 31536000,
@@ -74,13 +73,32 @@ app.use(helmet({
   }
 }));
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Custom CORS middleware with proper credentials handling
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    process.env.FRONTEND_URL || 'http://localhost:3000'
+  ];
+  
+  // Allow requests from allowed origins or if no origin (same-origin requests)
+  if (!origin || allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+  }
+  
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With, x-csrf-token');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Max-Age', '86400'); // Cache preflight for 24 hours
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 // General middleware
 app.use(morgan('combined'));
@@ -114,6 +132,73 @@ if (!fs.existsSync(uploadsDir)){
 // Apply general rate limiting
 app.use(generalRateLimit);
 
+// Search endpoint - public access for better UX (placed before auth routes)
+app.get('/api/public-search', searchLimiter, async (req, res) => {
+  console.log('Search endpoint reached with query:', req.query.q);
+  try {
+    const { q } = req.query;
+    
+    if (!q || q.trim().length < 2) {
+      return res.json({ results: [] });
+    }
+
+    // Import database connection here to avoid dependency issues
+    const { pool } = require('./config/database');
+
+    // Sanitize search input to prevent SQL injection
+    const sanitizedQuery = q.trim().toLowerCase().replace(/[%_\\]/g, '\\$&');
+    const searchTerm = `%${sanitizedQuery}%`;
+    
+    // Search calendar events
+    const eventsQuery = `
+      SELECT 
+        'event' as type,
+        id,
+        title,
+        description,
+        event_date,
+        start_time,
+        end_time,
+        event_type,
+        location,
+        color
+      FROM calendar_events
+      WHERE is_active = true AND (
+        LOWER(title) LIKE $1 OR 
+        LOWER(description) LIKE $1 OR 
+        LOWER(event_type) LIKE $1 OR 
+        LOWER(location) LIKE $1
+      )
+      ORDER BY 
+        CASE 
+          WHEN LOWER(title) LIKE $1 THEN 1
+          WHEN LOWER(description) LIKE $1 THEN 2
+          ELSE 3
+        END,
+        event_date ASC
+      LIMIT 10
+    `;
+
+    // For now, just search events - survival kit search can be added later
+    const eventsResult = await pool.query(eventsQuery, [searchTerm]);
+
+    const results = eventsResult.rows;
+
+    res.json({ 
+      results,
+      query: q,
+      totalFound: results.length
+    });
+  } catch (err) {
+    console.error('Error during search:', err);
+    // Don't leak error details in production
+    const errorMessage = process.env.NODE_ENV === 'production' 
+      ? 'Search service temporarily unavailable' 
+      : err.message;
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
 // Health check endpoints
 app.get('/', (req, res) => {
   res.json({ message: 'DSUTD 2025 API Server is running', version: '1.0.0' });
@@ -121,6 +206,15 @@ app.get('/', (req, res) => {
 
 app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
+// CORS test endpoint
+app.get('/api/test-cors', (req, res) => {
+  res.json({ 
+    message: 'CORS is working!', 
+    timestamp: new Date().toISOString(),
+    origin: req.headers.origin || 'No origin header'
+  });
 });
 
 // Route handlers
@@ -257,133 +351,6 @@ app.get('/api/profile/events', authenticateToken, async (req, res) => {
   }
 });
 
-// Search endpoint
-app.get('/api/search', authenticateToken, searchLimiter, async (req, res) => {
-  try {
-    const { q } = req.query;
-    
-    if (!q || q.trim().length < 2) {
-      return res.json({ results: [] });
-    }
-
-    // Sanitize search input to prevent SQL injection
-    const sanitizedQuery = q.trim().toLowerCase().replace(/[%_\\]/g, '\\$&');
-    const searchTerm = `%${sanitizedQuery}%`;
-    
-    // Search calendar events
-    const eventsQuery = `
-      SELECT 
-        'event' as type,
-        id,
-        title,
-        description,
-        event_date,
-        start_time,
-        end_time,
-        event_type,
-        location,
-        color
-      FROM calendar_events
-      WHERE is_active = true AND (
-        LOWER(title) LIKE $1 OR 
-        LOWER(description) LIKE $1 OR 
-        LOWER(event_type) LIKE $1 OR 
-        LOWER(location) LIKE $1
-      )
-      ORDER BY 
-        CASE 
-          WHEN LOWER(title) LIKE $1 THEN 1
-          WHEN LOWER(description) LIKE $1 THEN 2
-          ELSE 3
-        END,
-        event_date ASC
-      LIMIT 10
-    `;
-
-    // Search survival kit items
-    const survivalKitQuery = `
-      SELECT 
-        'survival_kit' as type,
-        sk.id,
-        sk.title,
-        sk.content as description,
-        sk.image_url,
-        COALESCE(
-          JSON_AGG(
-            JSON_BUILD_OBJECT(
-              'id', skr.id,
-              'title', skr.title,
-              'description', skr.description
-            ) ORDER BY skr.order_index
-          ) FILTER (WHERE skr.id IS NOT NULL), 
-          '[]'::json
-        ) as resources
-      FROM survival_kit_items sk
-      LEFT JOIN survival_kit_resources skr ON sk.id = skr.survival_kit_item_id
-      WHERE sk.is_active = true AND (
-        LOWER(sk.title) LIKE $1 OR 
-        LOWER(sk.content) LIKE $1
-      )
-      GROUP BY sk.id, sk.title, sk.content, sk.image_url, sk.order_index
-      ORDER BY 
-        CASE 
-          WHEN LOWER(sk.title) LIKE $1 THEN 1
-          ELSE 2
-        END,
-        sk.order_index ASC
-      LIMIT 10
-    `;
-
-    // Search survival kit resources
-    const resourcesQuery = `
-      SELECT 
-        'survival_resource' as type,
-        skr.id,
-        skr.title,
-        skr.description,
-        sk.title as parent_title,
-        sk.id as parent_id
-      FROM survival_kit_resources skr
-      JOIN survival_kit_items sk ON skr.survival_kit_item_id = sk.id
-      WHERE sk.is_active = true AND (
-        LOWER(skr.title) LIKE $1 OR 
-        LOWER(skr.description) LIKE $1
-      )
-      ORDER BY 
-        CASE 
-          WHEN LOWER(skr.title) LIKE $1 THEN 1
-          ELSE 2
-        END,
-        skr.order_index ASC
-      LIMIT 10
-    `;
-
-    const [eventsResult, survivalKitResult, resourcesResult] = await Promise.all([
-      pool.query(eventsQuery, [searchTerm]),
-      pool.query(survivalKitQuery, [searchTerm]),
-      pool.query(resourcesQuery, [searchTerm])
-    ]);
-
-    const results = [
-      ...eventsResult.rows,
-      ...survivalKitResult.rows,
-      ...resourcesResult.rows
-    ];
-
-    res.json({ 
-      results,
-      query: q,
-      totalFound: results.length
-    });
-  } catch (err) {
-    console.error('Error during search:', err);
-    // Don't leak error details in production
-    const errorMessage = process.env.NODE_ENV === 'production' 
-      ? 'Search service temporarily unavailable' 
-      : 'Internal server error';
-    res.status(500).json({ error: errorMessage });
-  }
-});
 
 // Legacy admin routes removed - now handled by admin.js routes
 

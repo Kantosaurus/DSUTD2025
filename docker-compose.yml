@@ -35,6 +35,7 @@ services:
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       EMAIL_FROM: ${EMAIL_FROM}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
     ports:
       - "3001:3001"
     depends_on:
@@ -66,6 +67,36 @@ services:
     networks:
       - webapp-network
     command: npm run dev
+
+  # Telegram Bot
+  telegram-bot:
+    build:
+      context: "./telegram bot"
+      dockerfile: Dockerfile
+    container_name: webapp-telegram-bot
+    environment:
+      # Database Configuration
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: webapp_db
+      DB_USER: webapp_user
+      DB_PASSWORD: webapp_password
+      
+      # Telegram Bot Configuration
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      
+      # Bot Configuration
+      CHECK_INTERVAL_MINUTES: ${CHECK_INTERVAL_MINUTES:-1}
+      REMINDER_MINUTES_BEFORE: ${REMINDER_MINUTES_BEFORE:-30}
+      
+      # Node.js Configuration
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - webapp-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:

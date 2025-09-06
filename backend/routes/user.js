@@ -114,6 +114,13 @@ router.get('/events-count', authenticateToken, async (req, res) => {
 // Get user's signed up events
 router.get('/events', authenticateToken, async (req, res) => {
   try {
+    // Set cache control headers to prevent stale data
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+
     const result = await pool.query(`
       SELECT 
         ce.id,
@@ -149,6 +156,7 @@ router.get('/events', authenticateToken, async (req, res) => {
       isMandatory: event.type === 'Mandatory' || event.type === 'mandatory'
     }));
 
+    console.log(`Returning ${formattedEvents.length} events for user ${req.user.currentUser.student_id}`);
     res.json(formattedEvents);
   } catch (err) {
     console.error('Error fetching user events:', err);

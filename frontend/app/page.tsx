@@ -9,7 +9,8 @@ import EmailVerificationModal from '../components/ui/email-verification-modal'
 
 export default function Home() {
   const router = useRouter()
-  const [showSignUpModal, setShowSignUpModal] = useState(false)
+  const [showUserSignUpModal, setShowUserSignUpModal] = useState(false)
+  const [showClubSignUpModal, setShowClubSignUpModal] = useState(false)
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false)
   const [pendingVerification, setPendingVerification] = useState<{
@@ -61,7 +62,7 @@ export default function Home() {
     }
   }
 
-  const handleSignUp = async (studentId: string, password: string) => {
+  const handleSignUp = async (studentId: string, password: string, telegramHandle?: string) => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const response = await fetch(`${API_URL}/api/auth/signup`, {
@@ -71,7 +72,8 @@ export default function Home() {
         },
         body: JSON.stringify({
           studentId,
-          password
+          password,
+          telegramHandle
         }),
       });
 
@@ -90,7 +92,7 @@ export default function Home() {
           email: data.user.email
         });
         setShowEmailVerificationModal(true);
-        setShowSignUpModal(false);
+        setShowUserSignUpModal(false);
       } else {
         // Store the token in localStorage
         localStorage.setItem('token', data.token);
@@ -112,8 +114,12 @@ export default function Home() {
     console.log('Forgot password flow completed')
   }
 
-  const handleSwitchToSignUp = () => {
-    setShowSignUpModal(true)
+  const handleSwitchToUserSignUp = () => {
+    setShowUserSignUpModal(true)
+  }
+
+  const handleSwitchToClubSignUp = () => {
+    setShowClubSignUpModal(true)
   }
 
   const handleSwitchToForgotPassword = () => {
@@ -137,16 +143,26 @@ export default function Home() {
       <div className="relative z-10 w-full max-w-md">
         <LoginCard
           onSubmit={handleLogin}
-          onSwitchToSignUp={handleSwitchToSignUp}
+          onSwitchToUserSignUp={handleSwitchToUserSignUp}
+          onSwitchToClubSignUp={handleSwitchToClubSignUp}
           onForgotPassword={handleSwitchToForgotPassword}
         />
       </div>
 
-      {/* Sign Up Modal */}
+      {/* User Sign Up Modal */}
       <SignUpModal
-        isOpen={showSignUpModal}
-        onClose={() => setShowSignUpModal(false)}
+        isOpen={showUserSignUpModal}
+        onClose={() => setShowUserSignUpModal(false)}
         onSubmit={handleSignUp}
+        type="user"
+      />
+
+      {/* Club Sign Up Modal */}
+      <SignUpModal
+        isOpen={showClubSignUpModal}
+        onClose={() => setShowClubSignUpModal(false)}
+        onSubmit={handleSignUp}
+        type="club"
       />
 
       {/* Forgot Password Modal */}
