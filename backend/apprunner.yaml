@@ -1,0 +1,30 @@
+version: 1.0
+runtime: nodejs18
+build:
+  commands:
+    build:
+      - cd backend
+      - npm ci
+run:
+  runtime-version: 18
+  command: cd backend && npm start
+  network:
+    port: 3001
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: production
+    - name: DATABASE_URL
+      value: postgresql://webapp_user:webapp_password@your-rds-endpoint.region.rds.amazonaws.com:5432/webapp_db
+    - name: JWT_SECRET
+      value: your-jwt-secret-here
+    - name: PORT
+      value: "3001"
+    - name: EMAIL_USER
+      value: your-email@example.com
+    - name: EMAIL_PASSWORD
+      value: your-email-password
+    - name: EMAIL_FROM
+      value: your-email@example.com
+    - name: TELEGRAM_BOT_TOKEN
+      value: your-telegram-bot-token
