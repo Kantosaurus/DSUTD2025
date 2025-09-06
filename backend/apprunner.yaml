@@ -15,16 +15,16 @@ run:
     - name: NODE_ENV
       value: production
     - name: DATABASE_URL
-      value: postgresql://webapp_user:webapp_password@your-rds-endpoint.region.rds.amazonaws.com:5432/webapp_db
+      value: database-dsutd.cx4q8qqq0tb6.ap-southeast-1.rds.amazonaws.com
     - name: JWT_SECRET
-      value: your-jwt-secret-here
+      value: 17757278947934955b5320df5e4ea013573fcf9f19c4d5e9392bf85437cff5a0a70fe8998dbef71dfe7de16d9796d66b49cc7b9f7e5bd7f636220a09c964cd6b
     - name: PORT
       value: "3001"
     - name: EMAIL_USER
-      value: your-email@example.com
+      value: discoversutd.noreply@gmail.com
     - name: EMAIL_PASSWORD
-      value: your-email-password
+      value: uchu gtpi xhgn ohod
     - name: EMAIL_FROM
-      value: your-email@example.com
+      value: discoversutd.noreply@gmail.com
     - name: TELEGRAM_BOT_TOKEN
-      value: your-telegram-bot-token
+      value: 7748207394:AAEV0zy556PZ1fWIDS2XjxmkYK4bMAMJ_cg

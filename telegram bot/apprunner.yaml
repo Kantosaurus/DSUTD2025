@@ -15,7 +15,7 @@ run:
     - name: NODE_ENV
       value: production
     - name: DB_HOST
-      value: your-rds-endpoint.region.rds.amazonaws.com
+      value: database-dsutd.cx4q8qqq0tb6.ap-southeast-1.rds.amazonaws.com
     - name: DB_PORT
       value: "5432"
     - name: DB_NAME
@@ -25,7 +25,7 @@ run:
     - name: DB_PASSWORD
       value: webapp_password
     - name: TELEGRAM_BOT_TOKEN
-      value: your-telegram-bot-token
+      value: 7748207394:AAEV0zy556PZ1fWIDS2XjxmkYK4bMAMJ_cg
     - name: CHECK_INTERVAL_MINUTES
       value: "1"
     - name: REMINDER_MINUTES_BEFORE
