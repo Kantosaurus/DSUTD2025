@@ -1,5 +1,5 @@
-// Environment variables are provided by docker-compose
-// require('dotenv').config();
+// Load environment variables from root .env file
+require('dotenv').config({ path: '../.env' });
 const cron = require('node-cron');
 const ReminderService = require('./services/reminderService');
 const TelegramService = require('./services/telegramService');

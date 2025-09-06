@@ -74,7 +74,7 @@ npm install
 
 # Set up local environment
 cp .env.example .env
-# Edit backend/.env with local database settings
+# Edit .env with database settings (root directory)
 
 # Start PostgreSQL (if not using Docker)
 # Create database: webapp_db
@@ -87,9 +87,9 @@ npm run migrate
 npm run dev
 ```
 
-**Backend Environment Variables:**
+**Environment Variables (Root .env):**
 ```env
-# backend/.env
+# .env (root directory)
 DATABASE_URL=postgresql://webapp_user:webapp_password@localhost:5432/webapp_db
 PORT=3001
 NODE_ENV=development
@@ -97,6 +97,7 @@ JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 EMAIL_USER=your-gmail@gmail.com
 EMAIL_PASSWORD=your-16-character-app-password
 EMAIL_FROM=your-gmail@gmail.com
+NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
 ### Frontend Local Setup
@@ -106,19 +107,11 @@ cd frontend
 # Install dependencies
 npm install
 
-# Set up local environment
-cp .env.example .env.local
-# Edit frontend/.env.local
-
-# Start development server
+# Start development server (uses root .env file)
 npm run dev
 ```
 
-**Frontend Environment Variables:**
-```env
-# frontend/.env.local
-NEXT_PUBLIC_API_URL=http://localhost:3001
-```
+**Note:** Frontend now uses the root `.env` file for environment variables.
 
 ## 🏗️ Project Structure Deep Dive
 

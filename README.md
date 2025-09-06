@@ -171,10 +171,7 @@ npm run clean
    EMAIL_FROM=your-gmail@gmail.com
    ```
 
-   **Frontend (.env.local)**
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:3001
-   ```
+   **Note:** All environment variables are now consolidated in the root `.env` file.
 
 **Note:** See [Gmail Setup Guide](GMAIL_SETUP.md) for detailed email configuration instructions.
 

@@ -6,7 +6,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const csrf = require('csrf');
-require('dotenv').config();
+require('dotenv').config({ path: '../.env' });
 
 // Import configurations
 const SECURITY_CONFIG = require('./config/security');

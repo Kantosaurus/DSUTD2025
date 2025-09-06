@@ -3,7 +3,7 @@
  * Usage: node scripts/test-telegram-notifications.js
  */
 
-require('dotenv').config();
+require('dotenv').config({ path: '../../.env' });
 const telegramNotificationService = require('../services/telegramNotificationService');
 
 async function testNotificationService() {

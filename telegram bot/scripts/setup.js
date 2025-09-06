@@ -3,7 +3,7 @@
  * Usage: node scripts/setup.js
  */
 
-require('dotenv').config();
+require('dotenv').config({ path: '../../.env' });
 const fs = require('fs');
 const path = require('path');
 const { pool } = require('../config/database');

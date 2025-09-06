@@ -3,7 +3,7 @@
  * Usage: node scripts/test-reminder.js
  */
 
-require('dotenv').config();
+require('dotenv').config({ path: '../../.env' });
 const ReminderService = require('../services/reminderService');
 const TelegramService = require('../services/telegramService');
 const { pool } = require('../config/database');
