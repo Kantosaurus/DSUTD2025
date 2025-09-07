@@ -26,7 +26,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
     setMessage('')
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
       const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: {
@@ -96,7 +96,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                 </button>
               </div>
               <p className="text-blue-100 mt-2 text-sm">
-                Enter your student ID to receive a password reset link
+                Enter your student ID to receive a new password via Telegram
               </p>
             </div>
 
@@ -161,10 +161,10 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                   {isLoading ? (
                     <div className="flex items-center justify-center">
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Sending Reset Link...
+                      Sending New Password...
                     </div>
                   ) : (
-                    'Send Reset Link'
+                    'Send New Password'
                   )}
                 </motion.button>
               </form>
@@ -173,9 +173,9 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               <div className="mt-6 p-4 bg-gray-50 rounded-xl">
                 <h3 className="text-sm font-medium text-gray-900 mb-2">What happens next?</h3>
                 <ul className="text-xs text-gray-600 space-y-1">
-                  <li>• We'll send a secure reset link to your SUTD email</li>
-                  <li>• The link will expire in 1 hour for security</li>
-                  <li>• Check your spam folder if you don't see the email</li>
+                  <li>• We'll generate a new temporary password</li>
+                  <li>• The password will be sent to your Telegram account</li>
+                  <li>• Please change your password after logging in</li>
                 </ul>
               </div>
             </div>

@@ -55,7 +55,7 @@ export default function ProfilePage() {
   const [passwordMessage, setPasswordMessage] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
 
   const teamMembers = [
     { id: 1, name: 'Ainsley', designation: 'Mentor', image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNlNWU3ZWIiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzljYTNhZiIvPjxwYXRoIGQ9Ik0yMCA4MCBRNTAgNjAgODAgODAiIGZpbGw9IiM5Y2EzYWYiLz48L3N2Zz4=' },

@@ -1,0 +1,55 @@
+services:
+  # Telegram Bot
+  telegram-bot:
+    build:
+      context: "./telegram bot"
+      dockerfile: Dockerfile
+    container_name: webapp-telegram-bot
+    environment:
+      # Database Configuration
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-webapp_db}
+      DB_USER: ${DB_USER:-webapp_user}
+      DB_PASSWORD: ${DB_PASSWORD}
+      
+      # Telegram Bot Configuration
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      
+      # Bot Configuration
+      CHECK_INTERVAL_MINUTES: ${CHECK_INTERVAL_MINUTES:-5}
+      REMINDER_MINUTES_BEFORE: ${REMINDER_MINUTES_BEFORE:-30}
+      
+      # Node.js Configuration
+      NODE_ENV: ${NODE_ENV:-production}
+    networks:
+      - webapp-network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  # PostgreSQL Database (required for bot)
+  postgres:
+    image: postgres:15-alpine
+    container_name: webapp-postgres-bot
+    environment:
+      POSTGRES_DB: ${DB_NAME:-webapp_db}
+      POSTGRES_USER: ${DB_USER:-webapp_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_bot_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - webapp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-webapp_user} -d ${DB_NAME:-webapp_db}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  postgres_bot_data:
+
+networks:
+  webapp-network:

@@ -4,31 +4,19 @@ const { pool } = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 const { loginRateLimit, loginSlowDown, passwordResetLimiter } = require('../middleware/rateLimiting');
 const { logSecurityEvent, logLoginAttempt, checkAccountLockout, incrementFailedLoginAttempts, resetFailedLoginAttempts } = require('../utils/security');
-const { generateSecureToken, validatePasswordStrength, generateVerificationCode, generateSecureRandomToken, createUserSession, hashPassword, comparePassword } = require('../utils/auth');
+const { generateSecureToken, validatePasswordStrength, generateVerificationCode, generateSecureRandomToken, createUserSession, hashPassword, comparePassword, generateTemporaryPassword } = require('../utils/auth');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
+const TelegramMfaService = require('../services/telegramMfaService');
 const EMAIL_CONFIG = require('../config/email');
 const SECURITY_CONFIG = require('../config/security');
 
 const router = express.Router();
 
-// Sign up endpoint
+// Sign up endpoint (DEPRECATED - use Telegram /signup instead)
 router.post('/signup', [
   body('studentId')
-    .custom((value, { req }) => {
-      // For user type, validate student ID format
-      if (!req.body.email) {
-        // This is a student signup
-        if (!/^100[1-9]\d{3}$/.test(value)) {
-          throw new Error('Student ID must be in format 100XXXX where X is a digit from 1-9');
-        }
-      } else {
-        // This is a club signup, studentId should be email
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          throw new Error('Email must be a valid email address');
-        }
-      }
-      return true;
-    }),
+    .matches(/^100\d{4}$/)
+    .withMessage('Student ID must be in format 100XXXX where X is a digit from 0-9'),
   body('password')
     .isLength({ min: 12 })
     .withMessage('Password must be at least 12 characters long')
@@ -61,23 +49,23 @@ router.post('/signup', [
       });
     }
 
+    // Return error - signup is now done via Telegram only
+    return res.status(400).json({
+      error: 'Web signup is no longer available. Please use Telegram to create your account.',
+      instructions: [
+        '1. Open Telegram and search for the DSUTD bot',
+        '2. Send: /signup YOUR_STUDENT_ID',
+        '3. Follow the instructions to set your password',
+        '4. Your account will be created instantly'
+      ],
+      telegramBot: '@DSUTDBot' // Replace with actual bot username
+    });
+
+    // Legacy code (kept for reference but not executed)
     const { studentId, password, telegramHandle } = req.body;
-    
-    // Determine if this is a club or student signup
-    const isClubSignup = req.body.email || studentId.includes('@');
-    let email, role, identifier;
-    
-    if (isClubSignup) {
-      // Club signup - studentId is actually the email
-      email = studentId;
-      role = 'club';
-      identifier = email; // Use email as the identifier for clubs
-    } else {
-      // Student signup
-      email = `${studentId}@mymail.sutd.edu.sg`;
-      role = 'student';
-      identifier = studentId; // Use student ID as the identifier for students
-    }
+    const email = `${studentId}@mymail.sutd.edu.sg`;
+    const role = 'student';
+    const identifier = studentId;
 
     // Check if user already exists
     const existingUser = await pool.query(
@@ -270,7 +258,7 @@ router.post('/resend-verification', [
   }
 });
 
-// Forgot password endpoint
+// Forgot password endpoint - generates new password and sends via Telegram
 router.post('/forgot-password', passwordResetLimiter, [
   body('studentId')
     .isLength({ min: 1 })
@@ -288,12 +276,12 @@ router.post('/forgot-password', passwordResetLimiter, [
     const { studentId } = req.body;
 
     const result = await pool.query(
-      'SELECT id, email, email_verified FROM users WHERE student_id = $1',
+      'SELECT id, email, email_verified, telegram_chat_id FROM users WHERE student_id = $1',
       [studentId]
     );
 
     if (result.rows.length === 0) {
-      return res.json({ message: 'If the student ID exists, a password reset email will be sent.' });
+      return res.json({ message: 'If the student ID exists, a new password will be sent via Telegram.' });
     }
 
     const user = result.rows[0];
@@ -302,26 +290,45 @@ router.post('/forgot-password', passwordResetLimiter, [
       return res.status(400).json({ error: 'Email must be verified before password reset' });
     }
 
-    const resetToken = generateSecureRandomToken();
-    const resetExpires = new Date(Date.now() + (60 * 60 * 1000)); // 1 hour
+    // Check if user has Telegram linked
+    if (!user.telegram_chat_id) {
+      return res.status(400).json({ 
+        error: 'Password reset requires Telegram. Please contact support to link your Telegram account first.' 
+      });
+    }
 
+    // Generate new temporary password
+    const newPassword = generateTemporaryPassword();
+    const newPasswordHash = await hashPassword(newPassword);
+
+    // Update user's password and increment token version to invalidate existing sessions
     await pool.query(
-      'UPDATE users SET password_reset_token = $1, password_reset_expires = $2 WHERE id = $3',
-      [resetToken, resetExpires, user.id]
+      `UPDATE users SET 
+         password_hash = $1, 
+         password_changed_at = CURRENT_TIMESTAMP,
+         session_token_version = session_token_version + 1 
+       WHERE id = $2`,
+      [newPasswordHash, user.id]
     );
 
-    await sendPasswordResetEmail(user.email, resetToken, studentId);
+    // Send new password via Telegram
+    const success = await TelegramMfaService.sendNewPasswordToTelegram(user.telegram_chat_id, newPassword, studentId);
+    
+    if (!success) {
+      await logSecurityEvent('PASSWORD_RESET_FAILED', `Failed to send new password via Telegram for: ${studentId}`, user.id, { studentId, email: user.email }, req);
+      return res.status(500).json({ error: 'Failed to send new password. Please try again.' });
+    }
 
-    await logSecurityEvent('PASSWORD_RESET_REQUESTED', `Password reset requested for user: ${studentId}`, user.id, { studentId, email: user.email }, req);
+    await logSecurityEvent('PASSWORD_RESET_COMPLETED', `New password generated and sent via Telegram for: ${studentId}`, user.id, { studentId, email: user.email }, req);
 
-    res.json({ message: 'If the student ID exists, a password reset email will be sent.' });
+    res.json({ message: 'If the student ID exists, a new password has been sent to your Telegram account.' });
   } catch (err) {
     console.error('Error in forgot password:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Login endpoint
+// Login step 1: Verify credentials and send MFA
 router.post('/login', loginRateLimit, loginSlowDown, [
   body('studentId').notEmpty().withMessage('Identifier is required'),
   body('password').notEmpty().withMessage('Password is required')
@@ -349,7 +356,7 @@ router.post('/login', loginRateLimit, loginSlowDown, [
 
     // Find user (support both student ID and email login)
     const userResult = await pool.query(
-      'SELECT id, student_id, email, password_hash, role, is_active, email_verified, session_token_version FROM users WHERE student_id = $1 OR email = $1',
+      'SELECT id, student_id, email, password_hash, role, is_active, email_verified, session_token_version, telegram_chat_id FROM users WHERE student_id = $1 OR email = $1',
       [studentId]
     );
 
@@ -384,6 +391,90 @@ router.post('/login', loginRateLimit, loginSlowDown, [
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    // Check if user has Telegram linked for MFA
+    if (!user.telegram_chat_id) {
+      return res.status(400).json({ 
+        error: 'Telegram authentication required. Please link your Telegram account first.',
+        requiresTelegramLink: true
+      });
+    }
+
+    // Generate and send MFA code via Telegram
+    const clientIp = req.ip || req.connection.remoteAddress;
+    const userAgent = req.get('User-Agent') || 'Unknown';
+    
+    const mfaResult = await TelegramMfaService.generateAndSendMFA(studentId, clientIp, userAgent);
+    
+    if (!mfaResult.success) {
+      await logLoginAttempt(studentId, false, `MFA generation failed: ${mfaResult.error}`, req);
+      return res.status(500).json({ 
+        error: 'Failed to send MFA code. Please try again or contact support.',
+        details: mfaResult.error
+      });
+    }
+
+    await logLoginAttempt(studentId, false, 'Credentials verified, MFA code sent', req);
+    await logSecurityEvent('MFA_REQUESTED', `MFA code sent to Telegram for: ${studentId}`, user.id, { studentId, email: user.email }, req);
+
+    res.json({
+      message: 'Credentials verified. MFA code sent to your Telegram.',
+      requiresMFA: true,
+      studentId: user.student_id
+    });
+
+  } catch (err) {
+    console.error('Error during login:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Login step 2: Verify MFA and complete login
+router.post('/verify-mfa', loginRateLimit, [
+  body('studentId').notEmpty().withMessage('Student ID is required'),
+  body('mfaCode').isLength({ min: 7, max: 7 }).withMessage('MFA code must be 7 characters')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: errors.array() 
+      });
+    }
+
+    const { studentId, mfaCode } = req.body;
+
+    // Check account lockout
+    const lockoutStatus = await checkAccountLockout(studentId);
+    if (lockoutStatus.locked) {
+      await logLoginAttempt(studentId, false, `Account locked until ${lockoutStatus.lockedUntil}`, req);
+      return res.status(423).json({ 
+        error: `Account is locked. Try again in ${lockoutStatus.remainingMinutes} minutes.`,
+        lockedUntil: lockoutStatus.lockedUntil
+      });
+    }
+
+    // Verify MFA code
+    const mfaResult = await TelegramMfaService.verifyMFA(studentId, mfaCode.toUpperCase());
+    
+    if (!mfaResult.success) {
+      await logLoginAttempt(studentId, false, `Invalid MFA code: ${mfaResult.error}`, req);
+      await incrementFailedLoginAttempts(studentId);
+      return res.status(401).json({ error: 'Invalid or expired MFA code' });
+    }
+
+    // Get user details for token generation
+    const userResult = await pool.query(
+      'SELECT id, student_id, email, role, session_token_version FROM users WHERE id = $1 AND is_active = true',
+      [mfaResult.userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({ error: 'User not found or inactive' });
+    }
+
+    const user = userResult.rows[0];
+
     // Create session
     const sessionId = await createUserSession(user.id, req);
 
@@ -406,8 +497,8 @@ router.post('/login', loginRateLimit, loginSlowDown, [
       [user.id]
     );
 
-    await logLoginAttempt(studentId, true, null, req);
-    await logSecurityEvent('USER_LOGIN', `User logged in: ${studentId}`, user.id, { studentId, email: user.email }, req);
+    await logLoginAttempt(studentId, true, 'Login completed with MFA', req);
+    await logSecurityEvent('USER_LOGIN_COMPLETED', `User logged in successfully with MFA: ${studentId}`, user.id, { studentId, email: user.email }, req);
 
     // Set cookie
     res.cookie('auth_token', token, {
@@ -429,7 +520,7 @@ router.post('/login', loginRateLimit, loginSlowDown, [
     });
 
   } catch (err) {
-    console.error('Error during login:', err);
+    console.error('Error during MFA verification:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

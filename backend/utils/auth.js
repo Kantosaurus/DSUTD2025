@@ -89,6 +89,31 @@ const comparePassword = async (password, hash) => {
   return await bcrypt.compare(password, hash);
 };
 
+// Generate secure temporary password
+const generateTemporaryPassword = () => {
+  const upperCase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lowerCase = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  const specialChars = '!@#$%^&*';
+  
+  let password = '';
+  
+  // Ensure at least one character from each category
+  password += upperCase[crypto.randomInt(0, upperCase.length)];
+  password += lowerCase[crypto.randomInt(0, lowerCase.length)];
+  password += numbers[crypto.randomInt(0, numbers.length)];
+  password += specialChars[crypto.randomInt(0, specialChars.length)];
+  
+  // Fill the rest with random characters from all categories
+  const allChars = upperCase + lowerCase + numbers + specialChars;
+  for (let i = password.length; i < 12; i++) {
+    password += allChars[crypto.randomInt(0, allChars.length)];
+  }
+  
+  // Shuffle the password to randomize character positions
+  return password.split('').sort(() => crypto.randomInt(0, 2) - 0.5).join('');
+};
+
 module.exports = {
   generateSecureToken,
   validatePasswordStrength,
@@ -96,5 +121,6 @@ module.exports = {
   generateSecureRandomToken,
   createUserSession,
   hashPassword,
-  comparePassword
+  comparePassword,
+  generateTemporaryPassword
 };

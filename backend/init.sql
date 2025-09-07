@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     student_id VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(20) DEFAULT 'student' CHECK (role IN ('admin', 'student', 'club')),
+    role VARCHAR(20) DEFAULT 'student' CHECK (role IN ('admin', 'student')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP,
@@ -209,7 +209,7 @@ COMMENT ON VIEW event_analytics IS 'Comprehensive view for event analytics inclu
 -- Note: This is a bcrypt hash of 'DSUTDadmin' with salt rounds 10
 INSERT INTO users (student_id, email, password_hash, role, email_verified, is_active) VALUES
 ('1007667', '1007667@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
-('1007771', '1007771@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'club', TRUE, TRUE),
+('1007771', '1007771@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
 ('1008456', '1008456@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
 ('1007675', '1007675@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
 ('1009302', '1009302@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
@@ -222,6 +222,14 @@ INSERT INTO users (student_id, email, password_hash, role, email_verified, is_ac
 ('1008153', '1008153@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE),
 ('1008148', '1008148@mymail.sutd.edu.sg', '$2a$10$1z.67uf.usNl82d5.On6DeIehT8pIF0vYf5cw54ySVmaIm7NczfuO', 'admin', TRUE, TRUE)
 ON CONFLICT (student_id) DO NOTHING;
+
+-- Migration: Convert existing club users to admin or deactivate them
+-- Note: This should be reviewed and executed manually based on specific requirements
+-- UPDATE users SET role = 'admin' WHERE role = 'club' AND student_id IN ('list', 'of', 'club', 'accounts', 'to', 'promote');
+-- UPDATE users SET is_active = FALSE WHERE role = 'club' AND student_id NOT IN ('list', 'of', 'club', 'accounts', 'to', 'keep');
+
+-- For now, just add a comment about manual migration needed
+COMMENT ON COLUMN users.role IS 'User role - club role removed, existing club users need manual migration to admin or deactivation';
 
 -- Insert sample calendar events from seed-events.json (all pre-approved by admin)
 INSERT INTO calendar_events (title, description, event_date, start_time, end_time, event_type, location, color, max_participants, current_participants, user_id, is_active) VALUES
@@ -653,10 +661,32 @@ CREATE INDEX IF NOT EXISTS idx_reminder_notifications_user_event ON reminder_not
 CREATE INDEX IF NOT EXISTS idx_reminder_notifications_sent_at ON reminder_notifications(sent_at);
 CREATE INDEX IF NOT EXISTS idx_reminder_notifications_type ON reminder_notifications(reminder_type);
 
+-- Create MFA codes table for Telegram-based authentication
+CREATE TABLE IF NOT EXISTS mfa_codes (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    code VARCHAR(7) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    used_at TIMESTAMP,
+    ip_address INET,
+    user_agent TEXT
+);
+
+-- Add indexes for MFA codes
+CREATE INDEX IF NOT EXISTS idx_mfa_codes_user_id ON mfa_codes(user_id);
+CREATE INDEX IF NOT EXISTS idx_mfa_codes_code ON mfa_codes(code);
+CREATE INDEX IF NOT EXISTS idx_mfa_codes_expires_at ON mfa_codes(expires_at);
+CREATE INDEX IF NOT EXISTS idx_mfa_codes_used ON mfa_codes(used);
+
 -- Comments for telegram bot tables
 COMMENT ON COLUMN users.telegram_handle IS 'Optional Telegram handle for the user (without @)';
 COMMENT ON COLUMN users.telegram_chat_id IS 'Telegram chat ID for sending bot notifications to users';
 COMMENT ON TABLE reminder_notifications IS 'Tracks sent reminder notifications to prevent duplicates';
 COMMENT ON COLUMN reminder_notifications.reminder_type IS 'Type of reminder sent (e.g., 30_min_before, 1_hour_before)';
+COMMENT ON TABLE mfa_codes IS 'Stores MFA codes sent via Telegram for login authentication';
+COMMENT ON COLUMN mfa_codes.code IS '7-character alphanumeric MFA code';
+COMMENT ON COLUMN mfa_codes.expires_at IS 'Expiration time for the MFA code (typically 5 minutes from creation)';
 
 -- Telegram bot functionality is now ready for use

@@ -42,7 +42,7 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
     setError(null)
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
       
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
@@ -135,7 +135,7 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
         duration={800}
         loop={false}
       />
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-gray-900">
+      <div className="text-gray-900">
         {/* Header */}
         <div className="text-center mb-8">
           <motion.div
@@ -417,40 +417,6 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Footer */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
-          className="mt-6 text-center"
-        >
-          <p className="text-sm text-gray-500 mb-4">
-            Don't have an account?
-          </p>
-          <div className="space-y-3">
-            <motion.button
-              onClick={onSwitchToUserSignUp}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2.5 px-4 rounded-xl font-medium transition-all duration-200 hover:shadow-lg"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.1 }}
-              disabled={isLoading}
-            >
-              Sign up as Student
-            </motion.button>
-            <motion.button
-              onClick={onSwitchToClubSignUp}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2.5 px-4 rounded-xl font-medium transition-all duration-200 hover:shadow-lg"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.1 }}
-              disabled={isLoading}
-            >
-              Sign up as Club
-            </motion.button>
-          </div>
-        </motion.div>
       </div>
     </motion.div>
   )
