@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: webapp_user
       POSTGRES_PASSWORD: webapp_password
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -37,7 +37,7 @@ services:
       EMAIL_FROM: ${EMAIL_FROM}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
     ports:
-      - "3001:3001"
+      - "3002:3001"
     depends_on:
       postgres:
         condition: service_healthy
@@ -56,7 +56,7 @@ services:
       NEXT_PUBLIC_API_URL: http://backend:3001
       CHOKIDAR_USEPOLLING: "true"
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       - backend
     networks:
