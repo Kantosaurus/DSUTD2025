@@ -6,9 +6,7 @@ services:
     environment:
       POSTGRES_DB: webapp_db
       POSTGRES_USER: webapp_user
-      POSTGRES_PASSWORD: webapp_password
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -16,9 +14,10 @@ services:
       - webapp-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U webapp_user -d webapp_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
 
   # Backend API
   backend:
@@ -28,10 +27,9 @@ services:
     container_name: webapp-backend
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://webapp_user:webapp_password@postgres:5432/webapp_db
+      DATABASE_URL: postgresql://webapp_user:${DB_PASSWORD}@postgres:5432/webapp_db
       JWT_SECRET: ${JWT_SECRET}
       PORT: 3001
-      AUTO_MIGRATE: "true"
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       EMAIL_FROM: ${EMAIL_FROM}
@@ -43,6 +41,7 @@ services:
         condition: service_healthy
     networks:
       - webapp-network
+    restart: unless-stopped
 
   # Frontend
   frontend:
@@ -50,17 +49,17 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://backend:3001
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: webapp-frontend
     environment:
-      NEXT_PUBLIC_API_URL: http://backend:3001
-      CHOKIDAR_USEPOLLING: "true"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     ports:
       - "3000:3000"
     depends_on:
       - backend
     networks:
       - webapp-network
+    restart: unless-stopped
 
   # Telegram Bot
   telegram-bot:
@@ -69,21 +68,14 @@ services:
       dockerfile: Dockerfile
     container_name: webapp-telegram-bot
     environment:
-      # Database Configuration
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: webapp_db
       DB_USER: webapp_user
-      DB_PASSWORD: webapp_password
-      
-      # Telegram Bot Configuration
+      DB_PASSWORD: ${DB_PASSWORD}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
-      
-      # Bot Configuration
-      CHECK_INTERVAL_MINUTES: ${CHECK_INTERVAL_MINUTES:-1}
+      CHECK_INTERVAL_MINUTES: ${CHECK_INTERVAL_MINUTES:-5}
       REMINDER_MINUTES_BEFORE: ${REMINDER_MINUTES_BEFORE:-30}
-      
-      # Node.js Configuration
       NODE_ENV: production
     depends_on:
       postgres:

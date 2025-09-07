@@ -15,7 +15,7 @@ RUN npm install
 COPY . .
 
 # Remove any existing build artifacts
-# RUN rm -rf .next
+RUN rm -rf .next
 
 # Build the application
 RUN npm run build
