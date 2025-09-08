@@ -94,7 +94,7 @@ docker-compose ps
 You should see three healthy containers:
 - `webapp-frontend` (port 3000)
 - `webapp-backend` (port 3001)  
-- `webapp-postgres` (port 5432)
+- `webapp-postgres` (port 5431)
 
 ## 🔍 Health Checks
 

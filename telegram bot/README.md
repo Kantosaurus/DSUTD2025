@@ -42,7 +42,7 @@ TELEGRAM_BOT_TOKEN=your_bot_token_here
 
 # Database Configuration (should match your main backend)
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=5431
 DB_NAME=webapp_db
 DB_USER=webapp_user
 DB_PASSWORD=your_db_password

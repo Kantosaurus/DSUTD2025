@@ -53,7 +53,7 @@ A modern full-stack web application built with Next.js, React, Tailwind CSS, Nod
 3. **Access the application**
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:3001
-   - Database: localhost:5432
+   - Database: localhost:5431
 
 ## 📋 Available Scripts
 
@@ -109,7 +109,7 @@ npm run clean
 - CORS enabled for frontend communication
 - **Automatic database migrations** on startup
 
-### Database (Port 5432)
+### Database (Port 5431)
 - PostgreSQL 15 with Alpine Linux
 - Persistent data storage
 - Pre-configured database and tables
@@ -162,7 +162,7 @@ npm run clean
 
    **Backend (.env)**
    ```env
-   DATABASE_URL=postgresql://webapp_user:webapp_password@localhost:5432/webapp_db
+   DATABASE_URL=postgresql://webapp_user:webapp_password@localhost:5431/webapp_db
    PORT=3001
    NODE_ENV=development
    JWT_SECRET=your-super-secret-jwt-key-change-this-in-production

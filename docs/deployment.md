@@ -53,7 +53,7 @@ services:
       dockerfile: Dockerfile.prod
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://webapp_user:${POSTGRES_PASSWORD}@postgres:5432/webapp_db
+      DATABASE_URL: postgresql://webapp_user:${POSTGRES_PASSWORD}@postgres:5431/webapp_db
       JWT_SECRET: ${JWT_SECRET}
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
@@ -386,7 +386,7 @@ echo "0 12 * * * /usr/bin/certbot renew --quiet" | sudo crontab -
 #### Using AWS RDS for Database
 ```bash
 # Environment variables for RDS
-DATABASE_URL=postgresql://username:password@rds-endpoint:5432/webapp_db
+DATABASE_URL=postgresql://username:password@rds-endpoint:5431/webapp_db
 ```
 
 ### Google Cloud Platform

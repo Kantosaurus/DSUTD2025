@@ -8,7 +8,7 @@ services:
     environment:
       # Database Configuration
       DB_HOST: ${DB_HOST:-postgres}
-      DB_PORT: ${DB_PORT:-5432}
+      DB_PORT: ${DB_PORT:-5431}
       DB_NAME: ${DB_NAME:-webapp_db}
       DB_USER: ${DB_USER:-webapp_user}
       DB_PASSWORD: ${DB_PASSWORD}
