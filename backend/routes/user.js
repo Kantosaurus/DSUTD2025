@@ -156,7 +156,6 @@ router.get('/events', authenticateToken, async (req, res) => {
       isMandatory: event.type === 'Mandatory' || event.type === 'mandatory'
     }));
 
-    console.log(`Returning ${formattedEvents.length} events for user ${req.user.currentUser.student_id}`);
     res.json(formattedEvents);
   } catch (err) {
     console.error('Error fetching user events:', err);

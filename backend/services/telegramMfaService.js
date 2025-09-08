@@ -48,7 +48,6 @@ class TelegramMfaService {
       const recentMfaResult = await pool.query(recentMfaQuery, [user.id]);
       
       if (recentMfaResult.rows.length > 0) {
-        console.log(`⚠️ Recent MFA code exists for ${studentId}, not generating new one`);
         return { success: true, message: 'Recent MFA code already sent' };
       }
 
@@ -79,11 +78,10 @@ class TelegramMfaService {
         return { success: false, error: 'Failed to send MFA code via Telegram' };
       }
 
-      console.log(`✅ MFA code sent to ${studentId} via Telegram`);
       return { success: true };
 
     } catch (error) {
-      console.error('❌ Error generating MFA code:', error);
+      console.error('❌ Error generating MFA code:', error.message);
       return { success: false, error: 'System error generating MFA code' };
     }
   }
@@ -120,11 +118,10 @@ class TelegramMfaService {
       
       await pool.query(updateMfaQuery, [mfa.id]);
 
-      console.log(`✅ MFA code verified for ${studentId}`);
       return { success: true, userId: mfa.user_id };
 
     } catch (error) {
-      console.error('❌ Error verifying MFA code:', error);
+      console.error('❌ Error verifying MFA code:', error.message);
       return { success: false, error: 'System error verifying MFA code' };
     }
   }
@@ -166,7 +163,7 @@ Hi! Someone is trying to sign in to your SUTD account.
       
       return true;
     } catch (error) {
-      console.error(`Error sending MFA via Telegram to chat ${chatId}:`, error);
+      console.error('Error sending MFA via Telegram:', error.message);
       return false;
     }
   }
@@ -212,7 +209,7 @@ Hi! A password reset has been requested for your SUTD account.
       
       return true;
     } catch (error) {
-      console.error(`Error sending password reset via Telegram to chat ${chatId}:`, error);
+      console.error('Error sending password reset via Telegram:', error.message);
       return false;
     }
   }
@@ -259,7 +256,7 @@ Hi! A new temporary password has been generated for your SUTD account.
       
       return true;
     } catch (error) {
-      console.error(`Error sending new password via Telegram to chat ${chatId}:`, error);
+      console.error('Error sending new password via Telegram:', error.message);
       return false;
     }
   }

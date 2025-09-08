@@ -38,7 +38,6 @@ class TelegramNotificationService {
       );
 
       if (userResult.rows.length === 0 || !userResult.rows[0].telegram_chat_id) {
-        console.log(`User ${userId} has no telegram_chat_id - skipping signup notification`);
         return false;
       }
 
@@ -54,7 +53,6 @@ class TelegramNotificationService {
         disable_web_page_preview: true
       });
 
-      console.log(`Sent signup confirmation to user ${user.student_id} for event: ${eventDetails.title}`);
       return true;
 
     } catch (error) {
@@ -62,7 +60,6 @@ class TelegramNotificationService {
       
       // If user blocked the bot or chat not found, handle gracefully
       if (error.code === 403 || error.code === 400) {
-        console.log(`User has blocked the bot or chat not found, removing telegram_chat_id for user ${userId}`);
         await this.removeBlockedUser(userId);
       }
       
@@ -87,7 +84,6 @@ class TelegramNotificationService {
       );
 
       if (userResult.rows.length === 0 || !userResult.rows[0].telegram_chat_id) {
-        console.log(`User ${userId} has no telegram_chat_id - skipping cancellation notification`);
         return false;
       }
 
@@ -103,7 +99,6 @@ class TelegramNotificationService {
         disable_web_page_preview: true
       });
 
-      console.log(`Sent cancellation notification to user ${user.student_id} for event: ${eventDetails.title}`);
       return true;
 
     } catch (error) {
@@ -111,7 +106,6 @@ class TelegramNotificationService {
       
       // If user blocked the bot or chat not found, handle gracefully
       if (error.code === 403 || error.code === 400) {
-        console.log(`User has blocked the bot or chat not found, removing telegram_chat_id for user ${userId}`);
         await this.removeBlockedUser(userId);
       }
       
@@ -196,7 +190,6 @@ class TelegramNotificationService {
       `;
       
       await pool.query(query, [userId]);
-      console.log(`Removed telegram_chat_id for blocked user: ${userId}`);
     } catch (error) {
       console.error('Error removing blocked user:', error);
     }

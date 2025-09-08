@@ -78,20 +78,16 @@ export default function ProfilePage() {
   }, [router]);
 
   const checkAuthAndLoadData = async () => {
-    // Add a small delay to ensure localStorage is updated after login/signup
     await new Promise(resolve => setTimeout(resolve, 100));
 
     const token = localStorage.getItem('token');
-    console.log('Profile page - Token check:', token ? 'Token exists' : 'No token found');
 
     if (!token) {
-      console.log('Profile page - Redirecting to landing page due to no token');
       router.push('/');
       return;
     }
 
     try {
-      // Validate token with backend first
       const authResponse = await fetch(`${API_URL}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -103,62 +99,37 @@ export default function ProfilePage() {
         setIsAuthenticated(true);
         setUserRole(authData.user.role || 'student');
       } else {
-        console.log('Profile page - Token invalid, clearing storage and redirecting');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         router.push('/');
         return;
       }
 
-      console.log('Profile page - Loading user data...');
-      // Load user data
       const userResponse = await axios.get(`${API_URL}/api/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUser(userResponse.data.user); // Access the nested user object
-      console.log('Profile page - User data loaded:', userResponse.data);
+      setUser(userResponse.data.user);
 
-      console.log('Profile page - Loading signed up events...');
-      console.log('Profile page - API_URL:', API_URL);
-      console.log('Profile page - Full events URL:', `${API_URL}/api/user/events`);
-      
-      // Load signed up events
       try {
         const eventsResponse = await axios.get(`${API_URL}/api/user/events`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        console.log('Profile page - Events response status:', eventsResponse.status);
-        console.log('Profile page - Events response headers:', eventsResponse.headers);
-        console.log('Profile page - Events data:', eventsResponse.data);
-        console.log('Profile page - Events data type:', typeof eventsResponse.data);
-        console.log('Profile page - Events data length:', Array.isArray(eventsResponse.data) ? eventsResponse.data.length : 'Not an array');
         
         if (Array.isArray(eventsResponse.data)) {
           setSignedUpEvents(eventsResponse.data);
-          console.log('Profile page - Events set successfully, count:', eventsResponse.data.length);
         } else {
-          console.warn('Profile page - Events data is not an array:', eventsResponse.data);
           setSignedUpEvents([]);
         }
       } catch (eventsError: any) {
-        console.error('Profile page - Error loading events:', eventsError);
-        console.error('Profile page - Events error response:', eventsError.response?.data);
-        console.error('Profile page - Events error status:', eventsError.response?.status);
-        console.error('Profile page - Events error message:', eventsError.message);
-        console.error('Profile page - Events error config URL:', eventsError.config?.url);
-        console.error('Profile page - Events error request headers:', eventsError.config?.headers);
         setSignedUpEvents([]);
       }
 
     } catch (error: any) {
-      console.error('Error loading profile data:', error);
       if (error.response?.status === 401) {
-        console.log('Profile page - Token invalid, clearing storage and redirecting');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         router.push('/');
       } else {
-        console.log('Profile page - Other error, but keeping user logged in');
         setIsAuthenticated(true);
       }
     } finally {
@@ -357,37 +328,12 @@ export default function ProfilePage() {
             <div className="bg-white rounded-2xl p-8 shadow-lg">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">My Events</h2>
 
-              {(() => {
+              {signedUpEvents.filter(event => {
                 const now = new Date();
-                const filteredEvents = signedUpEvents.filter(event => {
-                  // Fix date parsing - extract just the date part and combine with time
-                  const dateOnly = event.date.split('T')[0]; // Get "2025-09-09" from "2025-09-09T00:00:00.000Z"
-                  const eventDate = new Date(`${dateOnly}T${event.time}`);
-                  const isOverCheck = !event.isOver;
-                  const dateCheck = eventDate >= now;
-                  
-                  console.log('Profile page - Event filter debug:', {
-                    title: event.title,
-                    date: event.date,
-                    dateOnly,
-                    time: event.time,
-                    combinedDateTime: `${dateOnly}T${event.time}`,
-                    eventDate: eventDate.toString(),
-                    now: now.toString(),
-                    isOver: event.isOver,
-                    isOverCheck,
-                    dateCheck,
-                    passesFilter: isOverCheck && dateCheck
-                  });
-                  
-                  return isOverCheck && dateCheck;
-                });
-                
-                console.log('Profile page - Total events:', signedUpEvents.length);
-                console.log('Profile page - Filtered events:', filteredEvents.length);
-                
-                return filteredEvents;
-              })().length === 0 ? (
+                const dateOnly = event.date.split('T')[0];
+                const eventDate = new Date(`${dateOnly}T${event.time}`);
+                return !event.isOver && eventDate >= now;
+              }).length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,14 +351,12 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className="space-y-4 overflow-y-auto" style={{maxHeight: 'calc(100% - 3rem)'}}>
-                  {(() => {
+                  {signedUpEvents.filter(event => {
                     const now = new Date();
-                    return signedUpEvents.filter(event => {
-                      const dateOnly = event.date.split('T')[0];
-                      const eventDate = new Date(`${dateOnly}T${event.time}`);
-                      return !event.isOver && eventDate >= now;
-                    });
-                  })().map((event) => {
+                    const dateOnly = event.date.split('T')[0];
+                    const eventDate = new Date(`${dateOnly}T${event.time}`);
+                    return !event.isOver && eventDate >= now;
+                  }).map((event) => {
                     const status = getEventStatus(event);
                     return (
                       <div
