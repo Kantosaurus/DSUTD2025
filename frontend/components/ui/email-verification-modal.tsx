@@ -30,7 +30,7 @@ export default function EmailVerificationModal({
   const [focusedField, setFocusedField] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState(0)
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
   // Countdown timer for resend
   useEffect(() => {

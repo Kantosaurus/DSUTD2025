@@ -124,7 +124,7 @@ export default function AdminLogsPage() {
       }
 
       try {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
         const response = await fetch(`${API_URL}/api/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -165,7 +165,7 @@ export default function AdminLogsPage() {
   const loadDashboardData = async () => {
     setLoadingData(true);
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
       const token = localStorage.getItem('token');
 
       const statsResponse = await fetch(`${API_URL}/api/admin/dashboard-stats`, {
@@ -188,7 +188,7 @@ export default function AdminLogsPage() {
 
   const loadActivityLogs = async (page = 1, type = '') => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
       const token = localStorage.getItem('token');
 
       const params = new URLSearchParams({
@@ -214,7 +214,7 @@ export default function AdminLogsPage() {
 
   const loadUserRegistrations = async (page = 1) => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
       const token = localStorage.getItem('token');
 
       const params = new URLSearchParams({
@@ -237,7 +237,7 @@ export default function AdminLogsPage() {
 
   const loadEventSignups = async (page = 1) => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
       const token = localStorage.getItem('token');
 
       const params = new URLSearchParams({

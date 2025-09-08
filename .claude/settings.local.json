@@ -5,7 +5,8 @@
       "Bash(docker-compose up:*)",
       "Bash(curl:*)",
       "Bash(docker restart:*)",
-      "Bash(docker exec:*)"
+      "Bash(docker exec:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

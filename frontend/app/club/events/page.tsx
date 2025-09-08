@@ -74,7 +74,7 @@ export default function ClubEventsPage() {
   const [eventAnalytics, setEventAnalytics] = useState<EventAnalytics | null>(null)
   const [activeTab, setActiveTab] = useState<'all'>('all')
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
   const loadingStates = [
     { text: "Checking authentication..." },
