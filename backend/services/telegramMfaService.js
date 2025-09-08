@@ -1,7 +1,16 @@
 const { pool } = require('../config/database');
 const crypto = require('crypto');
+const TelegramBot = require('node-telegram-bot-api');
 
 class TelegramMfaService {
+  static _bot = null;
+  
+  static getBotInstance() {
+    if (!this._bot && process.env.TELEGRAM_BOT_TOKEN) {
+      this._bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
+    }
+    return this._bot;
+  }
   /**
    * Generate and send MFA code to user via Telegram
    */
@@ -24,6 +33,23 @@ class TelegramMfaService {
       
       if (!user.telegram_chat_id) {
         return { success: false, error: 'User has no Telegram linked' };
+      }
+
+      // Check for recent unused MFA code (within last 30 seconds to prevent spam)
+      const recentMfaQuery = `
+        SELECT id, code, created_at
+        FROM mfa_codes 
+        WHERE user_id = $1 AND used = false AND expires_at > CURRENT_TIMESTAMP 
+        AND created_at > (CURRENT_TIMESTAMP - INTERVAL '30 seconds')
+        ORDER BY created_at DESC
+        LIMIT 1
+      `;
+      
+      const recentMfaResult = await pool.query(recentMfaQuery, [user.id]);
+      
+      if (recentMfaResult.rows.length > 0) {
+        console.log(`⚠️ Recent MFA code exists for ${studentId}, not generating new one`);
+        return { success: true, message: 'Recent MFA code already sent' };
       }
 
       // Generate 7-character alphanumeric MFA code
@@ -108,14 +134,12 @@ class TelegramMfaService {
    */
   static async sendTelegramMFA(chatId, mfaCode, ipAddress) {
     try {
-      const TelegramBot = require('node-telegram-bot-api');
+      const bot = this.getBotInstance();
       
-      if (!process.env.TELEGRAM_BOT_TOKEN) {
+      if (!bot) {
         console.error('TELEGRAM_BOT_TOKEN not found in environment variables');
         return false;
       }
-
-      const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
       
       const message = `
 🔐 **Login Verification Code**
@@ -152,14 +176,12 @@ Hi! Someone is trying to sign in to your SUTD account.
    */
   static async sendPasswordResetToTelegram(chatId, resetToken, studentId) {
     try {
-      const TelegramBot = require('node-telegram-bot-api');
+      const bot = this.getBotInstance();
       
-      if (!process.env.TELEGRAM_BOT_TOKEN) {
+      if (!bot) {
         console.error('TELEGRAM_BOT_TOKEN not found in environment variables');
         return false;
       }
-
-      const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
       
       const resetUrl = `${process.env.FRONTEND_URL || 'https://dsutd2025.com'}/reset-password?token=${resetToken}`;
       
@@ -200,14 +222,12 @@ Hi! A password reset has been requested for your SUTD account.
    */
   static async sendNewPasswordToTelegram(chatId, newPassword, studentId) {
     try {
-      const TelegramBot = require('node-telegram-bot-api');
+      const bot = this.getBotInstance();
       
-      if (!process.env.TELEGRAM_BOT_TOKEN) {
+      if (!bot) {
         console.error('TELEGRAM_BOT_TOKEN not found in environment variables');
         return false;
       }
-
-      const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
       
       const message = `
 🔑 **New Temporary Password**
