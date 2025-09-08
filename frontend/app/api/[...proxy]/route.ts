@@ -42,6 +42,14 @@ export async function PATCH(
   return proxyRequest(request, proxy, 'PATCH')
 }
 
+export async function OPTIONS(
+  request: NextRequest,
+  { params }: { params: Promise<{ proxy: string[] }> }
+) {
+  const { proxy } = await params
+  return proxyRequest(request, proxy, 'OPTIONS')
+}
+
 async function proxyRequest(
   request: NextRequest,
   proxy: string[],

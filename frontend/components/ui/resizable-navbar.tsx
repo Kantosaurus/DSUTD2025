@@ -307,7 +307,7 @@ export const SearchBar = () => {
 
     setIsSearching(true);
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
       const response = await fetch(`${API_URL}/api/public-search?q=${encodeURIComponent(query)}`);
       if (response.ok) {
         const data = await response.json();
@@ -533,7 +533,7 @@ export const AvatarDropdown = () => {
 
       try {
         // Validate token with backend
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
         const response = await fetch(`${API_URL}/api/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -699,7 +699,7 @@ export const MobileSearchBar = () => {
 
     setIsSearching(true);
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
       const response = await fetch(`${API_URL}/api/public-search?q=${encodeURIComponent(query)}`);
       if (response.ok) {
         const data = await response.json();

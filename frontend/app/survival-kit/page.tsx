@@ -53,7 +53,7 @@ export default function SurvivalKitPage() {
       return part;
     });
   };
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
 
   useEffect(() => {
     const checkAuthAndLoadData = async () => {

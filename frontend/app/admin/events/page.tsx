@@ -90,7 +90,7 @@ export default function AdminEventsPage() {
 
       try {
         // Validate token with backend
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
         const response = await fetch(`${API_URL}/api/auth/me`, {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -139,7 +139,7 @@ export default function AdminEventsPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
 
       const response = await fetch(`${API_URL}/api/admin/calendar/events`, {
         headers: {
@@ -202,7 +202,7 @@ export default function AdminEventsPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
 
       // Process the form data before sending
       const processedData = {
@@ -253,7 +253,7 @@ export default function AdminEventsPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
 
       // Process the form data before sending
       const processedData = {
@@ -303,7 +303,7 @@ export default function AdminEventsPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://';
 
       const response = await fetch(`${API_URL}/api/calendar/events/${eventId}`, {
         method: 'DELETE',

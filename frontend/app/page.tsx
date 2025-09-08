@@ -25,7 +25,7 @@ export default function Home() {
 
   const handleLogin = async (studentId: string, password: string) => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
@@ -76,7 +76,7 @@ export default function Home() {
 
   const handleSignUp = async (studentId: string, password: string, telegramHandle?: string) => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
       const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: 'POST',
         headers: {
@@ -144,7 +144,7 @@ export default function Home() {
         throw new Error('No pending MFA request');
       }
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
       const response = await fetch(`${API_URL}/api/auth/verify-mfa`, {
         method: 'POST',
         headers: {
