@@ -396,7 +396,25 @@ router.post('/login', loginRateLimit, loginSlowDown, [
       // Admin users bypass MFA - directly create session and return token
       await resetFailedLoginAttempts(studentId);
       
-      const token = await createUserSession(user);
+      // Create session
+      const sessionId = await createUserSession(user.id, req);
+      
+      // Generate token
+      const token = generateSecureToken({
+        userId: user.id,
+        studentId: user.student_id,
+        email: user.email,
+        role: user.role,
+        sessionId: sessionId,
+        tokenVersion: user.session_token_version
+      });
+      
+      // Update last login
+      await pool.query(
+        'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1',
+        [user.id]
+      );
+      
       await logLoginAttempt(studentId, true, 'Admin login successful (MFA bypassed)', req);
       await logSecurityEvent('ADMIN_LOGIN_SUCCESS', `Admin login successful without MFA: ${studentId}`, user.id, { studentId, email: user.email }, req);
       
