@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MultiStepLoader } from './multi-step-loader'
 import { IconUser, IconLock, IconEye, IconEyeOff, IconAlertCircle } from '@tabler/icons-react'
 
 interface LoginCardProps {
@@ -114,13 +113,6 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
     }
   }
 
-  const loginLoadingStates = [
-    { text: "Connecting to server..." },
-    { text: "Verifying credentials..." },
-    { text: "Checking account status..." },
-    { text: "Signing you in..." }
-  ]
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -129,12 +121,14 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
       className="w-full max-w-md mx-auto relative"
     >
       {/* Loading Overlay */}
-      <MultiStepLoader
-        loadingStates={loginLoadingStates}
-        loading={isLoading}
-        duration={800}
-        loop={false}
-      />
+      {isLoading && (
+        <div className="absolute inset-0 bg-white bg-opacity-90 backdrop-blur-sm rounded-xl z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
+            <p className="text-gray-600 text-sm">Signing you in...</p>
+          </div>
+        </div>
+      )}
       <div className="text-gray-900">
         {/* Header */}
         <div className="text-center mb-8">
