@@ -391,7 +391,28 @@ router.post('/login', loginRateLimit, loginSlowDown, [
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Check if user has Telegram linked for MFA
+    // Skip Telegram MFA for admin users
+    if (user.role === 'admin') {
+      // Admin users bypass MFA - directly create session and return token
+      await resetFailedLoginAttempts(studentId);
+      
+      const token = await createUserSession(user);
+      await logLoginAttempt(studentId, true, 'Admin login successful (MFA bypassed)', req);
+      await logSecurityEvent('ADMIN_LOGIN_SUCCESS', `Admin login successful without MFA: ${studentId}`, user.id, { studentId, email: user.email }, req);
+      
+      return res.json({
+        message: 'Login successful',
+        token: token,
+        user: {
+          id: user.id,
+          studentId: user.student_id,
+          email: user.email,
+          role: user.role
+        }
+      });
+    }
+
+    // Check if user has Telegram linked for MFA (students only)
     if (!user.telegram_chat_id) {
       return res.status(400).json({ 
         error: 'Telegram authentication required. Please link your Telegram account first.',
@@ -399,7 +420,7 @@ router.post('/login', loginRateLimit, loginSlowDown, [
       });
     }
 
-    // Generate and send MFA code via Telegram
+    // Generate and send MFA code via Telegram (students only)
     const clientIp = req.ip || req.connection.remoteAddress;
     const userAgent = req.get('User-Agent') || 'Unknown';
     
