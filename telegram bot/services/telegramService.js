@@ -432,25 +432,25 @@ Please contact support to resolve this issue.
         timestamp: Date.now()
       });
 
-      await this.sendMessage(chatId, `✅ *Starting Signup Process*
+      await this.sendMessage(chatId, `✅ Starting Signup Process
 
 Welcome ${user.first_name || 'Student'}! Let's create your SUTD account.
 
-*Student ID:* ${studentId}
-*Email:* ${studentId}@mymail.sutd.edu.sg
+Student ID: ${studentId}
+Email: ${studentId}@mymail.sutd.edu.sg
 
-📝 *Next Step:* Please send your password.
+📝 Next Step: Please send your password.
 
-*Password Requirements:*
+Password Requirements:
 • At least 12 characters long
 • At least one uppercase letter (A-Z)
 • At least one lowercase letter (a-z)
 • At least one number (0-9)
-• At least one special character (e.g. !@#$%^&*)
+• At least one special character (e.g. !@#$%^&)
 • Cannot contain repeated characters more than twice
 • Cannot contain common patterns (123, abc, password, etc.)
 
-*Please type your password now:*`);
+Please type your password now:`, { parse_mode: null });
 
     } catch (error) {
       console.error('❌ Error in signup command:', error);
