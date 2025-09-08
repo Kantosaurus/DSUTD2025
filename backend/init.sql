@@ -535,7 +535,7 @@ ON CONFLICT DO NOTHING;
 -- Insert survival kit resources for Connectivity & Navigation
 INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
 (1, 'WiFi Setup Guide', 'Log into SUTD_Wifi using your MyPortal credentials:
-- Username: 100XXXX (Student ID)
+- Username: 100XXXX or 101XXXX (Student ID)
 - Password: (Network ID password)
 
 Guides & Links:
@@ -566,7 +566,7 @@ INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, or
 (2, 'MyPortal', 'Official school portal for administrative matters including timetable, fee payment, and academic transcripts. Login: https://myportal.sutd.edu.sg/', 1),
 (2, 'eDimension', 'Primary academic platform for lecture slides, homework submissions, quizzes, and online assessments. Login: https://edimension.sutd.edu.sg/', 2),
 (2, 'SUTD Career Portal (GEMS)', 'One-stop career services system to apply for jobs, book career advisory appointments, and sign up for workshops or recruitment events. Login: https://sutd-csm.symplicity.com/', 3),
-(2, 'Outlook Email', 'Official communication channel between students and the school. Email format: 100XXXX@mymail.sutd.edu.sg. Login: https://outlook.office.com/', 4),
+(2, 'Outlook Email', 'Official communication channel between students and the school. Email format: 100XXXX@mymail.sutd.edu.sg or 101XXXX@mymail.sutd.edu.sg. Login: https://outlook.office.com/', 4),
 (2, 'LockDown Browser', 'Secure browser used for accessing certain quizzes and exams on eDimension. Download: https://download.respondus.com/lockdown/download.php?id=935444133', 5),
 (2, 'Other Academic Platforms', 'Additional tools used in some courses: Learning Catalytics, Ed Discussion, Piazza, Classpoint, and Gradescope.', 6);
 
@@ -604,7 +604,7 @@ INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, or
 
 -- Insert survival kit resources for Health & Safety
 INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
-(6, 'Medical Coverage', 'All students are covered under the GroupCare Lite @Income insurance scheme. Sign up with your SUTD email (format: 100XXXX@mymail.sutd.edu.sg) and student ID.', 1),
+(6, 'Medical Coverage', 'All students are covered under the GroupCare Lite @Income insurance scheme. Sign up with your SUTD email (format: 100XXXX@mymail.sutd.edu.sg or 101XXXX@mymail.sutd.edu.sg) and student ID.', 1),
 (6, 'Nearest Clinics', 'Fullerton Health @ Watsons (Changi City Point) is closest; Central 24-HR Clinic (Tampines) for 24-hour service.', 2),
 (6, 'Telemedicine Booth', 'Available 24/7 on campus near Albert Hong benches or next to Building 1 Lift.', 3),
 (6, 'Leave of Absence (LOA)', 'For medical or approved personal reasons, inform your instructors and submit LOA via MyPortal > Self Service > Leave of Absence Application. Medical certificate required.', 4),
@@ -621,7 +621,7 @@ INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, or
 -- Insert survival kit resources for Finance & Claims
 INSERT INTO survival_kit_resources (survival_kit_item_id, title, description, order_index) VALUES
 (8, 'Grants, Bursaries & Scholarships', 'For enquiries, contact studentfinance@sutd.edu.sg or call 6303 6888.', 1),
-(8, 'Student Claims (Clubs, Events, Projects)', 'Submit claims through Concur at https://www.concursolutions.com/nui/signin using your 100XXXX@mymail.sutd.edu.sg and EASE credentials.', 2),
+(8, 'Student Claims (Clubs, Events, Projects)', 'Submit claims through Concur at https://www.concursolutions.com/nui/signin using your 100XXXX@mymail.sutd.edu.sg or 101XXXX@mymail.sutd.edu.sg and EASE credentials.', 2),
 (8, 'Finance Guidelines', 'Download the latest finance guidelines from ROOT''s resources page before making purchases: https://root.sutd.edu.sg/resources', 3),
 (8, 'Approval & Clarifications', 'Seek confirmation from your StuOrg Treasurer before committing to any expenses to ensure they meet reimbursement requirements.', 4);
 

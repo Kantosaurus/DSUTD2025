@@ -112,7 +112,7 @@ export default function SignUpModal({ isOpen, onClose, onSubmit, type }: SignUpM
   }
 
   // Validation
-  const isValidStudentId = type === 'user' ? /^100[1-9]\d{3}$/.test(identifier) : true
+  const isValidStudentId = type === 'user' ? /^10[01]\d{4}$/.test(identifier) : true
   const isValidEmail = type === 'club' ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier) : true
 
   const isFormValid = identifier && password && confirmPassword && 

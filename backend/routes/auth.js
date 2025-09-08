@@ -15,8 +15,8 @@ const router = express.Router();
 // Sign up endpoint (DEPRECATED - use Telegram /signup instead)
 router.post('/signup', [
   body('studentId')
-    .matches(/^100\d{4}$/)
-    .withMessage('Student ID must be in format 100XXXX where X is a digit from 0-9'),
+    .matches(/^10[01]\d{4}$/)
+    .withMessage('Student ID must be in format 100XXXX or 101XXXX where X is a digit from 0-9'),
   body('password')
     .isLength({ min: 12 })
     .withMessage('Password must be at least 12 characters long')

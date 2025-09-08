@@ -112,13 +112,13 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                      id="studentId"
                      value={studentId}
                      onChange={(e) => setStudentId(e.target.value)}
-                     placeholder="100XXXX"
+                     placeholder="100XXXX or 101XXXX"
                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white text-gray-900 placeholder-gray-500"
                      required
                      disabled={isLoading}
                    />
                   <p className="text-xs text-gray-500 mt-1">
-                    Format: 100XXXX (where X is a digit from 1-9)
+                    Format: 100XXXX or 101XXXX (where X is a digit from 0-9)
                   </p>
                 </div>
 

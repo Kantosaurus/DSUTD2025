@@ -380,13 +380,13 @@ Sorry, there was an error checking your status. Please try again later.
       console.log(`Signup attempt: Student ID ${studentId}, Chat ID ${chatId}, User: ${user.first_name}`);
 
       // Validate student ID format
-      if (!/^100\d{4}$/.test(studentId)) {
+      if (!/^10[01]\d{4}$/.test(studentId)) {
         await this.sendMessage(chatId, `
 ❌ **Invalid Student ID Format**
 
-Student ID must be in format 100XXXX where X is a digit from 0-9.
+Student ID must be in format 100XXXX or 101XXXX where X is a digit from 0-9.
 
-Example: \`/signup 1009999\`
+Examples: \`/signup 1009999\` or \`/signup 1019999\`
         `);
         return;
       }
@@ -432,27 +432,25 @@ Please contact support to resolve this issue.
         timestamp: Date.now()
       });
 
-      await this.sendMessage(chatId, `
-✅ **Starting Signup Process**
+      await this.sendMessage(chatId, `✅ *Starting Signup Process*
 
-Welcome ${user.first_name}! Let's create your SUTD account.
+Welcome ${user.first_name || 'Student'}\\! Let's create your SUTD account\\.
 
-**Student ID:** ${studentId}
-**Email:** ${studentId}@mymail.sutd.edu.sg
+*Student ID:* ${studentId}
+*Email:* ${studentId}@mymail\\.sutd\\.edu\\.sg
 
-📝 **Next Step:** Please send your password.
+📝 *Next Step:* Please send your password\\.
 
-**Password Requirements:**
+*Password Requirements:*
 • At least 12 characters long
-• At least one uppercase letter (A-Z)
-• At least one lowercase letter (a-z)
-• At least one number (0-9)
-• At least one special character (e.g. !@#$%^&*)
+• At least one uppercase letter \\(A\\-Z\\)
+• At least one lowercase letter \\(a\\-z\\)  
+• At least one number \\(0\\-9\\)
+• At least one special character \\(e\\.g\\. \\!@\\#\\$\\%\\^\\&\\*\\)
 • Cannot contain repeated characters more than twice
-• Cannot contain common patterns (123, abc, password, etc.)
+• Cannot contain common patterns \\(123, abc, password, etc\\.\\)
 
-**Please type your password now:**
-      `);
+*Please type your password now:*`);
 
     } catch (error) {
       console.error('❌ Error in signup command:', error);
