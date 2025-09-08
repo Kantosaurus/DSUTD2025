@@ -119,21 +119,34 @@ export default function ProfilePage() {
       console.log('Profile page - User data loaded:', userResponse.data);
 
       console.log('Profile page - Loading signed up events...');
+      console.log('Profile page - API_URL:', API_URL);
+      console.log('Profile page - Full events URL:', `${API_URL}/api/user/events`);
+      
       // Load signed up events
       try {
         const eventsResponse = await axios.get(`${API_URL}/api/user/events`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        console.log('Profile page - Events response:', eventsResponse);
+        console.log('Profile page - Events response status:', eventsResponse.status);
+        console.log('Profile page - Events response headers:', eventsResponse.headers);
         console.log('Profile page - Events data:', eventsResponse.data);
-        setSignedUpEvents(eventsResponse.data);
-        console.log('Profile page - Events loaded:', eventsResponse.data);
+        console.log('Profile page - Events data type:', typeof eventsResponse.data);
+        console.log('Profile page - Events data length:', Array.isArray(eventsResponse.data) ? eventsResponse.data.length : 'Not an array');
+        
+        if (Array.isArray(eventsResponse.data)) {
+          setSignedUpEvents(eventsResponse.data);
+          console.log('Profile page - Events set successfully, count:', eventsResponse.data.length);
+        } else {
+          console.warn('Profile page - Events data is not an array:', eventsResponse.data);
+          setSignedUpEvents([]);
+        }
       } catch (eventsError: any) {
-        console.error('Error loading events:', eventsError);
-        console.error('Events error response:', eventsError.response?.data);
-        console.error('Events error status:', eventsError.response?.status);
-        console.error('Events error message:', eventsError.message);
-        console.error('Events error config:', eventsError.config);
+        console.error('Profile page - Error loading events:', eventsError);
+        console.error('Profile page - Events error response:', eventsError.response?.data);
+        console.error('Profile page - Events error status:', eventsError.response?.status);
+        console.error('Profile page - Events error message:', eventsError.message);
+        console.error('Profile page - Events error config URL:', eventsError.config?.url);
+        console.error('Profile page - Events error request headers:', eventsError.config?.headers);
         setSignedUpEvents([]);
       }
 
@@ -342,11 +355,33 @@ export default function ProfilePage() {
             <div className="bg-white rounded-2xl p-8 shadow-lg">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">My Events</h2>
 
-              {signedUpEvents.filter(event => {
-                const eventDate = new Date(`${event.date}T${event.time}`);
+              {(() => {
                 const now = new Date();
-                return !event.isOver && eventDate >= now;
-              }).length === 0 ? (
+                const filteredEvents = signedUpEvents.filter(event => {
+                  const eventDate = new Date(`${event.date}T${event.time}`);
+                  const isOverCheck = !event.isOver;
+                  const dateCheck = eventDate >= now;
+                  
+                  console.log('Profile page - Event filter debug:', {
+                    title: event.title,
+                    date: event.date,
+                    time: event.time,
+                    eventDate: eventDate.toString(),
+                    now: now.toString(),
+                    isOver: event.isOver,
+                    isOverCheck,
+                    dateCheck,
+                    passesFilter: isOverCheck && dateCheck
+                  });
+                  
+                  return isOverCheck && dateCheck;
+                });
+                
+                console.log('Profile page - Total events:', signedUpEvents.length);
+                console.log('Profile page - Filtered events:', filteredEvents.length);
+                
+                return filteredEvents;
+              })().length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -364,11 +399,13 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className="space-y-4 overflow-y-auto" style={{maxHeight: 'calc(100% - 3rem)'}}>
-                  {signedUpEvents.filter(event => {
-                    const eventDate = new Date(`${event.date}T${event.time}`);
+                  {(() => {
                     const now = new Date();
-                    return !event.isOver && eventDate >= now;
-                  }).map((event) => {
+                    return signedUpEvents.filter(event => {
+                      const eventDate = new Date(`${event.date}T${event.time}`);
+                      return !event.isOver && eventDate >= now;
+                    });
+                  })().map((event) => {
                     const status = getEventStatus(event);
                     return (
                       <div
