@@ -203,7 +203,8 @@ export default function ProfilePage() {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    const dateOnly = dateString.split('T')[0]; // Extract just the date part
+    const date = new Date(dateOnly);
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -217,7 +218,8 @@ export default function ProfilePage() {
   };
 
   const getEventStatus = (event: Event) => {
-    const eventDate = new Date(`${event.date}T${event.time}`);
+    const dateOnly = event.date.split('T')[0];
+    const eventDate = new Date(`${dateOnly}T${event.time}`);
     const now = new Date();
 
     if (event.isOver) {
@@ -358,14 +360,18 @@ export default function ProfilePage() {
               {(() => {
                 const now = new Date();
                 const filteredEvents = signedUpEvents.filter(event => {
-                  const eventDate = new Date(`${event.date}T${event.time}`);
+                  // Fix date parsing - extract just the date part and combine with time
+                  const dateOnly = event.date.split('T')[0]; // Get "2025-09-09" from "2025-09-09T00:00:00.000Z"
+                  const eventDate = new Date(`${dateOnly}T${event.time}`);
                   const isOverCheck = !event.isOver;
                   const dateCheck = eventDate >= now;
                   
                   console.log('Profile page - Event filter debug:', {
                     title: event.title,
                     date: event.date,
+                    dateOnly,
                     time: event.time,
+                    combinedDateTime: `${dateOnly}T${event.time}`,
                     eventDate: eventDate.toString(),
                     now: now.toString(),
                     isOver: event.isOver,
@@ -402,7 +408,8 @@ export default function ProfilePage() {
                   {(() => {
                     const now = new Date();
                     return signedUpEvents.filter(event => {
-                      const eventDate = new Date(`${event.date}T${event.time}`);
+                      const dateOnly = event.date.split('T')[0];
+                      const eventDate = new Date(`${dateOnly}T${event.time}`);
                       return !event.isOver && eventDate >= now;
                     });
                   })().map((event) => {
