@@ -3,8 +3,6 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: webapp-postgres
-    ports:
-      - "5432:5431"
     environment:
       POSTGRES_DB: webapp_db
       POSTGRES_USER: webapp_user
@@ -29,7 +27,7 @@ services:
     container_name: webapp-backend
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://webapp_user:${DB_PASSWORD}@postgres:5431/webapp_db
+      DATABASE_URL: postgresql://webapp_user:${DB_PASSWORD}@postgres:5432/webapp_db
       JWT_SECRET: ${JWT_SECRET}
       PORT: 3001
       EMAIL_USER: ${EMAIL_USER}
@@ -71,7 +69,7 @@ services:
     container_name: webapp-telegram-bot
     environment:
       DB_HOST: postgres
-      DB_PORT: 5431
+      DB_PORT: 5432
       DB_NAME: webapp_db
       DB_USER: webapp_user
       DB_PASSWORD: ${DB_PASSWORD}

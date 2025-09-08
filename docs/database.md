@@ -8,7 +8,7 @@ The application uses **PostgreSQL 15** with a comprehensive schema designed for 
 
 - **Database Name**: `webapp_db`
 - **User**: `webapp_user`
-- **Port**: 5431
+- **Port**: 5432
 - **Container**: `webapp-postgres`
 
 ## 🗄️ Database Schema

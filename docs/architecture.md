@@ -65,7 +65,7 @@ The application is containerized using Docker with three main services:
 
 ### Database Container (`webapp-postgres`)
 - **Base Image**: `postgres:15-alpine`
-- **Port**: 5431
+- **Port**: 5432
 - **Features**:
   - Persistent data volumes
   - Automatic schema initialization
@@ -129,7 +129,7 @@ Database Insert → Real-time Update → UI Refresh
 ### Port Mapping
 - **Frontend**: `3000:3000`
 - **Backend**: `3001:3001`
-- **Database**: `5431:5431`
+- **Database**: `5432:5432`
 
 ### API Communication
 - Frontend uses Next.js rewrites for seamless API proxying

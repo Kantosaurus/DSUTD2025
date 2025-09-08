@@ -90,7 +90,7 @@ npm run dev
 **Backend Environment Variables:**
 ```env
 # backend/.env
-DATABASE_URL=postgresql://webapp_user:webapp_password@localhost:5431/webapp_db
+DATABASE_URL=postgresql://webapp_user:webapp_password@localhost:5432/webapp_db
 PORT=3001
 NODE_ENV=development
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production

@@ -174,7 +174,7 @@ docker-compose up postgres
 ### Q: Can I use an external database instead of the Docker PostgreSQL?
 **A:** Yes, change the `DATABASE_URL` environment variable to point to your external database:
 ```env
-DATABASE_URL=postgresql://user:password@external-host:5431/database_name
+DATABASE_URL=postgresql://user:password@external-host:5432/database_name
 ```
 
 ### Q: How do I view database logs?
@@ -273,7 +273,7 @@ curl -X GET http://localhost:3001/api/auth/me \
 ```env
 NODE_ENV=production
 JWT_SECRET=secure-32-character-minimum-secret
-DATABASE_URL=postgresql://user:password@host:5431/database
+DATABASE_URL=postgresql://user:password@host:5432/database
 EMAIL_USER=production-email@domain.com
 EMAIL_PASSWORD=app-specific-password
 NEXT_PUBLIC_API_URL=https://api.yourdomain.com
@@ -297,7 +297,7 @@ NEXT_PUBLIC_API_URL=https://api.yourdomain.com
 ### Q: The application won't start. What should I check?
 **A:**
 1. Check if Docker is running
-2. Verify ports 3000, 3001, 5431 are available
+2. Verify ports 3000, 3001, 5432 are available
 3. Check environment variables are set
 4. Look at container logs: `docker-compose logs`
 

@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: webapp_user
       POSTGRES_PASSWORD: webapp_password
     ports:
-      - "5433:5431"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -28,7 +28,7 @@ services:
     container_name: webapp-backend
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://webapp_user:webapp_password@postgres:5431/webapp_db
+      DATABASE_URL: postgresql://webapp_user:webapp_password@postgres:5432/webapp_db
       JWT_SECRET: ${JWT_SECRET}
       PORT: 3001
       AUTO_MIGRATE: "true"
@@ -71,7 +71,7 @@ services:
     environment:
       # Database Configuration
       DB_HOST: postgres
-      DB_PORT: 5431
+      DB_PORT: 5432
       DB_NAME: webapp_db
       DB_USER: webapp_user
       DB_PASSWORD: webapp_password
