@@ -626,8 +626,8 @@ export const AvatarDropdown = () => {
             href="/profile"
             className={`flex items-center px-4 py-2 text-sm transition-colors duration-150 ${
               isAuthenticated
-                ? 'text-gray-700 hover:bg-gray-100'
-                : 'text-gray-400 cursor-not-allowed'
+                ? 'text-gray-800 hover:bg-gray-100 hover:text-gray-900'
+                : 'text-gray-500 cursor-not-allowed'
             }`}
             onClick={(e) => {
               e.preventDefault();
@@ -659,7 +659,7 @@ export const AvatarDropdown = () => {
           </a>
           <button
             onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150"
           >
             <svg
               className="w-4 h-4 mr-3 text-gray-500"

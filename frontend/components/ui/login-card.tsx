@@ -176,7 +176,7 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
               }}
               transition={{ duration: 0.2 }}
             >
-              Student ID or Email
+              Student ID
             </motion.label>
             <motion.div
               className="relative"
@@ -200,7 +200,7 @@ export default function LoginCard({ onSubmit, onSwitchToUserSignUp, onSwitchToCl
                 onFocus={() => setFocusedField('studentId')}
                 onBlur={() => setFocusedField(null)}
                 className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white text-gray-900 placeholder-gray-500"
-                placeholder="Enter your student ID or email"
+                placeholder="Enter your student ID"
                 required
                 disabled={isLoading}
                 whileFocus={{ scale: 1.02 }}
