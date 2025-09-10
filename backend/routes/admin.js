@@ -628,4 +628,216 @@ router.post('/fix-mandatory-enrollments', authenticateToken, requireAdmin, async
 });
 
 
+// Get event analytics (admin only) - comprehensive signup statistics
+router.get('/event-analytics', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { eventType, sortBy, sortOrder } = req.query;
+
+    let whereClause = '';
+    let params = [];
+    let paramCount = 1;
+
+    // Filter by event type if specified
+    if (eventType && ['Mandatory', 'Optional'].includes(eventType)) {
+      whereClause = 'WHERE ce.event_type = $1';
+      params.push(eventType);
+      paramCount++;
+    }
+
+    // Determine sort field and order
+    let orderClause = 'ORDER BY';
+    switch (sortBy) {
+      case 'signup_count':
+        orderClause += ' signup_count';
+        break;
+      case 'fill_percentage':
+        orderClause += ' fill_percentage';
+        break;
+      case 'event_date':
+        orderClause += ' ce.event_date';
+        break;
+      default:
+        orderClause += ' signup_count'; // Default sort
+    }
+    
+    orderClause += sortOrder === 'asc' ? ' ASC' : ' DESC';
+
+    const result = await pool.query(`
+      SELECT 
+        ce.id,
+        ce.title,
+        ce.description,
+        ce.event_date,
+        ce.start_time,
+        ce.end_time,
+        ce.event_type,
+        ce.location,
+        ce.color,
+        ce.max_participants,
+        ce.current_participants,
+        COALESCE(signup_stats.signup_count, 0) as signup_count,
+        CASE 
+          WHEN ce.max_participants > 0 THEN 
+            ROUND((COALESCE(signup_stats.signup_count, 0)::float / ce.max_participants * 100), 1)
+          ELSE NULL 
+        END as fill_percentage,
+        ce.created_at,
+        ce.updated_at
+      FROM calendar_events ce
+      LEFT JOIN (
+        SELECT event_id, COUNT(*) as signup_count
+        FROM event_signups
+        GROUP BY event_id
+      ) signup_stats ON ce.id = signup_stats.event_id
+      ${whereClause}
+      AND ce.is_active = true
+      ${orderClause}
+    `, params);
+
+    // Calculate overall statistics
+    const totalEvents = result.rows.length;
+    const totalSignups = result.rows.reduce((sum, event) => sum + parseInt(event.signup_count), 0);
+    const mandatoryEvents = result.rows.filter(event => event.event_type === 'Mandatory').length;
+    const optionalEvents = result.rows.filter(event => event.event_type === 'Optional').length;
+    const averageSignupsPerEvent = totalEvents > 0 ? Math.round(totalSignups / totalEvents) : 0;
+
+    // Calculate upcoming events
+    const upcomingEvents = result.rows.filter(event => 
+      new Date(event.event_date) >= new Date()
+    ).length;
+
+    const analytics = {
+      events: result.rows,
+      statistics: {
+        totalEvents,
+        totalSignups,
+        mandatoryEvents,
+        optionalEvents,
+        averageSignupsPerEvent,
+        upcomingEvents
+      }
+    };
+
+    res.json(analytics);
+  } catch (err) {
+    console.error('Error fetching event analytics:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get detailed signup breakdown by event (admin only)
+router.get('/event-signups-detailed', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { eventId } = req.query;
+    
+    let whereClause = '';
+    let params = [];
+
+    if (eventId) {
+      whereClause = 'WHERE es.event_id = $1';
+      params.push(eventId);
+    }
+
+    const result = await pool.query(`
+      SELECT 
+        es.id,
+        es.event_id,
+        es.user_id,
+        es.signup_date,
+        u.student_id,
+        u.email,
+        u.role,
+        ce.title as event_title,
+        ce.event_date,
+        ce.event_type,
+        ce.location
+      FROM event_signups es
+      JOIN users u ON es.user_id = u.id
+      JOIN calendar_events ce ON es.event_id = ce.id
+      ${whereClause}
+      ORDER BY es.signup_date DESC
+    `, params);
+
+    res.json({
+      signups: result.rows,
+      totalCount: result.rows.length
+    });
+  } catch (err) {
+    console.error('Error fetching detailed signups:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get analytics summary for dashboard (admin only)
+router.get('/analytics-summary', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    // Get event counts by type
+    const eventTypeStats = await pool.query(`
+      SELECT 
+        event_type,
+        COUNT(*) as count,
+        COALESCE(SUM(signup_stats.signup_count), 0) as total_signups
+      FROM calendar_events ce
+      LEFT JOIN (
+        SELECT event_id, COUNT(*) as signup_count
+        FROM event_signups
+        GROUP BY event_id
+      ) signup_stats ON ce.id = signup_stats.event_id
+      WHERE ce.is_active = true
+      GROUP BY event_type
+    `);
+
+    // Get top events by signup count
+    const topEvents = await pool.query(`
+      SELECT 
+        ce.id,
+        ce.title,
+        ce.event_type,
+        ce.event_date,
+        COALESCE(signup_stats.signup_count, 0) as signup_count
+      FROM calendar_events ce
+      LEFT JOIN (
+        SELECT event_id, COUNT(*) as signup_count
+        FROM event_signups
+        GROUP BY event_id
+      ) signup_stats ON ce.id = signup_stats.event_id
+      WHERE ce.is_active = true
+      ORDER BY signup_count DESC
+      LIMIT 10
+    `);
+
+    // Get recent signup activity
+    const recentSignups = await pool.query(`
+      SELECT 
+        COUNT(*) as signup_count,
+        DATE(signup_date) as signup_date
+      FROM event_signups
+      WHERE signup_date >= NOW() - INTERVAL '7 days'
+      GROUP BY DATE(signup_date)
+      ORDER BY signup_date DESC
+    `);
+
+    // Calculate overall metrics
+    const overallStats = await pool.query(`
+      SELECT 
+        COUNT(DISTINCT ce.id) as total_events,
+        COUNT(DISTINCT es.id) as total_signups,
+        COUNT(DISTINCT es.user_id) as unique_users_signed_up
+      FROM calendar_events ce
+      LEFT JOIN event_signups es ON ce.id = es.event_id
+      WHERE ce.is_active = true
+    `);
+
+    res.json({
+      eventTypeStats: eventTypeStats.rows,
+      topEvents: topEvents.rows,
+      recentSignups: recentSignups.rows,
+      overallStats: overallStats.rows[0]
+    });
+  } catch (err) {
+    console.error('Error fetching analytics summary:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;
