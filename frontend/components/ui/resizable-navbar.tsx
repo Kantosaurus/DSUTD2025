@@ -517,6 +517,7 @@ export const AvatarDropdown = () => {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Check authentication status on component mount
   React.useEffect(() => {
@@ -567,9 +568,28 @@ export const AvatarDropdown = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     setIsAuthenticated(false);
+    setIsDropdownOpen(false);
     // Redirect to login page
     router.push('/')
   }
+
+  // Handle click outside to close dropdown
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.avatar-dropdown-container')) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   const authLoadingStates = [
     { text: "Checking authentication..." },
@@ -587,21 +607,20 @@ export const AvatarDropdown = () => {
   }
 
   return (
-    <div className="relative group">
+    <div className="relative group avatar-dropdown-container">
       <div
         className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors duration-200 ${
           isAuthenticated
             ? 'bg-gray-600 hover:bg-gray-500'
             : 'bg-gray-400 hover:bg-gray-300'
         }`}
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           if (isAuthenticated) {
-            console.log('Navbar - Avatar clicked, navigating to profile page');
-            router.push('/profile');
+            // Toggle dropdown instead of navigating directly
+            setIsDropdownOpen(!isDropdownOpen);
           } else {
             console.log('Navbar - Avatar clicked, user not authenticated');
-            // Instead of alert and redirect to landing page, just redirect to landing page
-            // The landing page has the login form
             router.push('/');
           }
         }}
@@ -620,30 +639,31 @@ export const AvatarDropdown = () => {
           />
         </svg>
       </div>
-      <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+      <div className={`absolute right-0 top-full mt-2 w-48 bg-white border-2 border-gray-300 rounded-lg shadow-2xl backdrop-blur-sm transition-all duration-200 z-50 ${
+        isDropdownOpen ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
+      }`}>
         <div className="py-2">
           <a
             href="/profile"
             className={`flex items-center px-4 py-2 text-sm transition-colors duration-150 ${
               isAuthenticated
-                ? 'text-gray-800 hover:bg-gray-100 hover:text-gray-900'
-                : 'text-gray-500 cursor-not-allowed'
+                ? 'text-gray-900 hover:bg-gray-100 hover:text-black font-medium'
+                : 'text-gray-700 cursor-not-allowed'
             }`}
             onClick={(e) => {
               e.preventDefault();
+              setIsDropdownOpen(false);
               if (isAuthenticated) {
                 console.log('Navbar - Navigating to profile page');
                 router.push('/profile');
               } else {
                 console.log('Navbar - User not authenticated');
-                // Instead of alert and redirect to landing page, just redirect to landing page
-                // The landing page has the login form
                 router.push('/');
               }
             }}
           >
             <svg
-              className="w-4 h-4 mr-3 text-gray-500"
+              className="w-4 h-4 mr-3 text-gray-700"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -659,10 +679,10 @@ export const AvatarDropdown = () => {
           </a>
           <button
             onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150"
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 hover:text-black font-medium transition-colors duration-150"
           >
             <svg
-              className="w-4 h-4 mr-3 text-gray-500"
+              className="w-4 h-4 mr-3 text-gray-700"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
