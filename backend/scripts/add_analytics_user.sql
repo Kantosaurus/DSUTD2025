@@ -39,7 +39,7 @@ ON CONFLICT (student_id) DO UPDATE SET
 
 -- Create an index on the metadata column for performance
 CREATE INDEX IF NOT EXISTS idx_users_metadata_access_level 
-ON users USING GIN ((user_metadata->>'access_level'));
+ON users ((user_metadata->>'access_level'));
 
 -- Log the creation
 INSERT INTO security_events (user_id, event_type, event_description, created_at, metadata)

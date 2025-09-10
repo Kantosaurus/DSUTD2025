@@ -34,7 +34,7 @@ WHERE u.student_id = '1099999';
 
 -- Create an index on the metadata column for performance
 CREATE INDEX IF NOT EXISTS idx_users_metadata_access_level 
-ON users USING GIN ((user_metadata->>'access_level'));
+ON users ((user_metadata->>'access_level'));
 
 -- Verify the update
 SELECT 
