@@ -66,6 +66,30 @@ export default function Home() {
       // Complete login - store token and redirect
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Check if this is an analytics-only user and redirect appropriately
+      if (data.user && data.user.role === 'admin') {
+        try {
+          const permissionsResponse = await fetch(`${API_URL}/api/admin/user-permissions`, {
+            headers: {
+              'Authorization': `Bearer ${data.token}`
+            }
+          });
+          
+          if (permissionsResponse.ok) {
+            const permissionsData = await permissionsResponse.json();
+            const permissions = permissionsData.permissions || {};
+            
+            if (permissions.isAnalyticsOnly) {
+              router.push('/admin/events');
+              return;
+            }
+          }
+        } catch (permissionError) {
+          console.warn('Could not check user permissions:', permissionError);
+        }
+      }
+      
       router.push('/home');
 
     } catch (error) {
@@ -166,9 +190,34 @@ export default function Home() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Close MFA modal and redirect to home page
+      // Close MFA modal and redirect appropriately
       setShowMfaModal(false);
       setPendingMfa(null);
+      
+      // Check if this is an analytics-only user and redirect appropriately
+      if (data.user && data.user.role === 'admin') {
+        try {
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+          const permissionsResponse = await fetch(`${API_URL}/api/admin/user-permissions`, {
+            headers: {
+              'Authorization': `Bearer ${data.token}`
+            }
+          });
+          
+          if (permissionsResponse.ok) {
+            const permissionsData = await permissionsResponse.json();
+            const permissions = permissionsData.permissions || {};
+            
+            if (permissions.isAnalyticsOnly) {
+              router.push('/admin/events');
+              return;
+            }
+          }
+        } catch (permissionError) {
+          console.warn('Could not check user permissions:', permissionError);
+        }
+      }
+      
       router.push('/home');
 
     } catch (error) {

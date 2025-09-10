@@ -98,6 +98,29 @@ export default function ProfilePage() {
         const authData = await authResponse.json();
         setIsAuthenticated(true);
         setUserRole(authData.user.role || 'student');
+        
+        // Check if this is an analytics-only user and redirect them
+        if (authData.user.role === 'admin') {
+          try {
+            const permissionsResponse = await fetch(`${API_URL}/api/admin/user-permissions`, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            if (permissionsResponse.ok) {
+              const permissionsData = await permissionsResponse.json();
+              const permissions = permissionsData.permissions || {};
+              
+              if (permissions.isAnalyticsOnly) {
+                router.push('/admin/events');
+                return;
+              }
+            }
+          } catch (permissionError) {
+            console.warn('Could not check user permissions:', permissionError);
+          }
+        }
       } else {
         localStorage.removeItem('token');
         localStorage.removeItem('user');

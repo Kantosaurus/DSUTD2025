@@ -16,7 +16,6 @@ const navItems = [
 ]
 
 const analyticsNavItems = [
-  { name: 'Analytics Dashboard', link: '/analytics' },
   { name: 'Events Overview', link: '/admin/events' }
 ]
 
@@ -132,7 +131,11 @@ export default function AdminEventsPage() {
               
               if (permissionsResponse.ok) {
                 const permissionsData = await permissionsResponse.json();
-                setUserPermissions(permissionsData.permissions || {});
+                const permissions = permissionsData.permissions || {};
+                setUserPermissions(permissions);
+                
+                // If this is an analytics-only user and they're not already on the events page,
+                // we don't need to redirect since they're already here
               }
             } catch (permissionError) {
               console.warn('Could not fetch user permissions:', permissionError);

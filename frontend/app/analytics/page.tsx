@@ -72,6 +72,28 @@ export default function AnalyticsPage() {
 
           // Check if user is admin (analytics users are also admin role)
           if (data.user.role === 'admin') {
+            // Check if this is the analytics-only user
+            try {
+              const permissionsResponse = await fetch(`${API_URL}/api/admin/user-permissions`, {
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              });
+              
+              if (permissionsResponse.ok) {
+                const permissionsData = await permissionsResponse.json();
+                const permissions = permissionsData.permissions || {};
+                
+                // If this is analytics-only user, redirect them to events overview instead
+                if (permissions.isAnalyticsOnly) {
+                  router.push('/admin/events');
+                  return;
+                }
+              }
+            } catch (permissionError) {
+              console.warn('Could not fetch permissions:', permissionError);
+            }
+            
             setIsAnalyticsUser(true);
             fetchAnalyticsData();
           } else {
