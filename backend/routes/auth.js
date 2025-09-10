@@ -3,7 +3,7 @@ const { body, validationResult } = require('express-validator');
 const { pool } = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 const { loginRateLimit, loginSlowDown, passwordResetLimiter } = require('../middleware/rateLimiting');
-const { logSecurityEvent, logLoginAttempt, checkAccountLockout, incrementFailedLoginAttempts, resetFailedLoginAttempts } = require('../utils/security');
+const { logSecurityEvent, logLoginAttempt, checkAccountLockout, incrementFailedLoginAttempts, resetFailedLoginAttempts, clearExpiredLockouts } = require('../utils/security');
 const { generateSecureToken, validatePasswordStrength, generateVerificationCode, generateSecureRandomToken, createUserSession, hashPassword, comparePassword, generateTemporaryPassword } = require('../utils/auth');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
 const TelegramMfaService = require('../services/telegramMfaService');
@@ -344,6 +344,9 @@ router.post('/login', loginRateLimit, loginSlowDown, [
 
     const { studentId, password } = req.body;
 
+    // Clear expired lockouts before checking
+    await clearExpiredLockouts();
+
     // Check account lockout
     const lockoutStatus = await checkAccountLockout(studentId);
     if (lockoutStatus.locked) {
@@ -482,6 +485,9 @@ router.post('/verify-mfa', loginRateLimit, [
     }
 
     const { studentId, mfaCode } = req.body;
+
+    // Clear expired lockouts before checking
+    await clearExpiredLockouts();
 
     // Check account lockout
     const lockoutStatus = await checkAccountLockout(studentId);

@@ -395,11 +395,20 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
   if (process.env.NODE_ENV !== 'production') {
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+  }
+  
+  // Clear any existing lockouts on startup
+  try {
+    const { clearExpiredLockouts } = require('./utils/security');
+    await clearExpiredLockouts();
+    console.log('✅ Cleared expired account lockouts on startup');
+  } catch (error) {
+    console.error('❌ Error clearing lockouts on startup:', error);
   }
 });
 

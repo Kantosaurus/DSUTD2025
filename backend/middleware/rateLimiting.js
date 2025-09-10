@@ -4,8 +4,8 @@ const SECURITY_CONFIG = require('../config/security');
 
 // Rate limiting for login attempts
 const loginRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15, // 15 attempts per 15 minutes (increased from 5)
+  windowMs: 5 * 60 * 1000, // 5 minutes (reduced from 15)
+  max: 50, // 50 attempts per 5 minutes (significantly increased)
   message: { error: 'Too many login attempts. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -14,9 +14,9 @@ const loginRateLimit = rateLimit({
 
 // Slow down for login attempts
 const loginSlowDown = slowDown({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  delayAfter: 7, // Allow 7 requests per 15 minutes without delay (increased from 2)
-  delayMs: () => 500, // Add 0.5 second delay per request after delayAfter (reduced from 1000ms)
+  windowMs: 5 * 60 * 1000, // 5 minutes (reduced from 15)
+  delayAfter: 20, // Allow 20 requests per 5 minutes without delay (significantly increased)
+  delayMs: () => 250, // Add 0.25 second delay per request after delayAfter (reduced from 500ms)
   skipSuccessfulRequests: true,
   validate: { delayMs: false } // Disable the warning
 });

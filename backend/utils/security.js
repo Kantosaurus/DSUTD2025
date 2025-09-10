@@ -55,7 +55,16 @@ const checkAccountLockout = async (studentId) => {
     
     const user = result.rows[0];
     
-    // Check if account is locked
+    // Auto-unlock expired lockouts
+    if (user.account_locked_until && new Date() >= user.account_locked_until) {
+      await pool.query(
+        'UPDATE users SET failed_login_attempts = 0, account_locked_until = NULL WHERE student_id = $1',
+        [studentId]
+      );
+      return { locked: false };
+    }
+    
+    // Check if account is currently locked
     if (user.account_locked_until && new Date() < user.account_locked_until) {
       return { 
         locked: true, 
@@ -107,6 +116,20 @@ const resetFailedLoginAttempts = async (studentId) => {
   }
 };
 
+const clearExpiredLockouts = async () => {
+  try {
+    const result = await pool.query(
+      'UPDATE users SET failed_login_attempts = 0, account_locked_until = NULL WHERE account_locked_until < NOW() OR failed_login_attempts >= $1',
+      [SECURITY_CONFIG.MAX_LOGIN_ATTEMPTS]
+    );
+    console.log(`Cleared ${result.rowCount} expired or excessive lockouts`);
+    return result.rowCount;
+  } catch (error) {
+    console.error('Error clearing expired lockouts:', error);
+    return 0;
+  }
+};
+
 module.exports = {
   getClientIP,
   getUserAgent,
@@ -114,5 +137,6 @@ module.exports = {
   logLoginAttempt,
   checkAccountLockout,
   incrementFailedLoginAttempts,
-  resetFailedLoginAttempts
+  resetFailedLoginAttempts,
+  clearExpiredLockouts
 };
