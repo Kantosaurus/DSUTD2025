@@ -15,6 +15,11 @@ const navItems = [
   { name: 'Admin Logs', link: '/admin/logs' }
 ]
 
+const analyticsNavItems = [
+  { name: 'Analytics Dashboard', link: '/analytics' },
+  { name: 'Events Overview', link: '/admin/events' }
+]
+
 interface Event {
   id: string
   title: string
@@ -45,11 +50,23 @@ interface EventFormData {
   max_participants: string
 }
 
+interface UserPermissions {
+  accessLevel?: string
+  permissions?: string[]
+  restrictions?: string[]
+  isAnalyticsOnly?: boolean
+  canModifyEvents?: boolean
+  canCreateEvents?: boolean
+  canDeleteEvents?: boolean
+  canViewAnalytics?: boolean
+}
+
 export default function AdminEventsPage() {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [userPermissions, setUserPermissions] = useState<UserPermissions>({})
   const [events, setEvents] = useState<Event[]>([])
   const [isLoadingEvents, setIsLoadingEvents] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
@@ -104,6 +121,30 @@ export default function AdminEventsPage() {
           // Check if user is admin
           if (data.user.role === 'admin') {
             setIsAdmin(true);
+            
+            // Fetch user permissions
+            try {
+              const permissionsResponse = await fetch(`${API_URL}/api/admin/user-permissions`, {
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              });
+              
+              if (permissionsResponse.ok) {
+                const permissionsData = await permissionsResponse.json();
+                setUserPermissions(permissionsData.permissions || {});
+              }
+            } catch (permissionError) {
+              console.warn('Could not fetch user permissions:', permissionError);
+              // Set default admin permissions if fetch fails
+              setUserPermissions({
+                canModifyEvents: true,
+                canCreateEvents: true,
+                canDeleteEvents: true,
+                isAnalyticsOnly: false
+              });
+            }
+            
             // Load events after authentication
             fetchEvents();
           } else {
@@ -391,14 +432,24 @@ export default function AdminEventsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <CompleteNavbar navItems={navItems} userRole="admin" />
+      <CompleteNavbar 
+        navItems={userPermissions.isAnalyticsOnly ? analyticsNavItems : navItems} 
+        userRole="admin" 
+      />
 
       <div className="pt-20 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="text-center py-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Admin Events Management</h1>
-            <p className="text-xl text-gray-600">Manage all calendar events in the system</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              {userPermissions.isAnalyticsOnly ? 'Events Overview' : 'Admin Events Management'}
+            </h1>
+            <p className="text-xl text-gray-600">
+              {userPermissions.isAnalyticsOnly 
+                ? 'View all calendar events and their details' 
+                : 'Manage all calendar events in the system'
+              }
+            </p>
           </div>
           
 
@@ -416,15 +467,28 @@ export default function AdminEventsPage() {
 
           {/* Action Buttons */}
           <div className="mb-6 flex justify-between items-center">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add New Event
-            </button>
+            <div className="flex gap-3">
+              {userPermissions.canCreateEvents && (
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add New Event
+                </button>
+              )}
+              
+              {userPermissions.isAnalyticsOnly && (
+                <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded-lg flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Read-Only Analytics Access
+                </div>
+              )}
+            </div>
 
             <button
               onClick={fetchEvents}
@@ -521,18 +585,27 @@ export default function AdminEventsPage() {
                          </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
-                            <button
-                              onClick={() => openEditModal(event)}
-                              className="text-blue-600 hover:text-blue-900 transition-colors duration-200"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteEvent(event.id)}
-                              className="text-red-600 hover:text-red-900 transition-colors duration-200"
-                            >
-                              Delete
-                            </button>
+                            {userPermissions.canModifyEvents && (
+                              <button
+                                onClick={() => openEditModal(event)}
+                                className="text-blue-600 hover:text-blue-900 transition-colors duration-200"
+                              >
+                                Edit
+                              </button>
+                            )}
+                            {userPermissions.canDeleteEvents && (
+                              <button
+                                onClick={() => handleDeleteEvent(event.id)}
+                                className="text-red-600 hover:text-red-900 transition-colors duration-200"
+                              >
+                                Delete
+                              </button>
+                            )}
+                            {userPermissions.isAnalyticsOnly && (
+                              <span className="text-gray-400 italic text-xs">
+                                View Only
+                              </span>
+                            )}
                           </div>
                         </td>
                       </tr>

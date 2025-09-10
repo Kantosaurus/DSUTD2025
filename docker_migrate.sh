@@ -27,8 +27,17 @@ echo -e "${YELLOW}📋 Running migration in container: $CONTAINER_NAME${NC}"
 
 # Run the SQL migration via docker exec
 docker exec -i "$CONTAINER_NAME" psql -U webapp_user -d webapp_db << 'EOF'
--- Add the analytics admin user
-INSERT INTO users (student_id, email, password_hash, role, email_verified, is_active, created_at) 
+-- Add user_metadata column if it doesn't exist
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'users' AND column_name = 'user_metadata') THEN
+        ALTER TABLE users ADD COLUMN user_metadata JSONB DEFAULT '{}';
+    END IF;
+END $$;
+
+-- Add the analytics admin user with restricted permissions
+INSERT INTO users (student_id, email, password_hash, role, email_verified, is_active, user_metadata, created_at) 
 VALUES (
     '1099999',
     '1099999@mymail.sutd.edu.sg',
@@ -36,6 +45,13 @@ VALUES (
     'admin',
     TRUE,
     TRUE,
+    jsonb_build_object(
+        'access_level', 'analytics_readonly',
+        'permissions', jsonb_build_array('view_analytics', 'view_events'),
+        'restrictions', jsonb_build_array('no_event_modify', 'no_event_create', 'no_event_delete'),
+        'created_by', 'system',
+        'purpose', 'event_signup_analytics'
+    ),
     CURRENT_TIMESTAMP
 )
 ON CONFLICT (student_id) DO UPDATE SET
@@ -43,16 +59,27 @@ ON CONFLICT (student_id) DO UPDATE SET
     role = EXCLUDED.role,
     email_verified = EXCLUDED.email_verified,
     is_active = EXCLUDED.is_active,
+    user_metadata = EXCLUDED.user_metadata,
     updated_at = CURRENT_TIMESTAMP;
+
+-- Create index for performance
+CREATE INDEX IF NOT EXISTS idx_users_metadata_access_level 
+ON users USING GIN ((user_metadata->>'access_level'));
 
 -- Log the creation
 INSERT INTO security_events (user_id, event_type, event_description, created_at, metadata)
 SELECT 
     u.id,
     'ANALYTICS_USER_CREATED',
-    'Analytics admin user created for event signup tracking',
+    'Analytics read-only admin user created for event signup tracking',
     CURRENT_TIMESTAMP,
-    '{"role": "admin", "purpose": "event_analytics"}'::jsonb
+    jsonb_build_object(
+        'role', 'admin',
+        'access_level', 'analytics_readonly',
+        'permissions', u.user_metadata->'permissions',
+        'restrictions', u.user_metadata->'restrictions',
+        'purpose', 'event_analytics'
+    )
 FROM users u
 WHERE u.student_id = '1099999';
 
@@ -63,6 +90,7 @@ SELECT
     role, 
     email_verified, 
     is_active,
+    user_metadata,
     created_at
 FROM users 
 WHERE student_id = '1099999';

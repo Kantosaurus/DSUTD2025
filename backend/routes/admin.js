@@ -1,6 +1,7 @@
 const express = require('express');
 const { pool } = require('../config/database');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { requireEventModifyPermission, getUserPermissions } = require('../middleware/analyticsAuth');
 const { logSecurityEvent } = require('../utils/security');
 const multer = require('multer');
 const csv = require('csv-parser');
@@ -33,8 +34,20 @@ const getEventTypeColor = (eventType) => {
   }
 };
 
-// Batch upload calendar events from CSV (admin only)
-router.post('/calendar/events/batch', authenticateToken, requireAdmin, upload.single('csvFile'), async (req, res) => {
+// Get user permissions information
+router.get('/user-permissions', authenticateToken, requireAdmin, getUserPermissions, async (req, res) => {
+  try {
+    res.json({
+      permissions: req.user.permissionInfo
+    });
+  } catch (err) {
+    console.error('Error getting user permissions:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Batch upload calendar events from CSV (admin only with event modify permission)
+router.post('/calendar/events/batch', authenticateToken, requireAdmin, requireEventModifyPermission, upload.single('csvFile'), async (req, res) => {
   let processedCount = 0;
   let skippedCount = 0;
   const errors = [];

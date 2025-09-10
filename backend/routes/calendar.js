@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { pool } = require('../config/database');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { requireEventModifyPermission } = require('../middleware/analyticsAuth');
 const { optionalAuth } = require('../middleware/optionalAuth');
 const { logSecurityEvent } = require('../utils/security');
 const multer = require('multer');
@@ -148,7 +149,7 @@ const getEventTypeColor = (eventType) => {
 };
 
 // Create new calendar event (admin only)
-router.post('/events', authenticateToken, requireAdmin, [
+router.post('/events', authenticateToken, requireAdmin, requireEventModifyPermission, [
   body('title').notEmpty().withMessage('Title is required'),
   body('description').optional(),
   body('event_date').isISO8601().withMessage('Valid event date is required'),
@@ -225,7 +226,7 @@ router.post('/events', authenticateToken, requireAdmin, [
 });
 
 // Update calendar event (admin only)
-router.put('/events/:id', authenticateToken, requireAdmin, [
+router.put('/events/:id', authenticateToken, requireAdmin, requireEventModifyPermission, [
   body('title').notEmpty().withMessage('Title is required'),
   body('description').optional(),
   body('event_date').isISO8601().withMessage('Valid event date is required'),
@@ -283,7 +284,7 @@ router.put('/events/:id', authenticateToken, requireAdmin, [
 });
 
 // Delete calendar event (admin only)
-router.delete('/events/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.delete('/events/:id', authenticateToken, requireAdmin, requireEventModifyPermission, async (req, res) => {
   try {
     const eventId = req.params.id;
     
