@@ -18,7 +18,7 @@ WHERE title = 'Mechanical Keyboard Interest Group'
 -- 2. Update SUTD AI Interest Group Session date
 -- Change from September 30th to October 8th
 UPDATE calendar_events 
-SET event_date = '2025-10-08',7
+SET event_date = '2025-10-08',
     updated_at = CURRENT_TIMESTAMP
 WHERE title = 'SUTD AI Interest Group Session' 
   AND event_date = '2025-09-30'
@@ -531,3 +531,4 @@ COMMIT;
 --    OR (title = 'SUTD AI Interest Group Session' AND event_date = '2025-10-08')
 --    OR title LIKE '%SEVEN%'
 -- ORDER BY event_date, start_time;
+
