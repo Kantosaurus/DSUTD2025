@@ -92,11 +92,23 @@ class ReminderService {
    * Format reminder message for telegram
    */
   formatReminderMessage(event) {
-    const startTime = moment(`${event.event_date} ${event.start_time}`);
-    const endTime = moment(`${event.event_date} ${event.end_time}`);
+    const startTime = moment(`${event.event_date} ${event.start_time}`, 'YYYY-MM-DD HH:mm:ss');
+    const endTime = moment(`${event.event_date} ${event.end_time}`, 'YYYY-MM-DD HH:mm:ss');
+    
+    // Check if moment parsing was successful
+    if (!startTime.isValid() || !endTime.isValid()) {
+      console.error('Invalid date/time format in event:', {
+        event_date: event.event_date,
+        start_time: event.start_time,
+        end_time: event.end_time
+      });
+      // Fallback to showing raw values
+      var timeDisplay = `${event.start_time} - ${event.end_time}`;
+    } else {
+      var timeDisplay = `${startTime.format('h:mm A')} - ${endTime.format('h:mm A')}`;
+    }
     
     const eventTypeEmoji = event.event_type === 'Mandatory' ? '🔴' : '🟠';
-    const timeFormat = 'h:mm A';
     
     let message = `${eventTypeEmoji} **Event Reminder**\n\n`;
     message += `📅 **${event.title}**\n`;
@@ -105,7 +117,7 @@ class ReminderService {
       message += `📝 ${event.description}\n\n`;
     }
     
-    message += `🕒 **Time:** ${startTime.format(timeFormat)} - ${endTime.format(timeFormat)}\n`;
+    message += `🕒 **Time:** ${timeDisplay}\n`;
     message += `📍 **Location:** ${event.location}\n`;
     message += `📋 **Type:** ${event.event_type}\n\n`;
     
