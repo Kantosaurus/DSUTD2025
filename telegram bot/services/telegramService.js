@@ -40,24 +40,12 @@ class TelegramService {
       await this.handleStartCommand(chatId, userId, msg.from);
     });
 
-    // Handle /register command (deprecated - redirect to signup)
+    // Handle /register command - for relinking existing accounts
     this.bot.onText(/\/register (.+)/, async (msg, match) => {
       const chatId = msg.chat.id;
       const studentId = match[1].trim();
-      
-      await this.sendMessage(chatId, `
-📋 **Registration Method Changed**
 
-The \`/register\` command is no longer available.
-
-**If you don't have a SUTD account yet:**
-Use: \`/signup ${studentId}\`
-
-**If you already have an account:**
-Please contact support to link your existing account to Telegram.
-
-**Note:** All new accounts must be created via \`/signup\` which automatically links your Telegram.
-      `);
+      await this.handleRegisterCommand(chatId, studentId, msg.from);
     });
 
     // Handle /signup command with student ID for new signup flow
@@ -151,10 +139,13 @@ You need to link your Telegram account to your SUTD student account.
 Use: \`/signup YOUR_STUDENT_ID\`
 Example: \`/signup 1009999\`
 
-This will create a new account instantly via Telegram!
+**If you already have a SUTD account:**
+Use: \`/register YOUR_STUDENT_ID\`
+Example: \`/register 1009999\`
 
 **Available commands:**
 /signup [student_id] - Create new SUTD account via Telegram
+/register [student_id] - Link existing SUTD account to Telegram
 /status - Check your registration status
 /help - Show this help message
     `;
@@ -342,6 +333,7 @@ Sorry, there was an error checking your status. Please try again later.
 
 /start - Welcome message and account status
 /signup [student_id] - Create new SUTD account via Telegram
+/register [student_id] - Link existing SUTD account to Telegram
 /unregister - Remove your Telegram account link
 /status - Check your registration status and upcoming events
 /help - Show this help message
@@ -352,27 +344,212 @@ Sorry, there was an error checking your status. Please try again later.
 3. **Get automatic reminders** 30 minutes before events start!
 4. **Use MFA codes** sent via Telegram when logging into the website
 
-**Account Creation:**
-• All new accounts must be created via Telegram using /signup
-• Your Telegram will be automatically linked to your account
-• Each Telegram account can only be linked to one Student ID
-• If you have an existing account, contact support for linking
+**Account Setup:**
+• **New users:** Use \`/signup\` to create a new account
+• **Existing users:** Use \`/register\` to link your existing account
+• **Unlinked users:** Use \`/register\` to relink your account
+• Each Telegram chat can only be linked to one Student ID
 
 **Examples:**
-\`/signup 1009999\`
-\`/status\`
-\`/unregister\`
+\`/signup 1009999\` - Create new account
+\`/register 1009999\` - Link existing account
+\`/status\` - Check account status
+\`/unregister\` - Remove link
 
 **Event Types:**
 🔴 Mandatory events (attendance required)
 🟠 Optional events
 
 **Need help?** Contact the DSUTD tech team through official channels.
-
-**Important:** This bot only works with existing SUTD student accounts. Create your account on the website first if you haven't already.
     `;
 
     await this.sendMessage(chatId, helpMessage);
+  }
+
+  async handleRegisterCommand(chatId, studentId, user) {
+    try {
+      console.log(`Register attempt: Student ID ${studentId}, Chat ID ${chatId}, User: ${user.first_name}`);
+
+      // Validate student ID format
+      if (!/^10[01]\d{4}$/.test(studentId)) {
+        await this.sendMessage(chatId, `
+❌ **Invalid Student ID Format**
+
+Student ID must be in format 100XXXX or 101XXXX where X is a digit from 0-9.
+
+Examples: \`/register 1009999\` or \`/register 1019999\`
+        `);
+        return;
+      }
+
+      // Check if this chat is already linked to any account
+      const existingChatQuery = `
+        SELECT student_id, email
+        FROM users
+        WHERE telegram_chat_id = $1 AND is_active = true
+      `;
+
+      const existingChatResult = await pool.query(existingChatQuery, [chatId]);
+
+      if (existingChatResult.rows.length > 0) {
+        const linkedUser = existingChatResult.rows[0];
+        await this.sendMessage(chatId, `
+⚠️ **Chat Already Linked**
+
+This Telegram chat is already linked to an account:
+👤 Student ID: ${linkedUser.student_id}
+📧 Email: ${linkedUser.email}
+
+If you want to link a different account:
+1. Use \`/unregister\` first to unlink current account
+2. Then use \`/register ${studentId}\` to link the new account
+
+If this is the correct account, you're already set up! Use \`/status\` to check.
+        `);
+        return;
+      }
+
+      // Check if the target student account exists and is verified
+      const userQuery = `
+        SELECT id, student_id, email, email_verified, telegram_chat_id, is_active
+        FROM users
+        WHERE student_id = $1
+      `;
+
+      const userResult = await pool.query(userQuery, [studentId]);
+
+      if (userResult.rows.length === 0) {
+        await this.sendMessage(chatId, `
+❌ **Account Not Found**
+
+No account found for Student ID "${studentId}".
+
+**If you don't have an account yet:**
+Use: \`/signup ${studentId}\` to create a new account.
+
+**If you believe this is an error:**
+Contact support for assistance.
+        `);
+        return;
+      }
+
+      const targetUser = userResult.rows[0];
+
+      // Check if account is active
+      if (!targetUser.is_active) {
+        await this.sendMessage(chatId, `
+❌ **Account Inactive**
+
+The account for Student ID "${studentId}" is currently inactive.
+
+Please contact support to reactivate your account.
+        `);
+        return;
+      }
+
+      // Check if email is verified
+      if (!targetUser.email_verified) {
+        await this.sendMessage(chatId, `
+❌ **Email Not Verified**
+
+The account for Student ID "${studentId}" has not been email verified yet.
+
+Please verify your email first through the website, then try registering again.
+        `);
+        return;
+      }
+
+      // Check if account is already linked to another Telegram chat
+      if (targetUser.telegram_chat_id && targetUser.telegram_chat_id !== chatId) {
+        await this.sendMessage(chatId, `
+⚠️ **Account Already Linked**
+
+Student ID "${studentId}" is already linked to another Telegram chat.
+
+**If you want to switch to this chat:**
+You'll need to unregister from the other chat first, then register here.
+
+**If this is suspicious activity:**
+Contact support immediately.
+        `);
+        return;
+      }
+
+      // Link the account to this chat
+      const linkQuery = `
+        UPDATE users
+        SET telegram_chat_id = $1
+        WHERE id = $2
+        RETURNING student_id, email
+      `;
+
+      const linkResult = await pool.query(linkQuery, [chatId, targetUser.id]);
+
+      if (linkResult.rows.length > 0) {
+        const linkedUser = linkResult.rows[0];
+
+        // Get upcoming events count
+        const eventsCountQuery = `
+          SELECT COUNT(*) as event_count
+          FROM calendar_events ce
+          INNER JOIN event_signups es ON ce.id = es.event_id
+          WHERE es.user_id = $1
+            AND ce.is_active = true
+            AND ce.status = 'approved'
+            AND (ce.event_date > CURRENT_DATE OR
+                 (ce.event_date = CURRENT_DATE AND ce.start_time > CURRENT_TIME))
+        `;
+
+        const eventsCount = await pool.query(eventsCountQuery, [targetUser.id]);
+        const upcomingEvents = eventsCount.rows[0].event_count || 0;
+
+        await this.sendMessage(chatId, `
+✅ **Account Successfully Linked**
+
+${user.first_name || 'Student'}, your Telegram is now linked to your SUTD account!
+
+**Linked Account:**
+👤 Student ID: ${linkedUser.student_id}
+📧 Email: ${linkedUser.email}
+📲 Telegram: Linked to this chat
+📅 Upcoming Events: ${upcomingEvents}
+
+**What's Next:**
+🔔 You'll receive event reminders 30 minutes before they start
+🌐 You can now use Telegram MFA when logging into the website
+📱 Use \`/status\` to see your upcoming events
+
+**Available Commands:**
+/status - Check your upcoming events and account info
+/unregister - Remove Telegram link (if needed)
+/help - Show all available commands
+        `);
+
+        console.log(`✅ User ${linkedUser.student_id} successfully linked to telegram chat ${chatId}`);
+      } else {
+        await this.sendMessage(chatId, `
+❌ **Linking Failed**
+
+There was an issue linking your account. Please try again.
+
+If the problem persists, contact support.
+        `);
+      }
+
+    } catch (error) {
+      console.error('❌ Error in register command:', error);
+      await this.sendMessage(chatId, `
+❌ **System Error**
+
+Sorry, there was a technical error processing your registration.
+
+**Please try again in a few minutes.**
+
+If the problem persists, please contact the DSUTD tech team.
+
+Error logged at: ${new Date().toISOString()}
+      `);
+    }
   }
 
   async handleSignupCommand(chatId, studentId, user) {
@@ -408,8 +585,11 @@ Examples: \`/signup 1009999\` or \`/signup 1019999\`
 
 Student ID "${studentId}" is already registered and verified.
 
-If this is your account, use \`/register ${studentId}\` to link your Telegram.
-If this is not your account, please contact support.
+**To link your existing account to Telegram:**
+Use: \`/register ${studentId}\`
+
+**If this is not your account:**
+Please contact support for assistance.
           `);
         } else {
           await this.sendMessage(chatId, `

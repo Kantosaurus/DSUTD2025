@@ -369,7 +369,16 @@ WHERE title = 'Scratch Programming Workshop'
   AND end_time = '20:30:00'
   AND location = 'Computer Lab';
 
--- 17. Verify the changes made
+-- 17. Update Writer's Block Meetup description
+UPDATE calendar_events 
+SET description = 'Casual gathering of Writer''s Block members',
+    updated_at = CURRENT_TIMESTAMP
+WHERE title = 'Writer''s Block Meetup' 
+  AND event_date = '2025-10-01'
+  AND start_time = '19:00:00'
+  AND location = 'Literature Lounge';
+
+-- 18. Verify the changes made
 SELECT 'Mechanical Keyboard Workshop Update' as change_type, COUNT(*) as affected_rows
 FROM calendar_events 
 WHERE title = 'Mechanical Keyboard Interest Group' 
@@ -519,7 +528,15 @@ FROM calendar_events
 WHERE title = 'SCRATCH'
   AND event_date IN ('2025-09-16', '2025-09-17')
   AND location = 'TBC'
-  AND description = 'Music to your ears';
+  AND description = 'Music to your ears'
+
+UNION ALL
+
+SELECT 'Writer''s Block Description Updated' as change_type, COUNT(*) as affected_rows
+FROM calendar_events 
+WHERE title = 'Writer''s Block Meetup'
+  AND event_date = '2025-10-01'
+  AND description = 'Casual gathering of Writer''s Block members';
 
 -- Commit the transaction
 COMMIT;
