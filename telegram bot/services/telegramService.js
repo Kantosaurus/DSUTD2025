@@ -276,10 +276,9 @@ Use \`/register YOUR_STUDENT_ID\` to get started!
         FROM calendar_events ce
         INNER JOIN event_signups es ON ce.id = es.event_id
         INNER JOIN users u ON es.user_id = u.id
-        WHERE u.telegram_chat_id = $1 
-          AND ce.is_active = true 
-          AND ce.status = 'approved'
-          AND (ce.event_date > CURRENT_DATE OR 
+        WHERE u.telegram_chat_id = $1
+          AND ce.is_active = true
+          AND (ce.event_date > CURRENT_DATE OR
                (ce.event_date = CURRENT_DATE AND ce.start_time > CURRENT_TIME))
         ORDER BY ce.event_date ASC, ce.start_time ASC
         LIMIT 5
@@ -495,7 +494,6 @@ Contact support immediately.
           INNER JOIN event_signups es ON ce.id = es.event_id
           WHERE es.user_id = $1
             AND ce.is_active = true
-            AND ce.status = 'approved'
             AND (ce.event_date > CURRENT_DATE OR
                  (ce.event_date = CURRENT_DATE AND ce.start_time > CURRENT_TIME))
         `;
